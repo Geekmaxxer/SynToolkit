@@ -1,0 +1,20 @@
+# SynToolkit
+
+This repository contains the SynToolkit made with C# and WinAppSDK.
+
+## Contributing
+Want to help fix a bug or build a new feature? Open the [Issues](https://github.com/Synergy-Tweaks/SynToolkit/issues) tab to see individual tickets, or check the [project board](https://github.com/orgs/Synergy-Tweaks/projects) for a status view of what's in progress.
+
+## How do I contribute?
+
+The SynToolkit uses C# and uses Win Ui 3 as the Framework, which is best programmed using [Visual Studio](https://visualstudio.microsoft.com/vs/), 
+
+1. Once you've cloned the repository, you can run the `SynToolkit.sln` file to launch the solution and code.
+
+You can now make all your changes and view them live!
+
+## Credits
+- [WinUI 3 Gallery](https://apps.microsoft.com/detail/9P3JFPWWDZRC) for many aspects of the Toolbox and for the home page tile galery
+- [Windows Community Toolkit Gallery](https://apps.microsoft.com/detail/9NBLGGH4TLCQ) for aspects of the app such as settings cards and expanders
+- [Atlas Toolbox used as Base Code to get Started](https://github.com/Atlas-OS/atlas-toolbox)
+
