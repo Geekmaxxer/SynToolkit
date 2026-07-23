@@ -14,7 +14,7 @@ The SynToolkit uses C# and uses Win Ui 3 as the Framework, which is best program
 You can now make all your changes and view them live!
 
 ## Credits
-- [WinUI 3 Gallery](https://apps.microsoft.com/detail/9P3JFPWWDZRC) for many aspects of the Toolbox and for the home page tile galery
-- [Windows Community Toolkit Gallery](https://apps.microsoft.com/detail/9NBLGGH4TLCQ) for aspects of the app such as settings cards and expanders
-- [Atlas Toolbox used as Base Code to get Started](https://github.com/Atlas-OS/atlas-toolbox)
+- [WinUI 3 Gallery](https://apps.microsoft.com/detail/9P3JFPWWDZRC) for many aspects of the Toolbox and for the home page tile galery.
+- [Windows Community Toolkit Gallery](https://apps.microsoft.com/detail/9NBLGGH4TLCQ) for aspects of the app such as settings cards and expanders.
+- [Atlas Toolbox](https://github.com/Atlas-OS/atlas-toolbox) used as Base Code of the Toolkit to get Started.
 
