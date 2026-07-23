@@ -1,0 +1,379 @@
+#define MyAppName "SynToolkit"
+#ifndef MyAppVersion
+  #define MyAppVersion "1.5.1"
+#endif
+#define MyAppPublisher "Kwanteks"
+#define MyAppURL "https://github.com/kwanteks/synergyos"
+#define MyAppExeName "SynToolkit.exe"
+#define AppChannel "Stable"
+
+[Setup]
+AppId={{FE4CD776-C158-49D7-8B5F-F73D3D342E8C}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
+AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}
+AppUpdatesURL={#MyAppURL}
+VersionInfoVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName} Setup
+VersionInfoProductName={#MyAppName}
+DefaultDirName={autopf}\Synergy\{#MyAppName}
+DefaultGroupName={#MyAppName}
+DisableDirPage=no
+DisableProgramGroupPage=yes
+PrivilegesRequired=admin
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+MinVersion=10.0.22000
+UninstallDisplayName={#MyAppName}
+UninstallDisplayIcon={app}\{#MyAppExeName}
+SetupIconFile=..\SynToolkit\Assets\Logo\SynToolkit.ico
+WizardImageFile=Synergy\Assets\WizardImage.bmp
+WizardSmallImageFile=Synergy\Assets\WizardSmallImage.bmp
+LicenseFile=..\LICENSE
+OutputDir=Output
+OutputBaseFilename=SynToolkit-Setup-{#MyAppVersion}
+Compression=lzma2/ultra64
+SolidCompression=yes
+WizardStyle=modern
+; Restrict Restart Manager to SynToolkit itself. This prevents Setup from
+; trying to close unrelated applications that merely loaded a published DLL.
+CloseApplications=yes
+CloseApplicationsFilter={#MyAppExeName}
+RestartApplications=no
+UsePreviousAppDir=yes
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Dirs]
+Name: "{commonappdata}\Synergy\Profiles"; Permissions: users-modify; Flags: uninsneveruninstall
+
+[Files]
+Source: "..\artifacts\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
+Source: "..\THIRD-PARTY-NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Synergy\*"; DestDir: "{commonappdata}\Synergy"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Registry]
+; Remove installer-owned values without deleting saved tweak snapshots that may
+; still be needed for a later verified revert after reinstall.
+Root: HKLM; Subkey: "Software\SynToolkit"; ValueType: string; ValueName: "Channel"; ValueData: "{#AppChannel}"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\SynToolkit"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\SynToolkit"; ValueType: string; ValueName: "lang"; ValueData: "en_us"; Flags: createvalueifdoesntexist
+
+[Icons]
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#MyAppExeName}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#MyAppExeName}"
+
+[Run]
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent runascurrentuser
+
+[InstallDelete]
+; Retired files from earlier FE4 SynToolkit builds. These are exact
+; installer-owned paths only; Profiles, snapshots, and unknown legacy folders
+; are never removed.
+Type: files; Name: "{app}\BcdSharp.dll"
+Type: files; Name: "{commonappdata}\Synergy\PostInstall.cmd"
+Type: files; Name: "{commonappdata}\Synergy\PostInstall\PrepareDirectories.cmd"
+Type: files; Name: "{commonappdata}\Synergy\PostInstall\ValidatePayload.cmd"
+Type: files; Name: "{commonappdata}\Synergy\PostInstall\WriteInstallState.cmd"
+Type: dirifempty; Name: "{commonappdata}\Synergy\PostInstall"
+Type: files; Name: "{commonappdata}\Synergy\Scripts\StaticIP\AutomaticallySetStaticIP.cmd"
+Type: files; Name: "{commonappdata}\Synergy\Scripts\StaticIP\RevertStaticIP.cmd"
+Type: dirifempty; Name: "{commonappdata}\Synergy\Scripts\StaticIP"
+Type: files; Name: "{commonappdata}\Synergy\Scripts\Copilot\DisableMicrosoftCopilot.cmd"
+Type: files; Name: "{commonappdata}\Synergy\Scripts\Copilot\EnableMicrosoftCopilot.cmd"
+Type: dirifempty; Name: "{commonappdata}\Synergy\Scripts\Copilot"
+Type: files; Name: "{commonappdata}\Synergy\Scripts\SuperFetch\DisableSuperFetch.cmd"
+Type: files; Name: "{commonappdata}\Synergy\Scripts\SuperFetch\EnableSuperFetch.cmd"
+Type: dirifempty; Name: "{commonappdata}\Synergy\Scripts\SuperFetch"
+Type: files; Name: "{commonappdata}\Synergy\Scripts\Troubleshooting\Fix Errors 2502 and 2503.cmd"
+Type: files; Name: "{commonappdata}\Synergy\Scripts\Troubleshooting\TroubleshootingNetwork\SynToolkitDefaults.cmd"
+Type: files; Name: "{commonappdata}\Synergy\ConfigurationServices\FileSharing\disable.cmd"
+Type: files; Name: "{commonappdata}\Synergy\ConfigurationServices\FileSharing\enable.cmd"
+Type: dirifempty; Name: "{commonappdata}\Synergy\ConfigurationServices\FileSharing"
+
+[UninstallDelete]
+Type: files; Name: "{commonappdata}\Synergy\PostInstall.log"
+Type: files; Name: "{commonappdata}\Synergy\InstallState.ini"
+Type: files; Name: "{commonappdata}\Synergy\InstallState.ini.tmp"
+
+[Code]
+function LegacySynToolkitInstalled(): Boolean;
+var
+  DisplayName: String;
+  Publisher: String;
+  DisplayVersion: String;
+begin
+  Result :=
+    RegQueryStringValue(
+      HKLM64,
+      'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{98A41650-0BAA-476E-A372-01B5FB0A76FA}_is1',
+      'DisplayName',
+      DisplayName) and
+    RegQueryStringValue(
+      HKLM64,
+      'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{98A41650-0BAA-476E-A372-01B5FB0A76FA}_is1',
+      'Publisher',
+      Publisher) and
+    RegQueryStringValue(
+      HKLM64,
+      'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{98A41650-0BAA-476E-A372-01B5FB0A76FA}_is1',
+      'DisplayVersion',
+      DisplayVersion) and
+    (CompareText(Trim(DisplayName), 'Syntoolkit') = 0) and
+    (CompareText(Trim(Publisher), 'Kwanteks') = 0) and
+    (CompareText(Trim(DisplayVersion), '1.5.0') = 0);
+end;
+
+function InitializeSetup(): Boolean;
+begin
+  Result := True;
+  if not IsWin64 then
+  begin
+    MsgBox('{#MyAppName} requires a 64-bit version of Windows.', mbError, MB_OK);
+    Result := False;
+    exit;
+  end;
+
+  if LegacySynToolkitInstalled() then
+  begin
+    MsgBox(
+      'An older Kwanteks Syntoolkit 1.5.0 registration was found.' + #13#10 + #13#10 +
+      'This Setup will install SynToolkit side by side in its isolated Synergy folder. It will not delete, overwrite, or run the older product or its support files.' + #13#10 + #13#10 +
+      'Original legacy profiles remain untouched. On first launch, SynToolkit will copy valid profile JSON into its isolated Synergy profile folder without applying it. Review the older product separately before uninstalling it, especially on a customized Windows or Playbook installation.',
+      mbInformation,
+      MB_OK);
+  end;
+end;
+
+function WaitForSynToolkitToExit(Attempts: Integer): Boolean;
+var
+  Attempt: Integer;
+begin
+  for Attempt := 1 to Attempts do
+  begin
+    if (not CheckForMutexes('Global\SynToolkit-FE4CD776-C158-49D7-8B5F-F73D3D342E8C')) and
+       (not CheckForMutexes('SynToolkit-FE4CD776-C158-49D7-8B5F-F73D3D342E8C')) then
+    begin
+      Result := True;
+      exit;
+    end;
+
+    Sleep(100);
+  end;
+
+  Result := (not CheckForMutexes('Global\SynToolkit-FE4CD776-C158-49D7-8B5F-F73D3D342E8C')) and
+            (not CheckForMutexes('SynToolkit-FE4CD776-C158-49D7-8B5F-F73D3D342E8C'));
+end;
+
+function ForceCloseInstalledSynToolkit(AppPath: String): Boolean;
+var
+  ResultCode: Integer;
+  ScriptPath: String;
+  CompletePath: String;
+  ScriptBody: String;
+  Attempt: Integer;
+begin
+  ScriptPath := ExpandConstant('{tmp}\SynToolkit-CloseExact.ps1');
+  CompletePath := ExpandConstant('{tmp}\SynToolkit-CloseExact.done');
+  DeleteFile(CompletePath);
+
+  ScriptBody :=
+    'param([Parameter(Mandatory=$true)][string]$TargetPath,[Parameter(Mandatory=$true)][string]$CompletePath)' + #13#10 +
+    '$ErrorActionPreference = ''SilentlyContinue''' + #13#10 +
+    '$target = [IO.Path]::GetFullPath($TargetPath)' + #13#10 +
+    '$processes = @(Get-Process -Name ''SynToolkit'' -ErrorAction SilentlyContinue)' + #13#10 +
+    'foreach ($process in $processes) {' + #13#10 +
+    '  try {' + #13#10 +
+    '    if ([IO.Path]::GetFullPath($process.Path) -ieq $target) {' + #13#10 +
+    '      Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue' + #13#10 +
+    '      Wait-Process -Id $process.Id -Timeout 5 -ErrorAction SilentlyContinue' + #13#10 +
+    '    }' + #13#10 +
+    '  } catch {}' + #13#10 +
+    '}' + #13#10 +
+    '[IO.File]::WriteAllText($CompletePath, ''done'')' + #13#10;
+
+  if not SaveStringToFile(ScriptPath, ScriptBody, False) then
+  begin
+    Log('Unable to create the path-qualified SynToolkit shutdown helper.');
+    Result := False;
+    exit;
+  end;
+
+  Log('Forcing only the installed SynToolkit process to close.');
+  if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+    '-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ' + AddQuotes(ScriptPath) +
+    ' -TargetPath ' + AddQuotes(AppPath) + ' -CompletePath ' + AddQuotes(CompletePath),
+    ExpandConstant('{tmp}'), SW_HIDE, ewNoWait, ResultCode) then
+  begin
+    Log('Unable to start the path-qualified SynToolkit shutdown helper.');
+    Result := False;
+    exit;
+  end;
+
+  for Attempt := 1 to 100 do
+  begin
+    if FileExists(CompletePath) then
+      break;
+    Sleep(100);
+  end;
+
+  Result := FileExists(CompletePath) and WaitForSynToolkitToExit(50);
+  DeleteFile(CompletePath);
+  DeleteFile(ScriptPath);
+end;
+
+function CloseRunningSynToolkit(): Boolean;
+var
+  ResultCode: Integer;
+  AppPath: String;
+begin
+  if (not CheckForMutexes('Global\SynToolkit-FE4CD776-C158-49D7-8B5F-F73D3D342E8C')) and
+     (not CheckForMutexes('SynToolkit-FE4CD776-C158-49D7-8B5F-F73D3D342E8C')) then
+  begin
+    Result := True;
+    exit;
+  end;
+
+  AppPath := ExpandConstant('{app}\{#MyAppExeName}');
+  if FileExists(AppPath) then
+  begin
+    Log('Requesting a graceful SynToolkit shutdown.');
+    Exec(AppPath, '--shutdown-for-update', ExpandConstant('{app}'), SW_HIDE,
+      ewNoWait, ResultCode);
+
+    if WaitForSynToolkitToExit(100) then
+    begin
+      Result := True;
+      exit;
+    end;
+  end;
+
+  // Older builds may not understand --shutdown-for-update. The fallback is
+  // path-qualified and never terminates similarly named apps or child tweaks.
+  Result := ForceCloseInstalledSynToolkit(AppPath);
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  if CloseRunningSynToolkit() then
+    Result := ''
+  else
+    Result := 'SynToolkit is still running. Close it in Task Manager, then click Retry.';
+end;
+
+procedure RequireInstalledFile(Path: String; var MissingFiles: String);
+var
+  InstalledSize: Int64;
+begin
+  if (not FileExists(Path)) or
+     (not FileSize64(Path, InstalledSize)) or
+     (InstalledSize <= 0) then
+  begin
+    if MissingFiles <> '' then
+      MissingFiles := MissingFiles + #13#10;
+    MissingFiles := MissingFiles + Path;
+  end;
+end;
+
+procedure RunPostInstallPreparation();
+var
+  AppRoot: String;
+  SynergyRoot: String;
+  MissingFiles: String;
+  StateText: String;
+  LogText: String;
+begin
+  AppRoot := ExpandConstant('{app}');
+  SynergyRoot := ExpandConstant('{commonappdata}\Synergy');
+  MissingFiles := '';
+
+  RequireInstalledFile(AppRoot + '\{#MyAppExeName}', MissingFiles);
+  RequireInstalledFile(AppRoot + '\LICENSE.txt', MissingFiles);
+  RequireInstalledFile(AppRoot + '\THIRD-PARTY-NOTICES.md', MissingFiles);
+  RequireInstalledFile(AppRoot + '\assets\Fonts\OFL-Archivo.txt', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Assets\SynToolkit.ico', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Assets\Blank.ico', MissingFiles);
+
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\ContextMenuTerminals\ContextMenuTerminals_0.reg', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\ContextMenuTerminals\ContextMenuTerminals_1.reg', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\ContextMenuTerminals\ContextMenuTerminals_2.reg', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\Mitigations\Mitigations_0.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\Mitigations\Mitigations_1.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\Mitigations\Mitigations_2.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\SafeMode\SafeMode_0.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\SafeMode\SafeMode_1.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\SafeMode\SafeMode_2.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\SafeMode\SafeMode_3.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\ShortcutIcon\ShortcutIcon_1.reg', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\ShortcutIcon\ShortcutIcon_2.reg', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\ConfigurationServices\ShortcutIcon\ShortcutIcon_3.reg', MissingFiles);
+
+  RequireInstalledFile(SynergyRoot + '\Scripts\toggleDefender.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\vbsCurrentConfig.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\viewBootValues.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\NVidia\DisableNVIDIADisplayContainerLS.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\NVidia\EnableNVIDIADisplayContainerLS.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\NVidia\NVIDIADisplayContainerState.ps1', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\SecurityHealthTray\AddTray.reg', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\SecurityHealthTray\RemoveTray.reg', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\Troubleshooting\Repair Windows Installer.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\Troubleshooting\Repair Windows Components.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\Troubleshooting\Telemetry Components.cmd', MissingFiles);
+  RequireInstalledFile(SynergyRoot + '\Scripts\Troubleshooting\TroubleshootingNetwork\WindowsDefaults.cmd', MissingFiles);
+
+  if MissingFiles <> '' then
+  begin
+    Log('Installed support payload validation failed:' + #13#10 + MissingFiles);
+    RaiseException(
+      'SynToolkit support-file validation failed. The following installed files are missing:' + #13#10 + #13#10 + MissingFiles);
+  end;
+
+  StateText :=
+    '[SynToolkit]' + #13#10 +
+    'Product=SynToolkit' + #13#10 +
+    'SupportRoot=Synergy' + #13#10 +
+    'SchemaVersion=1' + #13#10 +
+    'Version={#MyAppVersion}' + #13#10 +
+    'ApplicationPath=' + AppRoot + #13#10 +
+    'DataPath=' + SynergyRoot + #13#10 +
+    'Completed=1' + #13#10;
+  if not SaveStringToFile(SynergyRoot + '\InstallState.ini', StateText, False) then
+    RaiseException('SynToolkit Setup could not write its installation state.');
+
+  LogText :=
+    'SynToolkit {#MyAppVersion} support payload validated by Setup.' + #13#10 +
+    'No tweak, power plan, service, registry, Bluetooth, or Xbox action was executed.' + #13#10;
+  if not SaveStringToFile(SynergyRoot + '\PostInstall.log', LogText, False) then
+    RaiseException('SynToolkit Setup could not write its post-install validation log.');
+
+  Log('Installed Synergy support payload validation completed without executing tweak scripts.');
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+    RunPostInstallPreparation();
+end;
+
+function InitializeUninstall(): Boolean;
+var
+  Response: Integer;
+begin
+  Result := CloseRunningSynToolkit();
+  while not Result do
+  begin
+    Response := MsgBox(
+      'SynToolkit is still running and its files cannot be removed safely.' + #13#10 + #13#10 +
+      'Use Exit SynToolkit from the system-tray menu or close it in Task Manager, then click Retry.',
+      mbError, MB_RETRYCANCEL);
+    if Response <> IDRETRY then
+      exit;
+    Result := CloseRunningSynToolkit();
+  end;
+end;

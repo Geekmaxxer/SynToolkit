@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="SynToolkit.Views.AdjustmentsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Loaded="Page_Loaded"
+    Unloaded="Page_Unloaded"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <Style x:Key="CategoryTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,8,0,10" />
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer>
+        <StackPanel Margin="55,0,0,48">
+            <TextBlock
+                Margin="0,24,36,8"
+                Style="{StaticResource TitleTextBlockStyle}"
+                Text="Adjustments" />
+            <TextBlock
+                Margin="0,0,36,24"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Identity and local account settings that don't have a Windows Settings page on this system."
+                TextWrapping="Wrap" />
+
+            <InfoBar
+                x:Name="ElevationInfoBar"
+                Margin="0,0,36,18"
+                IsClosable="False"
+                IsOpen="False"
+                Message="Administrator access is required to make identity and account changes. Restart SynToolkit as administrator."
+                Severity="Warning"
+                Title="Administrator access required" />
+
+            <InfoBar
+                x:Name="OperationInfoBar"
+                Margin="0,0,36,18"
+                IsClosable="True"
+                IsOpen="False" />
+
+            <TextBlock Style="{StaticResource CategoryTitle}" Text="Identity" />
+
+            <controls:SettingsExpander
+                Margin="0,0,36,10"
+                Header="Account"
+                Description="Change the signed-in user's identity."
+                Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
+                <controls:SettingsExpander.HeaderIcon>
+                    <ImageIcon Source="ms-appx:///assets/Icons/UserAccount.png" />
+                </controls:SettingsExpander.HeaderIcon>
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Header="Change password" Description="Set a new password for the signed-in account.">
+                        <Button x:Name="ChangePasswordButton" Click="ChangePasswordButton_Click" Content="Change" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Change display name" Description="Set the name shown on the sign-in and Start screens.">
+                        <Button x:Name="ChangeDisplayNameButton" Click="ChangeDisplayNameButton_Click" Content="Change" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Change Administrator password" Description="Set a new password for the built-in Administrator account.">
+                        <Button x:Name="ChangeAdminPasswordButton" Click="ChangeAdminPasswordButton_Click" Content="Change" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+            <controls:SettingsExpander
+                Margin="0,0,36,10"
+                Header="Images"
+                Description="Change the profile picture and lock screen image."
+                Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
+                <controls:SettingsExpander.HeaderIcon>
+                    <ImageIcon Source="ms-appx:///assets/Icons/Display.png" />
+                </controls:SettingsExpander.HeaderIcon>
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Header="Change profile picture" Description="Choose an image file to use as the account picture.">
+                        <Button x:Name="ChangeProfilePictureButton" Click="ChangeProfilePictureButton_Click" Content="Choose image" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Change lock screen image" Description="Choose an image file to use as the lock screen background.">
+                        <Button x:Name="ChangeLockscreenImageButton" Click="ChangeLockscreenImageButton_Click" Content="Choose image" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+            <controls:SettingsExpander
+                Margin="0,0,36,10"
+                Header="Keyboard language"
+                Description="Add or remove a keyboard input language."
+                Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
+                <controls:SettingsExpander.HeaderIcon>
+                    <ImageIcon Source="ms-appx:///assets/Icons/Language.png" />
+                </controls:SettingsExpander.HeaderIcon>
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard
+                        Header="Add keyboard language"
+                        Description="Requires a language tag and keyboard identifier, e.g. en-US:00000409. See Microsoft's published language-pack and keyboard-identifier tables.">
+                        <Button x:Name="AddKeyboardLanguageButton" Click="AddKeyboardLanguageButton_Click" Content="Add" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard
+                        Header="Remove keyboard language"
+                        Description="Requires the same language tag and keyboard identifier used to add it.">
+                        <Button x:Name="RemoveKeyboardLanguageButton" Click="RemoveKeyboardLanguageButton_Click" Content="Remove" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

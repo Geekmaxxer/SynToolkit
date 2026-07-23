@@ -1,0 +1,13 @@
+using Microsoft.Dism;
+
+namespace SynToolkit.Services
+{
+    public interface IDismService
+    {
+        DismPackageFeatureState GetFeatureState(string featureName);
+        bool IsFeatureStateMatch(string featureName, DismPackageFeatureState featureState);
+        void EnableFeature(string featureName);
+        void DisableFeature(string featureName);
+        void RemoveProvisionedAppxPackage(string packageName);
+    }
+}

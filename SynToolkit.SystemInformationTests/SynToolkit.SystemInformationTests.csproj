@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- This zero-package test runner has nothing for NuGet to audit. -->
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\SynToolkit\Commands\AsyncCommandBase.cs" Link="Commands\AsyncCommandBase.cs" />
+    <Compile Include="..\SynToolkit\Models\SystemInformationSnapshot.cs" Link="Models\SystemInformationSnapshot.cs" />
+    <Compile Include="..\SynToolkit\Services\AmePlaybookDetector.cs" Link="Services\AmePlaybookDetector.cs" />
+    <Compile Include="..\SynToolkit\Services\Bcd\BcdContract.cs" Link="Services\Bcd\BcdContract.cs" />
+    <Compile Include="..\SynToolkit\Services\Bcd\IBcdWmiProvider.cs" Link="Services\Bcd\IBcdWmiProvider.cs" />
+    <Compile Include="..\SynToolkit\Services\BcdService.cs" Link="Services\BcdService.cs" />
+    <Compile Include="..\SynToolkit\Services\IBcdService.cs" Link="Services\IBcdService.cs" />
+    <Compile Include="..\SynToolkit\Services\LegacyProfileMigrationPolicy.cs" Link="Services\LegacyProfileMigrationPolicy.cs" />
+    <Compile Include="..\SynToolkit\Services\LegacyProfileMigrationService.cs" Link="Services\LegacyProfileMigrationService.cs" />
+    <Compile Include="..\SynToolkit\Services\SystemInformationService.cs" Link="Services\SystemInformationService.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,23 @@
+using SynToolkit.Enums;
+using Microsoft.UI.Xaml.Controls;
+
+namespace SynToolkit.Models
+{
+    public class Configuration
+    {
+        public string Name { get; set; }
+        public string Key { get; set; }
+        public ConfigurationType Type { get; set; }
+        public string Icon { get; set; }
+        public string Description { get; set; }
+
+        public Configuration(string name, string key, ConfigurationType type, string icon = "\uE897")
+        {
+            Name = name;
+            Key = key;
+            Type = type;
+            Icon = icon;
+            Description = App.GetValueFromItemList(key, true);
+        }
+    }
+}

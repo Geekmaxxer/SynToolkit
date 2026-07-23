@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="SynToolkit.Views.GpuPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:SynToolkit.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:nvidia="using:SynToolkit.Services.NvidiaProfileInspector"
+    xmlns:radeon="using:SynToolkit.Services.RadeonSlimmer"
+    xmlns:viewmodel="using:SynToolkit.ViewModels"
+    d:DataContext="{d:DesignInstance Type=viewmodel:GpuPageViewModel}"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <Style x:Key="GroupHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,20,0,10" />
+        </Style>
+        <Style x:Key="SubGroupHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,8,0,8" />
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="55,0,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Grid.Row="0"
+            Margin="0,24,36,8"
+            Style="{StaticResource TitleTextBlockStyle}"
+            Text="GPU" />
+        <StackPanel Grid.Row="1" Margin="0,0,36,18">
+            <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Import a downloaded AMD Radeon Software installer and remove bloat components before installing, or import an NVIDIA Profile Inspector .nip file and apply it to the driver."
+                TextWrapping="Wrap" />
+            <TextBlock
+                Margin="0,6,0,0"
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                Text="{Binding DetectedGpuSummary, Mode=OneWay}" />
+        </StackPanel>
+
+        <InfoBar
+            x:Name="ErrorInfoBar"
+            Grid.Row="2"
+            Margin="0,0,36,18"
+            IsClosable="True"
+            IsOpen="{Binding HasError, Mode=OneWay}"
+            Message="{Binding StatusMessage, Mode=OneWay}"
+            Severity="Error"
+            Title="GPU" />
+
+        <ScrollViewer Grid.Row="3">
+            <StackPanel Margin="0,0,36,48">
+
+                <!--  AMD Radeon Software slimmer  -->
+                <TextBlock Style="{StaticResource GroupHeader}" Text="AMD Radeon Software slimmer" />
+                <InfoBar
+                    Margin="0,0,0,10"
+                    IsClosable="False"
+                    IsOpen="{Binding NoAmdGpuDetected, Mode=OneWay}"
+                    Message="No AMD GPU was detected on this system. This section is unavailable."
+                    Severity="Informational" />
+
+                <ContentControl
+                    HorizontalContentAlignment="Stretch"
+                    VerticalContentAlignment="Stretch"
+                    IsEnabled="{Binding HasAmdGpu, Mode=OneWay}"
+                    IsTabStop="False">
+                <StackPanel>
+
+                    <!--  Step 1: select installer  -->
+                    <StackPanel x:Name="SelectInstallerPanel" Margin="0,0,0,10">
+                        <controls:SettingsCard
+                            Margin="0,0,0,10"
+                            Description="{Binding InstallerFilePath, Mode=OneWay}"
+                            Header="Radeon Software installer"
+                            Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                            <controls:SettingsCard.HeaderIcon>
+                                <ImageIcon Source="ms-appx:///assets/Icons/Amd.png" />
+                            </controls:SettingsCard.HeaderIcon>
+                            <Button x:Name="BrowseInstallerButton" Click="BrowseInstallerButton_Click" Content="Browse" />
+                        </controls:SettingsCard>
+                        <controls:SettingsCard
+                            Margin="0,0,0,10"
+                            Description="{Binding ExtractionFolderPath, Mode=OneWay}"
+                            Header="Extraction folder"
+                            Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                            <controls:SettingsCard.HeaderIcon>
+                                <ImageIcon Source="ms-appx:///assets/Icons/External.png" />
+                            </controls:SettingsCard.HeaderIcon>
+                            <Button x:Name="BrowseExtractionFolderButton" Click="BrowseExtractionFolderButton_Click" Content="Browse" />
+                        </controls:SettingsCard>
+                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal" Spacing="10">
+                            <Button
+                                x:Name="ExtractButton"
+                                Click="ExtractButton_Click"
+                                Content="Extract and continue"
+                                Style="{StaticResource AccentButtonStyle}" />
+                            <Button
+                                x:Name="SkipExtractionButton"
+                                Click="SkipExtractionButton_Click"
+                                Content="This folder is already extracted" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  Step 2: extracting  -->
+                    <StackPanel
+                        x:Name="ExtractingPanel"
+                        Margin="0,20,0,10"
+                        HorizontalAlignment="Center"
+                        Spacing="14"
+                        Visibility="Collapsed">
+                        <ProgressRing
+                            Width="32"
+                            Height="32"
+                            HorizontalAlignment="Center"
+                            IsActive="True" />
+                        <TextBlock HorizontalAlignment="Center" Text="Extracting installer files..." />
+                    </StackPanel>
+
+                    <!--  Step 3: customize  -->
+                    <StackPanel
+                        x:Name="CustomizePanel"
+                        Margin="0,0,0,10"
+                        Visibility="Collapsed">
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource SubGroupHeader}" Text="Packages" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                <Button Click="KeepAllPackages_Click" Content="Keep all" />
+                                <Button Click="RemoveAllPackages_Click" Content="Remove all" />
+                            </StackPanel>
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding Packages}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="radeon:RadeonPackage">
+                                    <controls:SettingsCard
+                                        Margin="0,0,0,6"
+                                        Description="{x:Bind Description, Mode=OneWay}"
+                                        Header="{x:Bind ProductName, Mode=OneWay}"
+                                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                                        <CheckBox Content="Keep" IsChecked="{x:Bind Keep, Mode=TwoWay}" />
+                                    </controls:SettingsCard>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource SubGroupHeader}" Text="Scheduled tasks" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                <Button Click="EnableAllScheduledTasks_Click" Content="Enable all" />
+                                <Button Click="DisableAllScheduledTasks_Click" Content="Disable all" />
+                            </StackPanel>
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding ScheduledTasks}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="radeon:RadeonScheduledTask">
+                                    <controls:SettingsCard
+                                        Margin="0,0,0,6"
+                                        Description="{x:Bind Command, Mode=OneWay}"
+                                        Header="{x:Bind Description, Mode=OneWay}"
+                                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                                        <CheckBox Content="Enabled" IsChecked="{x:Bind Enabled, Mode=TwoWay}" />
+                                    </controls:SettingsCard>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource SubGroupHeader}" Text="Display driver components" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                <Button Click="KeepAllDisplayComponents_Click" Content="Keep all" />
+                                <Button Click="RemoveAllDisplayComponents_Click" Content="Remove all" />
+                            </StackPanel>
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding DisplayComponents}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="radeon:RadeonDisplayComponent">
+                                    <controls:SettingsCard
+                                        Margin="0,0,0,6"
+                                        Header="{x:Bind Name, Mode=OneWay}"
+                                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                                        <CheckBox Content="Keep" IsChecked="{x:Bind Keep, Mode=TwoWay}" />
+                                    </controls:SettingsCard>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal" Spacing="10">
+                            <Button
+                                x:Name="ApplyAndInstallButton"
+                                Click="ApplyAndInstallButton_Click"
+                                Content="Apply and open installer"
+                                Style="{StaticResource AccentButtonStyle}" />
+                            <Button x:Name="ResetToDefaultsButton" Click="ResetToDefaultsButton_Click" Content="Reset to defaults" />
+                            <Button x:Name="StartOverButton" Click="StartOverButton_Click" Content="Start over" />
+                            <ProgressRing
+                                Width="20"
+                                Height="20"
+                                IsActive="{Binding IsBusy, Mode=OneWay}"
+                                Visibility="{Binding IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  Step 4: done  -->
+                    <StackPanel
+                        x:Name="DonePanel"
+                        Margin="0,20,0,10"
+                        HorizontalAlignment="Center"
+                        Spacing="14"
+                        Visibility="Collapsed">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            FontSize="32"
+                            Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                            Glyph="&#xE930;" />
+                        <TextBlock HorizontalAlignment="Center" Text="The Radeon Software setup was launched. Finish installing there." TextWrapping="Wrap" />
+                        <Button
+                            x:Name="DoneStartOverButton"
+                            HorizontalAlignment="Center"
+                            Click="StartOverButton_Click"
+                            Content="Start over" />
+                    </StackPanel>
+
+                </StackPanel>
+                </ContentControl>
+
+                <!--  NVIDIA Profile Inspector  -->
+                <TextBlock Style="{StaticResource GroupHeader}" Text="NVIDIA Profile Inspector" />
+                <InfoBar
+                    Margin="0,0,0,10"
+                    IsClosable="False"
+                    IsOpen="{Binding NoNvidiaGpuDetected, Mode=OneWay}"
+                    Message="No NVIDIA GPU was detected on this system. This section is unavailable."
+                    Severity="Informational" />
+                <InfoBar
+                    Margin="0,0,0,10"
+                    IsClosable="True"
+                    IsOpen="{Binding HasNvidiaApplyResult, Mode=OneWay}"
+                    Message="{Binding NvidiaApplyResultSummary, Mode=OneWay}"
+                    Severity="Informational" />
+
+                <ContentControl
+                    HorizontalContentAlignment="Stretch"
+                    VerticalContentAlignment="Stretch"
+                    IsEnabled="{Binding HasNvidiaGpu, Mode=OneWay}"
+                    IsTabStop="False">
+                <StackPanel>
+                    <controls:SettingsCard
+                        Margin="0,0,0,10"
+                        Description="{Binding NipFilePath, Mode=OneWay}"
+                        Header=".nip profile file"
+                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/Nvidia.png" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <Button x:Name="BrowseNipFileButton" Click="BrowseNipFileButton_Click" Content="Browse" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard
+                        Margin="0,0,0,10"
+                        Description="Pre-configured profiles bundled with SynToolkit (none ship by default — see assets/NvidiaProfiles/README.txt)."
+                        Header="Pre-configured profiles"
+                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/Nvidia.png" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <ComboBox
+                                x:Name="BundledProfilesComboBox"
+                                Width="220"
+                                DisplayMemberPath="DisplayName"
+                                ItemsSource="{Binding BundledProfiles}"
+                                PlaceholderText="No bundled profiles found" />
+                            <Button x:Name="LoadBundledProfileButton" Click="LoadBundledProfileButton_Click" Content="Load" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <ItemsControl ItemsSource="{Binding NvidiaProfiles}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="nvidia:NvidiaProfile">
+                                <controls:SettingsExpander
+                                    Margin="0,0,0,6"
+                                    Description="{x:Bind ExecutablesSummary, Mode=OneWay}"
+                                    Header="{x:Bind ProfileName, Mode=OneWay}">
+                                    <controls:SettingsExpander.HeaderIcon>
+                                        <ImageIcon Source="ms-appx:///assets/Icons/Games.png" />
+                                    </controls:SettingsExpander.HeaderIcon>
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind Settings.Count, Mode=OneWay}" />
+                                    <controls:SettingsExpander.Items>
+                                        <controls:SettingsCard ContentAlignment="Left">
+                                            <ItemsControl ItemsSource="{x:Bind Settings}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="nvidia:NvidiaProfileSetting">
+                                                        <Grid Margin="0,4,0,4">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="{x:Bind SettingNameInfo, Mode=OneWay}" TextWrapping="Wrap" />
+                                                            <TextBlock
+                                                                Grid.Column="1"
+                                                                Margin="10,0,0,0"
+                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                Text="{x:Bind SettingValue, Mode=OneWay}" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </controls:SettingsCard>
+                                    </controls:SettingsExpander.Items>
+                                </controls:SettingsExpander>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal" Spacing="10">
+                        <Button
+                            x:Name="ApplyNvidiaProfilesButton"
+                            Click="ApplyNvidiaProfilesButton_Click"
+                            Content="Apply to NVIDIA driver"
+                            Style="{StaticResource AccentButtonStyle}" />
+                        <ProgressRing
+                            Width="20"
+                            Height="20"
+                            IsActive="{Binding IsApplyingNvidiaProfiles, Mode=OneWay}"
+                            Visibility="{Binding IsApplyingNvidiaProfiles, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </StackPanel>
+
+                    <!--  Create your own .nip profile  -->
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal" Spacing="8">
+                        <Image
+                            Width="20"
+                            Height="20"
+                            VerticalAlignment="Center"
+                            Source="ms-appx:///assets/Icons/UserAccount.png" />
+                        <TextBlock Style="{StaticResource SubGroupHeader}" Text="Create your own profile" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <controls:SettingsCard
+                        Margin="0,0,0,10"
+                        Header="Profile name"
+                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/UserAccount.png" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <TextBox Width="220" Text="{Binding NewProfileName, Mode=TwoWay}" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard
+                        Margin="0,0,0,10"
+                        Description="Comma-separated executable names, e.g. game.exe, launcher.exe. Leave blank for a base profile that applies to all applications."
+                        Header="Executables"
+                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/Applications.png" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <TextBox Width="220" Text="{Binding NewProfileExecutablesText, Mode=TwoWay}" />
+                    </controls:SettingsCard>
+
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Image
+                                Width="20"
+                                Height="20"
+                                VerticalAlignment="Center"
+                                Source="ms-appx:///assets/Icons/Settings.png" />
+                            <TextBlock VerticalAlignment="Center" Text="Settings" />
+                        </StackPanel>
+                        <Button
+                            x:Name="AddNewSettingButton"
+                            Grid.Column="1"
+                            Click="AddNewSettingButton_Click"
+                            Content="Add setting" />
+                    </Grid>
+
+                    <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding NewProfileSettings}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="nvidia:NvidiaProfileSetting">
+                                <controls:SettingsCard Margin="0,0,0,6" Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                                    <controls:SettingsCard.HeaderIcon>
+                                        <ImageIcon Source="ms-appx:///assets/Icons/Default.png" />
+                                    </controls:SettingsCard.HeaderIcon>
+                                    <controls:SettingsCard.Header>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBox
+                                                Width="150"
+                                                PlaceholderText="Setting name"
+                                                Text="{x:Bind SettingNameInfo, Mode=TwoWay}" />
+                                            <TextBox
+                                                Width="90"
+                                                PlaceholderText="Setting ID"
+                                                Text="{x:Bind SettingIdText, Mode=TwoWay}" />
+                                        </StackPanel>
+                                    </controls:SettingsCard.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <ComboBox
+                                            Width="110"
+                                            SelectedItem="{x:Bind ValueTypeText, Mode=TwoWay}">
+                                            <x:String>Dword</x:String>
+                                            <x:String>AnsiString</x:String>
+                                            <x:String>String</x:String>
+                                            <x:String>Binary</x:String>
+                                            <x:String>Qword</x:String>
+                                        </ComboBox>
+                                        <TextBox
+                                            Width="120"
+                                            PlaceholderText="Value"
+                                            Text="{x:Bind SettingValue, Mode=TwoWay}" />
+                                        <Button Click="RemoveNewSettingButton_Click" Content="Remove" Tag="{x:Bind}" />
+                                    </StackPanel>
+                                </controls:SettingsCard>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal" Spacing="10">
+                        <Image
+                            Width="20"
+                            Height="20"
+                            VerticalAlignment="Center"
+                            Source="ms-appx:///assets/Icons/External.png" />
+                        <Button
+                            x:Name="ExportNewProfileButton"
+                            Click="ExportNewProfileButton_Click"
+                            Content="Export to .nip"
+                            Style="{StaticResource AccentButtonStyle}" />
+                    </StackPanel>
+                </StackPanel>
+                </ContentControl>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

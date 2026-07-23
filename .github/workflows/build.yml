@@ -1,0 +1,52 @@
+name: Build SynToolkit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore
+        run: msbuild SynToolkit.sln /t:Restore /p:Platform=x64 /p:RuntimeIdentifier=win-x64
+
+      - name: Validate embedded SOS power plan
+        shell: pwsh
+        run: |
+          $expected = '5AF6566BBD67663DEA73A8CA9513F5BDF1C882E23E1AEBB5C4C098D0988C2B13'
+          $actual = (Get-FileHash SynToolkit\Assets\PowerPlans\SOS.pow -Algorithm SHA256).Hash
+          if ($actual -ne $expected) { throw "SOS.pow checksum mismatch: $actual" }
+
+      - name: Run non-invasive service tests
+        run: dotnet run --project SynToolkit.SystemInformationTests\SynToolkit.SystemInformationTests.csproj --configuration Release --no-restore
+
+      - name: Publish SynToolkit
+        run: msbuild SynToolkit\SynToolkit.csproj /t:Publish /p:Configuration=Release /p:Platform=x64 /p:RuntimeIdentifier=win-x64 /p:SelfContained=true /p:PublishDir="${{ github.workspace }}\artifacts\publish\"
+
+      - name: Compile setup wizard
+        uses: robin24/inno-setup-action@v1
+        with:
+          filepath: Installer/setup.iss
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: SynToolkit-Setup-1.5.1
+          path: Installer/Output/SynToolkit-Setup-1.5.1.exe
+          if-no-files-found: error

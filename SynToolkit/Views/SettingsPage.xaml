@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="SynToolkit.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:SynToolkit.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewmodel="using:SynToolkit.ViewModels"
+    x:Name="root"
+    d:DataContext="{d:DesignInstance Type=viewmodel:SettingsPageViewModel}"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <Style x:Key="CategoryTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+    </Page.Resources>
+    <ScrollViewer>
+
+        <StackPanel Margin="55,0,0,0">
+            <TextBlock
+                x:Name="TitleTxt"
+                Margin="0,24,36,24"
+                Style="{StaticResource TitleTextBlockStyle}" />
+            <StackPanel x:Name="SettingToggles">
+                <StackPanel x:Name="BehaviorSettings">
+                    <TextBlock x:Name="BehaviorHeader" Style="{StaticResource CategoryTitle}" />
+                    <!--  Close-to-system-tray toggle  -->
+                    <controls:SettingsCard x:Name="BackgroundDescription" Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/External.png" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch x:Name="BackgroundToggle" />
+                    </controls:SettingsCard>
+                    <!--  Discord RPC toggle  -->
+                    <controls:SettingsCard x:Name="DiscordRpcCard" Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/Discord.png" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch x:Name="DiscordRpcToggle" />
+                    </controls:SettingsCard>
+                    <!--  Language settings  -->
+                    <controls:SettingsCard x:Name="LanguageHeader" Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/Language.png" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ComboBox
+                            x:Name="ConfigSwitch"
+                            Width="200"
+                            ItemsSource="{Binding Languages}"
+                            SelectedItem="{Binding CurrentLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </controls:SettingsCard>
+                    <!--  Update settings  -->
+                    <controls:SettingsCard x:Name="Update" Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/Update.png" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock
+                                x:Name="NoUpdatesBar"
+                                Margin="0,0,16,0"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed" />
+                            <ProgressRing
+                                x:Name="ProgressRing"
+                                Width="20"
+                                Height="20"
+                                Margin="0,0,10,0"
+                                IsActive="True"
+                                Visibility="Collapsed" />
+                            <Button x:Name="CheckUpdateButton" Click="CheckUpdateButton_Click" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+                </StackPanel>
+                <!--  Experiments  -->
+                <StackPanel Visibility="Collapsed">
+                    <TextBlock x:Name="ExperimentalHeader" Style="{StaticResource CategoryTitle}" />
+                    <controls:SettingsExpander
+                        x:Name="ExperimentsExpander"
+                        Header="Experiments"
+                        Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
+                        <controls:SettingsExpander.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/Default.png" />
+                        </controls:SettingsExpander.HeaderIcon>
+                        <controls:SettingsExpander.Items>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock x:Name="AboutHeader" Style="{StaticResource CategoryTitle}" />
+                    <!--  About Section  -->
+                    <controls:SettingsExpander Header="SynToolkit" Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
+                        <controls:SettingsExpander.HeaderIcon>
+                            <BitmapIcon ShowAsMonochrome="False" UriSource="/assets/logo/SynToolkit.ico" />
+                        </controls:SettingsExpander.HeaderIcon>
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            IsTextSelectionEnabled="True"
+                            Text="{x:Bind Version}" />
+                        <controls:SettingsExpander.Items>
+                            <controls:SettingsCard
+                                x:Name="toCloneRepoCard"
+                                Click="toCloneRepoCard_Click"
+                                IsClickEnabled="True">
+                                <TextBlock
+                                    x:Name="gitCloneTextBlock"
+                                    FontFamily="Consolas"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    IsTextSelectionEnabled="True"
+                                    Text="git clone https://github.com/kwanteks/synergyos" />
+                                <controls:SettingsCard.ActionIcon>
+                                    <FontIcon Glyph="&#xE8C8;" />
+                                </controls:SettingsCard.ActionIcon>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard
+                                x:Name="bugRequestCard"
+                                Click="bugRequestCard_Click"
+                                IsClickEnabled="True">
+                                <controls:SettingsCard.ActionIcon>
+                                    <FontIcon Glyph="&#xE8A7;" />
+                                </controls:SettingsCard.ActionIcon>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard
+                                x:Name="DependenciesHeader"
+                                HorizontalContentAlignment="Left"
+                                ContentAlignment="Vertical">
+                                <StackPanel Margin="-12,0,0,0" Orientation="Vertical">
+                                    <HyperlinkButton Content="Windows UI Library" NavigateUri="https://learn.microsoft.com/en-us/windows/apps/winui/winui3/" />
+                                    <HyperlinkButton Content="Windows Community Toolkit" NavigateUri="https://github.com/CommunityToolkit/WindowsCommunityToolkit" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard
+                                x:Name="WarningHeader"
+                                HorizontalContentAlignment="Left"
+                                ContentAlignment="Vertical">
+                                <StackPanel Margin="-12,0,0,0" Orientation="Vertical">
+                                    <HyperlinkButton Content="SynergyOS GitHub" NavigateUri="https://github.com/kwanteks/synergyos" />
+                                    <HyperlinkButton Content="Discord Community" NavigateUri="https://discord.gg/kwanteks" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard
+                                x:Name="SystemInfo"
+                                HorizontalContentAlignment="Stretch"
+                                ContentAlignment="Vertical">
+                                <controls:SettingsCard.HeaderIcon>
+                                    <ImageIcon Source="ms-appx:///assets/Icons/Info.png" />
+                                </controls:SettingsCard.HeaderIcon>
+                                <StackPanel Orientation="Vertical" Spacing="5">
+                                    <TextBlock
+                                        x:Name="WindowsIdentityText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        IsTextSelectionEnabled="True"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        x:Name="CustomWindowsIdentityText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        IsTextSelectionEnabled="True"
+                                        TextWrapping="Wrap"
+                                        Visibility="Collapsed" />
+                                    <TextBlock
+                                        x:Name="PlaybookIdentityText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        IsTextSelectionEnabled="True"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

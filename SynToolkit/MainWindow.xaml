@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="SynToolkit.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SynToolkit.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:SynToolkit"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="SynToolkit"
+    mc:Ignorable="d">
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="Base" />
+    </Window.SystemBackdrop>
+    <Grid x:Name="RootGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TitleBar
+            x:Name="AppTitleBar"
+            Grid.Column="1"
+            Height="{Binding ElementName=NavigationViewControl, Path=CompactPaneLength}"
+            Margin="48,0,0,0"
+            VerticalAlignment="Stretch"
+            IsPaneToggleButtonVisible="True"
+            PaneToggleRequested="AppTitleBar_PaneToggleRequested"
+            AutomationProperties.AutomationId="AppTitleBar"
+            Canvas.ZIndex="1">
+            <TitleBar.LeftHeader>
+                <StackPanel Orientation="Horizontal">
+                    <Button
+                        x:Name="NavigationPaneButton"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        Click="NavigationPaneButton_Click">
+                        <Image
+                            Width="18"
+                            VerticalAlignment="Center"
+                            Source="ms-appx:///assets/logo/SynToolkit.ico" />
+                    </Button>
+                    <TextBlock
+                        x:Name="AppTitle"
+                        Margin="12,-1,0,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="SynToolkit" />
+                    </StackPanel>
+            </TitleBar.LeftHeader>
+            <TitleBar.Content>
+                <AutoSuggestBox
+                    x:Name="SearchBox"
+                    AutomationProperties.Name="Basic AutoSuggestBox"
+                    SuggestionChosen="AutoSuggestBox_SuggestionChosen"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    Width="320"
+                    TextChanged="AutoSuggestBox_TextChanged">
+                    <AutoSuggestBox.QueryIcon>
+                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///assets/Icons/SearchBar.png" />
+                    </AutoSuggestBox.QueryIcon>
+                </AutoSuggestBox>
+            </TitleBar.Content>
+        </TitleBar>
+        <NavigationView
+            x:Name="NavigationViewControl"
+            Grid.RowSpan="2"
+            Grid.Column="1"
+            AlwaysShowHeader="True"
+            BackRequested="NavigationViewControl_BackRequested"
+            IsPaneToggleButtonVisible="False"
+            Header="Default Header"
+            IsSettingsVisible="False"
+            IsTabStop="False"
+            IsTitleBarAutoPaddingEnabled="False"
+            SelectionChanged="NavigationViewControl_SelectionChanged">
+            <!--Main Content-->
+            <NavigationView.Content>
+                <Grid>
+                    <Frame
+                        x:Name="ContentFrame"
+                        Navigated="ContentFrame_Navigated"
+                        NavigationFailed="ContentFrame_NavigationFailed" />
+                    <InfoBar
+                        x:Name="UpdateTitleBar"
+                        Margin="0,26,36,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Background="#30313E"
+                        IsOpen="False">
+                        <InfoBar.ActionButton>
+                            <HyperlinkButton x:Name="LearnMoreBtn" NavigateUri="https://github.com/kwanteks/synergyos/releases/latest" />
+                        </InfoBar.ActionButton>
+                    </InfoBar>
+                </Grid>
+            </NavigationView.Content>
+            <NavigationView.Resources>
+                <Thickness x:Key="NavigationViewContentMargin">0,48,0,0</Thickness>
+                <Thickness x:Key="NavigationViewMinimalContentMargin">0,48,0,0</Thickness>
+                <Thickness x:Key="NavigationViewContentGridBorderThickness">1,1,0,0</Thickness>
+                <CornerRadius x:Key="NavigationViewContentGridCornerRadius">8,0,0,0</CornerRadius>
+            </NavigationView.Resources>
+
+            <!--  Currently an experiment  -->
+            <!--<NavigationView.AutoSuggestBox>
+                <AutoSuggestBox
+                    x:Name="SearchBox"
+                    AutomationProperties.Name="Basic AutoSuggestBox"
+                    QueryIcon="Find"
+                    SuggestionChosen="AutoSuggestBox_SuggestionChosen"
+                    TextChanged="AutoSuggestBox_TextChanged" />
+            </NavigationView.AutoSuggestBox>-->
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem x:Name="Home" Tag="SynToolkit.Views.HomePage">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Home.png" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="AppFetch" Tag="SynToolkit.Views.AppFetchPage">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Applications.png" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="PowerPlans" Tag="SynToolkit.Views.PowerPlansPage">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Power.png" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="Adjustments" Tag="SynToolkit.Views.AdjustmentsPage">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/UserAccountAdjustment.png" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="Gpu" Tag="SynToolkit.Views.GpuPage">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Gpu.png" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="Specs" Tag="SynToolkit.Views.SpecsPage">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Cpu.png" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="DiskCleanup" Tag="SynToolkit.Views.CleanerPage">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/DiskCleanup.png" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItemSeparator />
+                <NavigationViewItem x:Name="GeneralConfig" Tag="General">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Info.png" />
+                    </NavigationViewItem.Icon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="GeneralConfigText" VerticalAlignment="Center" />
+                        <Border x:Name="GeneralBadgeBorder" Background="{ThemeResource SystemAccentColorLight2}" CornerRadius="10" Padding="6,2" VerticalAlignment="Center">
+                            <TextBlock x:Name="GeneralBadge" FontSize="11" Foreground="White" />
+                        </Border>
+                    </StackPanel>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="Interface" Tag="Interface">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Theme.png" />
+                    </NavigationViewItem.Icon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="InterfaceText" VerticalAlignment="Center" />
+                        <Border x:Name="InterfaceBadgeBorder" Background="{ThemeResource SystemAccentColorLight2}" CornerRadius="10" Padding="6,2" VerticalAlignment="Center">
+                            <TextBlock x:Name="InterfaceBadge" FontSize="11" Foreground="White" />
+                        </Border>
+                    </StackPanel>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="Windows" Tag="Windows">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Windows.png" />
+                    </NavigationViewItem.Icon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="WindowsText" VerticalAlignment="Center" />
+                        <Border x:Name="WindowsBadgeBorder" Background="{ThemeResource SystemAccentColorLight2}" CornerRadius="10" Padding="6,2" VerticalAlignment="Center">
+                            <TextBlock x:Name="WindowsBadge" FontSize="11" Foreground="White" />
+                        </Border>
+                    </StackPanel>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="Advanced" Tag="Advanced">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Bios.png" />
+                    </NavigationViewItem.Icon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="AdvancedText" VerticalAlignment="Center" />
+                        <Border x:Name="AdvancedBadgeBorder" Background="{ThemeResource SystemAccentColorLight2}" CornerRadius="10" Padding="6,2" VerticalAlignment="Center">
+                            <TextBlock x:Name="AdvancedBadge" FontSize="11" Foreground="White" />
+                        </Border>
+                    </StackPanel>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="Security" Tag="Security">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Security.png" />
+                    </NavigationViewItem.Icon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="SecurityText" VerticalAlignment="Center" />
+                        <Border x:Name="SecurityBadgeBorder" Background="{ThemeResource SystemAccentColorLight2}" CornerRadius="10" Padding="6,2" VerticalAlignment="Center">
+                            <TextBlock x:Name="SecurityBadge" FontSize="11" Foreground="White" />
+                        </Border>
+                    </StackPanel>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="Troubleshooting" Tag="Troubleshooting">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/troubleshooting.png" />
+                    </NavigationViewItem.Icon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="TroubleshootingText" VerticalAlignment="Center" />
+                        <Border x:Name="TroubleshootingBadgeBorder" Background="{ThemeResource SystemAccentColorLight2}" CornerRadius="10" Padding="6,2" VerticalAlignment="Center">
+                            <TextBlock x:Name="TroubleshootingBadge" FontSize="11" Foreground="White" />
+                        </Border>
+                    </StackPanel>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem
+                    x:Name="Setting"
+                    Tag="SettingsPage">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///assets/Icons/Settings.png" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
+        </NavigationView>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="TitleBarStates">
+                <VisualState x:Name="Default" />
+                <VisualState x:Name="Compact">
+                    <VisualState.Setters>
+                        <Setter Target="AppTitleBar.Margin" Value="96,0,0,0" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Top">
+                    <VisualState.Setters>
+                        <Setter Target="AppTitleBar.Margin" Value="16,0,0,0" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="WindowActivationStates">
+                <VisualState x:Name="WindowActivated" />
+                <VisualState x:Name="Deactivated">
+                    <VisualState.Setters>
+                        <Setter Target="AppTitle.Foreground" Value="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+    </Grid>
+</Window>

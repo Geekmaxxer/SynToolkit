@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="SynToolkit.Views.AppFetchPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:SynToolkit.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewmodel="using:SynToolkit.ViewModels"
+    d:DataContext="{d:DesignInstance Type=viewmodel:AppFetchPageViewModel}"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        
+        <Storyboard x:Name="MoveToTopAnimation">
+            <DoubleAnimation
+                Storyboard.TargetName="HeaderTransform"
+                Storyboard.TargetProperty="Y"
+                To="0"
+                Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut" />
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation
+                Storyboard.TargetName="LogoScaleTransform"
+                Storyboard.TargetProperty="ScaleX"
+                To="0.5"
+                Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut" />
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation
+                Storyboard.TargetName="LogoScaleTransform"
+                Storyboard.TargetProperty="ScaleY"
+                To="0.5"
+                Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut" />
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </Page.Resources>
+
+    <Grid>
+        <!-- Header Section with Logo and Search - Always on top -->
+        <StackPanel
+            x:Name="HeaderPanel"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Margin="0,24,0,0"
+            Canvas.ZIndex="10">
+            <StackPanel.RenderTransform>
+                <TranslateTransform x:Name="HeaderTransform" Y="180" />
+            </StackPanel.RenderTransform>
+
+            <!-- Logo -->
+            <Image
+                x:Name="LogoImage"
+                Width="120"
+                Height="120"
+                HorizontalAlignment="Center"
+                Source="ms-appx:///assets/logo/SynToolkit-Icon-256.png"
+                RenderTransformOrigin="0.5,0.5">
+                <Image.RenderTransform>
+                    <ScaleTransform x:Name="LogoScaleTransform" ScaleX="1" ScaleY="1" />
+                </Image.RenderTransform>
+            </Image>
+
+            <!-- Title -->
+            <TextBlock
+                x:Name="TitleText"
+                Margin="0,16,0,0"
+                HorizontalAlignment="Center"
+                FontSize="32"
+                FontWeight="SemiBold"
+                Text="App Fetch" />
+
+            <!-- Description -->
+            <TextBlock
+                x:Name="DescriptionText"
+                Margin="0,8,0,24"
+                HorizontalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Search the Microsoft Store and install or uninstall apps directly."
+                TextAlignment="Center"
+                TextWrapping="Wrap"
+                MaxWidth="400" />
+
+            <!-- Search Box -->
+            <Grid Width="500" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <AutoSuggestBox
+                    x:Name="SearchBox"
+                    QuerySubmitted="SearchBox_QuerySubmitted"
+                    PlaceholderText="Search for an app...">
+                    <AutoSuggestBox.QueryIcon>
+                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///assets/Icons/SearchBar.png" />
+                    </AutoSuggestBox.QueryIcon>
+                </AutoSuggestBox>
+                <Button
+                    Grid.Column="1"
+                    Margin="10,0,0,0"
+                    Click="SearchButton_Click"
+                    Content="Search"
+                    Style="{StaticResource AccentButtonStyle}" />
+            </Grid>
+
+            <!-- Hint text -->
+            <TextBlock
+                x:Name="HintText"
+                HorizontalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                FontSize="12"
+                Text="Type app name and press Enter or click Search" />
+        </StackPanel>
+
+        <!-- Results Section - Below header after animation -->
+        <Grid
+            x:Name="ResultsPanel"
+            Margin="55,280,0,0"
+            Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Error InfoBar -->
+            <InfoBar
+                x:Name="ErrorInfoBar"
+                Grid.Row="0"
+                Margin="0,0,36,18"
+                IsClosable="True"
+                IsOpen="{Binding HasError, Mode=OneWay}"
+                Message="{Binding ErrorMessage, Mode=OneWay}"
+                Severity="Error"
+                Title="App Fetch" />
+
+            <!-- Xbox Services Warning -->
+            <InfoBar
+                x:Name="XboxInfoBar"
+                Grid.Row="1"
+                Margin="0,0,36,18"
+                IsClosable="False"
+                IsOpen="{Binding IsXboxServicesTweakApplied, Mode=OneWay}"
+                Message="SynToolkit's Xbox-services tweak is currently disabling Xbox background services, which some Xbox/Gaming-related Store apps need to install or run. Revert it here if an app fails."
+                Severity="Warning"
+                Title="Some apps may need Xbox services">
+                <InfoBar.ActionButton>
+                    <Button
+                        Command="{Binding RevertXboxServicesTweakCommand}"
+                        Content="Revert tweak"
+                        IsEnabled="{Binding IsRevertXboxServicesButtonEnabled, Mode=OneWay}" />
+                </InfoBar.ActionButton>
+            </InfoBar>
+
+            <!-- Results List -->
+            <Grid Grid.Row="2">
+                <ProgressRing
+                    Width="32"
+                    Height="32"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Margin="0,24,0,0"
+                    IsActive="{Binding IsLoading, Mode=OneWay}"
+                    Visibility="{Binding IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <ScrollViewer>
+                    <ItemsControl Margin="0,0,36,48" ItemsSource="{Binding Results}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodel:AppFetchItemViewModel">
+                                <controls:SettingsCard
+                                    Margin="0,0,0,10"
+                                    Description="{Binding Description, Mode=OneWay}"
+                                    Header="{Binding Name, Mode=OneWay}"
+                                    Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                                    <controls:SettingsCard.HeaderIcon>
+                                        <BitmapIcon ShowAsMonochrome="False" UriSource="{Binding IconUri, Mode=OneWay}" />
+                                    </controls:SettingsCard.HeaderIcon>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <ProgressBar
+                                            Width="70"
+                                            VerticalAlignment="Center"
+                                            Maximum="100"
+                                            Minimum="0"
+                                            Value="{Binding Progress, Mode=OneWay}"
+                                            Visibility="{Binding IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <Button
+                                            Command="{Binding CancelCommand}"
+                                            Content="Cancel"
+                                            Visibility="{Binding IsCancelable, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <Button
+                                            Command="{Binding InstallOrUninstallCommand}"
+                                            Content="{Binding ButtonText, Mode=OneWay}"
+                                            IsEnabled="{Binding IsButtonEnabled, Mode=OneWay}" />
+                                    </StackPanel>
+                                </controls:SettingsCard>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

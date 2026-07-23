@@ -1,0 +1,43 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\shell\SynToolkitTerminals]
+"MUIVerb"="Terminals"
+"SubCommands"=""
+"Icon"="%SystemRoot%\\System32\\cmd.exe,0"
+
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\shell\SynToolkitTerminals\shell\WindowsTerminal]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\shell\SynToolkitTerminals\shell\CommandPrompt]
+@="Command Prompt"
+"Icon"="%SystemRoot%\\System32\\cmd.exe,0"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\shell\SynToolkitTerminals\shell\CommandPrompt\command]
+@="cmd.exe /d /s /k pushd \"%V\""
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\shell\SynToolkitTerminals\shell\PowerShell]
+@="PowerShell"
+"Icon"="%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe,0"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\shell\SynToolkitTerminals\shell\PowerShell\command]
+@="powershell.exe -NoLogo -NoExit -Command Set-Location -LiteralPath '%V'"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\Background\shell\SynToolkitTerminals]
+"MUIVerb"="Terminals"
+"SubCommands"=""
+"Icon"="%SystemRoot%\\System32\\cmd.exe,0"
+
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\Background\shell\SynToolkitTerminals\shell\WindowsTerminal]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\Background\shell\SynToolkitTerminals\shell\CommandPrompt]
+@="Command Prompt"
+"Icon"="%SystemRoot%\\System32\\cmd.exe,0"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\Background\shell\SynToolkitTerminals\shell\CommandPrompt\command]
+@="cmd.exe /d /s /k pushd \"%V\""
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\Background\shell\SynToolkitTerminals\shell\PowerShell]
+@="PowerShell"
+"Icon"="%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe,0"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\Background\shell\SynToolkitTerminals\shell\PowerShell\command]
+@="powershell.exe -NoLogo -NoExit -Command Set-Location -LiteralPath '%V'"

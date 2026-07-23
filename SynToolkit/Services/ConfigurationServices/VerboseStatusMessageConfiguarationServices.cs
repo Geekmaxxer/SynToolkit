@@ -1,0 +1,48 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SynToolkit.Stores;
+using SynToolkit.Utils;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace SynToolkit.Services.ConfigurationServices
+{
+    public class VerboseStatusMessageConfiguarationServices : IConfigurationService
+    {
+        private const string SYNTOOLKIT_STORE_KEY_NAME = @"HKLM\SOFTWARE\SynToolkit\Services\VerboseStatusMessage";
+        private const string STATE_VALUE_NAME = "state";
+
+        private const string SYSTEM_POLICIES_KEY_NAME = @"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System";
+        private const string VERBOSE_STATUS = "verbosestatus";
+
+        private readonly ConfigurationStore _verboseStatusMessageConfigurationService;
+
+        public VerboseStatusMessageConfiguarationServices(
+            [FromKeyedServices("VerboseStatusMessage")] ConfigurationStore verboseStatusMessageConfigurationService)
+        {
+            _verboseStatusMessageConfigurationService = verboseStatusMessageConfigurationService;
+        }
+        public void Disable()
+        {
+            RegistryHelper.DeleteValue(SYSTEM_POLICIES_KEY_NAME, VERBOSE_STATUS);
+            RegistryHelper.SetValue(SYNTOOLKIT_STORE_KEY_NAME, STATE_VALUE_NAME, 0);
+
+            _verboseStatusMessageConfigurationService.CurrentSetting = IsEnabled();
+        }
+
+        public void Enable()
+        {
+            RegistryHelper.SetValue(SYSTEM_POLICIES_KEY_NAME, VERBOSE_STATUS, 1, Microsoft.Win32.RegistryValueKind.DWord);
+            RegistryHelper.SetValue(SYNTOOLKIT_STORE_KEY_NAME, STATE_VALUE_NAME, 1);
+
+            _verboseStatusMessageConfigurationService.CurrentSetting = IsEnabled();
+        }
+
+        public bool IsEnabled()
+        {
+            return RegistryHelper.IsMatch(SYSTEM_POLICIES_KEY_NAME, VERBOSE_STATUS, 1);
+        }
+    }
+}

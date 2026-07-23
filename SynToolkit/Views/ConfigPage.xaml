@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="SynToolkit.Views.ConfigPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:controls1="using:SynToolkit.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:SynToolkit.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:viewmodel="using:SynToolkit.ViewModels"
+    d:DataContext="{d:DesignInstance Type=viewmodel:ConfigPageViewModel}"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <local:FontIconConverter x:Key="FontIconConverter" />
+        <x:Double x:Key="BreadcrumbBarChevronFontSize">30</x:Double>
+    </Page.Resources>
+
+    <Grid x:Name="MainGrid" Margin="55,0,0,0">
+        <Grid.Resources>
+            <DataTemplate x:Key="ConfigurationItemTemplate" x:DataType="viewmodel:ConfigurationItemViewModel">
+                <Grid>
+                    <controls:SettingsCard
+                        x:Name="SettingsCard"
+                        Description="{Binding DisplayDescription}"
+                        Header="{Binding Name}"
+                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem
+                                    Click="MenuFlyoutItem_Click"
+                                    Tag="{Binding Key}"
+                                    Text="Favorite" />
+                            </MenuFlyout>
+                        </controls:SettingsCard.ContextFlyout>
+                        <ToggleSwitch
+                            x:Name="ConfigSwitch"
+                            IsEnabled="{Binding CanInteract}"
+                            IsOn="{Binding CurrentSetting}"
+                            Loaded="ToggleSwitch_Loaded" />
+                    </controls:SettingsCard>
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="ConfigurationSubMenuTemplate" x:DataType="viewmodel:ConfigurationSubMenuViewModel">
+                <controls:SettingsCard
+                    x:Name="SubMenuSettingsCard"
+                    Click="OnCardClicked"
+                    Description="{Binding Description}"
+                    Header="{Binding Name}"
+                    HeaderIcon="{Binding Icon, Converter={StaticResource FontIconConverter}}"
+                    IsClickEnabled="True"
+                    Style="{StaticResource ConfigurationSettingsCardTemplate}" />
+            </DataTemplate>
+
+            <DataTemplate x:Key="MultiOptionTemplate" x:DataType="viewmodel:MultiOptionConfigurationItemViewModel">
+                <controls:SettingsCard
+                    Description="{Binding ErrorMessage}"
+                    Header="{Binding Name}"
+                    HeaderIcon="{Binding Icon, Converter={StaticResource FontIconConverter}}"
+                    Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                    <controls:SettingsCard.ContextFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="{Binding Key}"
+                                Text="Favorite" />
+                        </MenuFlyout>
+                    </controls:SettingsCard.ContextFlyout>
+                    <ComboBox
+                        x:Name="ConfigSwitch"
+                        Width="200"
+                        IsEnabled="{Binding CanInteract}"
+                        ItemsSource="{Binding Options}"
+                        SelectedItem="{Binding CurrentSetting, Mode=TwoWay}" />
+                </controls:SettingsCard>
+            </DataTemplate>
+
+            <DataTemplate x:Key="ConfigurationButtonTemplate" x:DataType="viewmodel:ConfigurationButtonViewModel">
+                <controls:SettingsCard
+                    x:Name="SettingsCardControl"
+                    Header="{Binding Description}"
+                    HeaderIcon="{Binding Icon, Converter={StaticResource FontIconConverter}}"
+                    Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                    <controls:SettingsCard.ContextFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="{Binding Key}"
+                                Text="Favorite" />
+                        </MenuFlyout>
+                    </controls:SettingsCard.ContextFlyout>
+                    <Button
+                        Command="{Binding ExecuteCommandCommand}"
+                        Content="{Binding Name}"
+                        Style="{StaticResource AccentButtonStyle}" />
+                </controls:SettingsCard>
+            </DataTemplate>
+
+            <DataTemplate x:Key="LinksTemplate" x:DataType="viewmodel:LinksViewModel">
+                <controls:SettingsCard
+                    x:Name="LinkCard"
+                    ActionIcon="{ui:FontIcon Glyph=&#xE8A7;}"
+                    ActionIconToolTip="Open in new window"
+                    Click="LinkCard_Click"
+                    Header="{Binding Name}"
+                    HeaderIcon="{Binding FontIcon, Converter={StaticResource FontIconConverter}}"
+                    IsClickEnabled="True"
+                    Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                    <controls:SettingsCard.ContextFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem
+                                Click="MenuFlyoutItem_Click"
+                                Tag="{Binding Key}"
+                                Text="Favorite" />
+                        </MenuFlyout>
+                    </controls:SettingsCard.ContextFlyout>
+                </controls:SettingsCard>
+            </DataTemplate>
+
+            <local:ConfigItemDataTemplateSelector
+                x:Key="DataTemplateSelector"
+                ConfiguartionLink="{StaticResource LinksTemplate}"
+                ConfigurationButton="{StaticResource ConfigurationButtonTemplate}"
+                ConfigurationItem="{StaticResource ConfigurationItemTemplate}"
+                ConfigurationSubMenu="{StaticResource ConfigurationSubMenuTemplate}"
+                MultiOptionConfigurationItem="{StaticResource MultiOptionTemplate}" />
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <BreadcrumbBar x:Name="BreadcrumbBar">
+            <BreadcrumbBar.ItemTemplate>
+                <DataTemplate x:DataType="local:Folder">
+                    <BreadcrumbBarItem Content="{Binding}">
+                        <BreadcrumbBarItem.ContentTemplate>
+                            <DataTemplate>
+                                <TextBlock
+                                    Margin="0,24,30,24"
+                                    Style="{StaticResource TitleTextBlockStyle}"
+                                    Text="{Binding Name}" />
+                            </DataTemplate>
+                        </BreadcrumbBarItem.ContentTemplate>
+                    </BreadcrumbBarItem>
+                </DataTemplate>
+            </BreadcrumbBar.ItemTemplate>
+        </BreadcrumbBar>
+        <ScrollViewer x:Name="ConfigScrollViewer" Grid.Row="1">
+            <StackPanel>
+                <ItemsControl x:Name="ConfigItemsControl" ItemTemplateSelector="{StaticResource DataTemplateSelector}" ItemsSource="{Binding ConfigurationItems}" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

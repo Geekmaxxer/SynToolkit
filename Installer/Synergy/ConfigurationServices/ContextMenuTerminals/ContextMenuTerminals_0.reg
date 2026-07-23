@@ -1,0 +1,6 @@
+Windows Registry Editor Version 5.00
+
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\shell\SynToolkitTerminals]
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\Background\shell\SynToolkitTerminals]
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Drive\shell\SynToolkitTerminals]
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\LibraryFolder\shell\SynToolkitTerminals]
