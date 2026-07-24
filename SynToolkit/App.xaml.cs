@@ -208,27 +208,35 @@ namespace SynToolkit
 
             _ = Task.Run(StartNamedPipeServer);
             Version = RegistryHelper.GetValue(@"HKLM\SOFTWARE\SynToolkit", "Channel") + " v" + RegistryHelper.GetValue(@"HKLM\SOFTWARE\SynToolkit", "Version");
-            if (CompatibilityHelper.IsCompatible())
+            if (!CompatibilityHelper.IsWindowsCompatible())
             {
-                StartHost();
-                StartDiscordPresence();
-
-                bool wasRanWithArgs = false;
-                
-                if (!wasRanWithArgs)
-                {
-                    logger.Info("Loading without args");
-                    s_window = new LoadingWindow();
-                    s_window.Activate();
-
-                    InitializeVMAsync();
-                }
+                m_window = new IncompatibleVersionWindow(IncompatibleVersionReason.Windows);
+                m_window.Closed += (_, _) => ShutdownApplication();
+                m_window.Activate();
+                return;
             }
-            else
+
+            if (!CompatibilityHelper.IsSynergyOsCompatible())
             {
+                logger.Warn("Blocked startup on unsupported SynergyOS installation.");
                 m_window = new IncompatibleVersionWindow();
                 m_window.Closed += (_, _) => ShutdownApplication();
                 m_window.Activate();
+                return;
+            }
+
+            StartHost();
+            StartDiscordPresence();
+
+            bool wasRanWithArgs = false;
+
+            if (!wasRanWithArgs)
+            {
+                logger.Info("Loading without args");
+                s_window = new LoadingWindow();
+                s_window.Activate();
+
+                InitializeVMAsync();
             }
         }
 

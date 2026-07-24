@@ -1,60 +1,59 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using SynToolkit.Utils;
+using System;
+using System.Runtime.InteropServices;
 using WinUIEx;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace SynToolkit
 {
-    /// <summary>
-    /// An empty window that can be used on its own or navigated to within a Frame.
-    /// </summary>
+    public enum IncompatibleVersionReason
+    {
+        SynergyOs,
+        Windows
+    }
+
     public sealed partial class IncompatibleVersionWindow : Window
     {
-        public IncompatibleVersionWindow()
+        public IncompatibleVersionWindow(IncompatibleVersionReason reason = IncompatibleVersionReason.SynergyOs)
         {
-            WindowManager.Get(this).IsMaximizable = true;
-            WindowManager.Get(this).IsResizable = true;
             WindowManager.Get(this).Width = 1250;
             WindowManager.Get(this).Height = 850;
             CenterWindowOnScreen();
             ExtendsContentIntoTitleBar = true;
-            this.InitializeComponent();
+            InitializeComponent();
+            LoadText(reason);
         }
 
-        /// <summary>
-        /// Centers the window
-        /// </summary>
+        private void LoadText(IncompatibleVersionReason reason)
+        {
+            if (reason == IncompatibleVersionReason.Windows)
+            {
+                IncompatibleVer.Text =
+                    "This version of Windows is not supported by SynToolkit.\r\nSynToolkit requires 64-bit Windows 10 version 1809 (build 17763) or newer.";
+                ReleasesLink.Content = CompatibilityHelper.SynergyOsReleasesUrl;
+                ReleasesLink.NavigateUri = new Uri(CompatibilityHelper.SynergyOsReleasesUrl);
+                return;
+            }
+
+            IncompatibleVer.Text = App.GetValueFromItemList("IncompatibleVer");
+            ReleasesLink.Content = CompatibilityHelper.SynergyOsReleasesUrl;
+            ReleasesLink.NavigateUri = new Uri(CompatibilityHelper.SynergyOsReleasesUrl);
+        }
+
         private void CenterWindowOnScreen()
         {
             var screenWidth = GetSystemMetrics(SM_CXSCREEN);
             var screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-            double centerX = (screenWidth - this.Bounds.Width) / 2;
-            double centerY = (screenHeight - this.Bounds.Height) / 2;
+            double centerX = (screenWidth - Bounds.Width) / 2;
+            double centerY = (screenHeight - Bounds.Height) / 2;
 
-            this.MoveAndResize(centerX, centerY, this.Bounds.Width, this.Bounds.Height);
+            MoveAndResize(centerX, centerY, Bounds.Width, Bounds.Height);
         }
-
 
         private void MoveAndResize(double x, double y, double width, double height)
         {
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-
             SetWindowPos(hwnd, IntPtr.Zero, (int)x, (int)y, (int)width, (int)height, SWP_NOZORDER | SWP_NOACTIVATE);
         }
 

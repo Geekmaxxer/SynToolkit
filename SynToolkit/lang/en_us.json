@@ -310,7 +310,7 @@
   "Home_ProfilesText": "Profiles",
   "Home_Favorites": "Favorites",
   "NewProfilesButton": "Create a new profile",
-  "IncompatibleVer": "This Windows installation is incompatible with this version of SynToolkit.",
+  "IncompatibleVer": "Current Windows installation incompatible with this Toolbox version. Please install SynergyOS.",
   "StatingServices": "Starting services...",
 
   "CurrentConfigIsSavedMessage": "Your current configuration will be saved to this profile",

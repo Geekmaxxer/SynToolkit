@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
-    <TargetPlatformMinVersion>10.0.22000.0</TargetPlatformMinVersion>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>SynToolkit</RootNamespace>
     <AssemblyName>SynToolkit</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -18,7 +18,7 @@
     <WindowsPackageType>None</WindowsPackageType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>preview</LangVersion>
-    <SupportedOSPlatformVersion>10.0.22000.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
     <UserSecretsId>b05b26c0-f62c-4dd3-b138-de1a5b0c1243</UserSecretsId>
     <ApplicationIcon>assets\logo\SynToolkit.ico</ApplicationIcon>
     <Title>SynToolkit</Title>

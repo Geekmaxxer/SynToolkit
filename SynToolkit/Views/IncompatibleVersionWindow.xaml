@@ -5,42 +5,23 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="SynToolkit - Unsupported system"
+    Title="SynToolkit"
     mc:Ignorable="d">
     <Window.SystemBackdrop>
         <MicaBackdrop Kind="Base" />
     </Window.SystemBackdrop>
 
-    <Grid Padding="48">
-        <StackPanel
-            MaxWidth="1050"
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+        <TextBlock
+            x:Name="IncompatibleVer"
+            MaxWidth="920"
+            FontSize="20"
+            TextAlignment="Center"
+            TextWrapping="Wrap" />
+        <HyperlinkButton
+            x:Name="ReleasesLink"
             HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Spacing="8">
-            <Image
-                Width="128"
-                Height="128"
-                Margin="0,0,0,20"
-                Source="ms-appx:///Assets/Logo/SynToolkit-Icon-256.png" />
-            <TextBlock
-                HorizontalAlignment="Center"
-                FontSize="21"
-                FontWeight="SemiBold"
-                Text="This version of Windows is not supported by SynToolkit."
-                TextAlignment="Center"
-                TextWrapping="Wrap" />
-            <TextBlock
-                HorizontalAlignment="Center"
-                FontSize="18"
-                Opacity="0.85"
-                Text="SynToolkit requires 64-bit Windows 11 build 22000 or newer."
-                TextAlignment="Center"
-                TextWrapping="Wrap" />
-            <HyperlinkButton
-                HorizontalAlignment="Center"
-                FontSize="18"
-                Content="Open SynToolkit support"
-                NavigateUri="https://github.com/kwanteks/synergyos" />
-        </StackPanel>
-    </Grid>
+            FontSize="20"
+            NavigateUri="https://github.com/kwanteks/synergyos/releases" />
+    </StackPanel>
 </Window>
