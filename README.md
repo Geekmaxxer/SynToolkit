@@ -17,4 +17,6 @@ You can now make all your changes and view them live!
 - [WinUI 3 Gallery](https://apps.microsoft.com/detail/9P3JFPWWDZRC) for many aspects of the Toolbox and for the home page tile galery.
 - [Windows Community Toolkit Gallery](https://apps.microsoft.com/detail/9NBLGGH4TLCQ) for aspects of the app such as settings cards and expanders.
 - [Atlas Toolbox](https://github.com/Atlas-OS/atlas-toolbox) used as Base Code of the Toolkit to get Started.
+- [Ameliroated Privacy+ Settings](https://github.com/Ameliorated-LLC/ame-settings-cli) used for the User Adjustments Tab.
+- [Ameliorated App Fetch](https://github.com/Ameliorated-LLC/appfetch) used for the App Fetch. 
 
