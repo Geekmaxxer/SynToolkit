@@ -1,3 +1,5 @@
+<img width="1919" height="1094" alt="SynToolkit Preview" src="https://github.com/user-attachments/assets/0f403bcb-0be6-4805-9f7d-3959a9586abe" />
+
 # SynToolkit
 
 This repository contains the SynToolkit made with C# and WinAppSDK.
