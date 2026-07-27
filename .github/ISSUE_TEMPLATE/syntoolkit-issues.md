@@ -1,9 +1,9 @@
 ---
-name: Bug report
+name: SynToolkit Issues
 about: Create a report to help us improve SynToolkit
 title: ''
-labels: bug
-assignees: ''
+labels: bug, enhancement
+assignees: kwanteks
 
 ---
 
