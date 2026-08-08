@@ -9,16 +9,6 @@ using Newtonsoft.Json.Linq;
 
 namespace SynToolkit.Services.RadeonSlimmer
 {
-    public sealed class RadeonPackage
-    {
-        public required string SourceFile { get; init; }
-        public required string ProductName { get; init; }
-        public required string Url { get; init; }
-        public required string Type { get; init; }
-        public required string Description { get; init; }
-        public bool Keep { get; set; } = true;
-    }
-
     /// <summary>
     /// Reads, removes, and restores installable packages listed in an extracted Radeon Software
     /// installer's manifests. Ported from GSDragoon/RadeonSoftwareSlimmer's PackageListModel

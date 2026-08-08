@@ -71,6 +71,10 @@ namespace SynToolkit.HostBuilder
                 services.AddKeyedTransient<IConfigurationService, WindowedGamesOptimizationConfigurationService>("WindowedGamesOptimization");
                 services.AddKeyedTransient<IConfigurationService, DefenderRealtimeProtectionConfigurationService>("DefenderRealtimeProtection");
                 services.AddKeyedTransient<IConfigurationService, UsernameRequirementConfigurationService>("UsernameRequirement");
+                services.AddKeyedTransient<IConfigurationService, UacConfigurationService>("UAC");
+                services.AddKeyedTransient<IConfigurationService, WiFiConfigurationService>("WiFi");
+                services.AddKeyedTransient<IConfigurationService, PrintingConfigurationService>("Printing");
+                services.AddKeyedTransient<IConfigurationService, VbsStateConfigurationService>("VbsState");
                 services.AddKeyedTransient<IConfigurationService, ExtractContextMenuConfigurationService>("ExtractContextMenu");
                 services.AddKeyedTransient<IConfigurationService, CpuIdleConfigurationService>("CpuIdle");
                 services.AddKeyedTransient<IConfigurationService, OldContextMenuConfigurationService>("OldContextMenu");

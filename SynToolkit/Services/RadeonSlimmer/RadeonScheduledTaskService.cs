@@ -9,15 +9,6 @@ using System.Xml.Linq;
 
 namespace SynToolkit.Services.RadeonSlimmer
 {
-    public sealed class RadeonScheduledTask
-    {
-        public required string SourceFile { get; init; }
-        public string? Uri { get; init; }
-        public required string Description { get; init; }
-        public required string Command { get; init; }
-        public bool Enabled { get; set; }
-    }
-
     /// <summary>
     /// Reads and updates the Task Scheduler XML exports bundled with an extracted Radeon
     /// Software installer. Ported from GSDragoon/RadeonSoftwareSlimmer's

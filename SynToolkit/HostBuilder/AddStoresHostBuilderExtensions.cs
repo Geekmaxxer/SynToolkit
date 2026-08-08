@@ -76,6 +76,10 @@ namespace SynToolkit.HostBuilder
                 services.AddKeyedSingleton<ConfigurationStore>("WindowedGamesOptimization");
                 services.AddKeyedSingleton<ConfigurationStore>("DefenderRealtimeProtection");
                 services.AddKeyedSingleton<ConfigurationStore>("UsernameRequirement");
+                services.AddKeyedSingleton<ConfigurationStore>("UAC");
+                services.AddKeyedSingleton<ConfigurationStore>("WiFi");
+                services.AddKeyedSingleton<ConfigurationStore>("Printing");
+                services.AddKeyedSingleton<ConfigurationStore>("VbsState");
                 services.AddKeyedSingleton<MultiOptionConfigurationStore>("ContextMenuTerminals");
                 services.AddKeyedSingleton<MultiOptionConfigurationStore>("ShortcutIcon");
                 services.AddKeyedSingleton<MultiOptionConfigurationStore>("Mitigations");

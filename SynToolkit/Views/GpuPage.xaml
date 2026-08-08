@@ -345,6 +345,10 @@
                             Click="ApplyNvidiaProfilesButton_Click"
                             Content="Apply to NVIDIA driver"
                             Style="{StaticResource AccentButtonStyle}" />
+                        <Button
+                            x:Name="ExportLoadedProfilesButton"
+                            Click="ExportLoadedProfilesButton_Click"
+                            Content="Export loaded to .nip" />
                         <ProgressRing
                             Width="20"
                             Height="20"
@@ -450,7 +454,7 @@
                         <Button
                             x:Name="ExportNewProfileButton"
                             Click="ExportNewProfileButton_Click"
-                            Content="Export to .nip"
+                            Content="Export new profile to .nip"
                             Style="{StaticResource AccentButtonStyle}" />
                     </StackPanel>
                 </StackPanel>

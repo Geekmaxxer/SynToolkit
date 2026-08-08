@@ -15,7 +15,7 @@
   "ConfigurationStatus_Unavailable": "Unavailable",
   "ConfigurationStatus_ApplyFailed": "Could not apply change",
   "Bluetooth": "Bluetooth",
-  "BluetoothDescription": "Disable the Windows Bluetooth Support Service; enabling it again restores the saved startup and running state.",
+  "BluetoothDescription": "Enable Bluetooth services that SynergyOS disables by default. Turning off re-applies the SynergyOS disabled service state.",
   "OpenShellDocumentation": "Open Shell documentation",
   "InterfaceTweaksDocumentation": "Interface tweaks documentation",
   "ActivationPage": "Activation Page",
@@ -82,7 +82,7 @@
   "ServicesSubMenu": "Services",
   "ServicesSubMenuDescription": "Everything related to services in Windows",
   "XboxServices": "Xbox services",
-  "XboxServicesDescription": "Disable the four Windows Xbox services; enabling again restores each saved startup and running state. Missing services are left untouched.",
+  "XboxServicesDescription": "Enable Xbox services that SynergyOS disables by default. Turning off re-applies the SynergyOS disabled service state. Missing services are left untouched.",
   "BootConfigurationSubMenu": "Boot configuration",
   "BootConfigurationSubMenuDescription": "Everything related to booting in Windows",
   "RestartToBios": "Restart to BIOS",
@@ -123,7 +123,10 @@
   "NetworkDiscoveryDescription": "Enable or disable network discovery for easier file sharing",
 
   "Printing": "Printing",
-  "PrintingDescription": "Enable or disable printing services",
+  "PrintingDescription": "Enable print services that SynergyOS disables by default. Turning off re-applies the SynergyOS disabled Spooler/print service state. Restart may be required.",
+
+  "WiFi": "Wi-Fi",
+  "WiFiDescription": "Enable Wi-Fi services that SynergyOS disables by default. Turning off disables WLAN/WWAN related services again.",
 
   "NvidiaDispayContainer": "NVIDIA Display Container",
   "NvidiaDispayContainerDescription": "Enable or disable the NVIDIA Display Container service",
@@ -257,6 +260,9 @@
   "SecurityHealthTray": "Security Health button in the task bar tray",
   "SecurityHealthTrayDescription": "Show or hide the Security Health button in the task bar tray",
 
+  "UAC": "User Account Control",
+  "UACDescription": "Prompt for elevation when apps need administrator rights. Disabling removes UAC prompts (SynergyOS default) but lowers protection against unwanted system changes. Restart required.",
+
   "FaultTolerantHeap": "Fault Tolerant Heap",
   "FaultTolerantHeapDescription": "Enable or disable the Fault Tolerant Heap mitigation",
 
@@ -272,8 +278,8 @@
   "ProcessExplorer": "Install Process Explorer",
   "ProcessExplorerDescription": "Install Process Explorer from Microsoft Sysinternals",
 
-  "VbsState": "Enable VBS",
-  "VbsStateDescription": "Enable or disable Virtualization Based Security (VBS)",
+  "VbsState": "Virtualization-based Security",
+  "VbsStateDescription": "Enable VBS, HVCI, Credential Guard, and related protections that SynergyOS disables by default. Restart required.",
 
   "GiveAccessToMenu": "Give access to menu",
   "GiveAccessToMenuDescription": "Adds a 'Give access to' option in the context menu for files and folders",
@@ -391,7 +397,7 @@
   "Windows": "Windows Settings",
   "Advanced": "Advanced Configuration",
   "Security": "Security",
-  "Troubleshooting": "Troubleshooting",
+  "Troubleshooting": "Restoration",
 
   "Language": "Language",
 

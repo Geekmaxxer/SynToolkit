@@ -235,6 +235,9 @@
   "SecurityHealthTray": "Bouton Sécurité dans la barre des tâches",
   "SecurityHealthTrayDescription": "Monter ou Cacher le bouton Sécurité dans la barre des tâches",
 
+  "UAC": "Contrôle de compte d'utilisateur",
+  "UACDescription": "Demande une élévation lorsque les applications ont besoin des droits administrateur. La désactivation retire les invites UAC (défaut SynergyOS) mais réduit la protection. Redémarrage requis.",
+
   "FaultTolerantHeap": "Tolérance aux pannes",
   "FaultTolerantHeapDescription": "Activé ou Désactivé le Tas à tolérance de panne",
 
@@ -345,7 +348,7 @@
   "Windows": "Réglages Windows",
   "Advanced": "Configuration avancée",
   "Security": "Sécurité",
-  "Troubleshooting": "Résolution des problèmes",
+  "Troubleshooting": "Restauration",
 
   "Language": "Langue",
 

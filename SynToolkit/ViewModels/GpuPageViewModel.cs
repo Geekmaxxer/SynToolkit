@@ -107,14 +107,48 @@ namespace SynToolkit.ViewModels
 
         public void RemoveNewSettingRow(NvidiaProfileSetting setting) => NewProfileSettings.Remove(setting);
 
+        public async Task ExportLoadedProfilesAsync(string exportFilePath)
+        {
+            HasError = false;
+            try
+            {
+                System.Collections.Generic.List<NvidiaProfile> profiles = NvidiaProfiles.ToList();
+                if (profiles.Count == 0)
+                {
+                    throw new InvalidOperationException("Load a .nip profile before exporting loaded profiles.");
+                }
+
+                await Task.Run(() => NvidiaProfilePreviewService.SaveProfiles(profiles, exportFilePath));
+
+                int settingCount = profiles.Sum(profile => profile.Settings.Count);
+                StatusMessage = $"Exported {settingCount} setting(s) across {profiles.Count} loaded profile(s) to {exportFilePath}.";
+            }
+            catch (Exception exception)
+            {
+                App.logger.Error(exception, "[GPU] Exporting loaded .nip profiles failed.");
+                StatusMessage = exception.Message;
+                HasError = true;
+            }
+        }
+
         public async Task ExportNewProfileAsync(string exportFilePath)
         {
             HasError = false;
             try
             {
+                if (string.IsNullOrWhiteSpace(NewProfileName))
+                {
+                    throw new InvalidOperationException("Enter a profile name before exporting a new profile.");
+                }
+
+                if (NewProfileSettings.Count == 0)
+                {
+                    throw new InvalidOperationException("Add at least one setting before exporting a new profile. To export an imported file, use 'Export loaded to .nip'.");
+                }
+
                 NvidiaProfile profile = new()
                 {
-                    ProfileName = string.IsNullOrWhiteSpace(NewProfileName) ? "New Profile" : NewProfileName.Trim(),
+                    ProfileName = NewProfileName.Trim(),
                     Executeables = NewProfileExecutablesText
                         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                         .ToList(),

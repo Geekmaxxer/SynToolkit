@@ -234,6 +234,9 @@
   "SecurityHealthTray": "任务栏托盘中的安全中心按钮",
   "SecurityHealthTrayDescription": "显示或隐藏任务栏托盘中的安全中心按钮",
 
+  "UAC": "用户帐户控制",
+  "UACDescription": "当应用需要管理员权限时提示提升。禁用后将移除 UAC 提示（SynergyOS 默认），但会降低对意外系统更改的防护。需要重启。",
+
   "FaultTolerantHeap": "容错堆",
   "FaultTolerantHeapDescription": "启用或禁用容错堆缓解措施",
 
@@ -343,7 +346,7 @@
   "Windows": "Windows 设置",
   "Advanced": "高级配置",
   "Security": "安全",
-  "Troubleshooting": "故障排除",
+  "Troubleshooting": "还原",
 
   "Language": "语言",
 

@@ -47,8 +47,9 @@ namespace SynToolkit.Services.ConfigurationServices
                 throw new FileNotFoundException("The mitigation payload is missing.", payloadPath);
             }
 
-            CommandResult result = CommandPromptHelper.RunCommandResult(
-                $"\"{payloadPath}\" /silent",
+            CommandResult result = CommandPromptHelper.RunBatchFileResult(
+                payloadPath,
+                ["/silent"],
                 timeoutMilliseconds: 120_000);
 
             if (!result.Succeeded)

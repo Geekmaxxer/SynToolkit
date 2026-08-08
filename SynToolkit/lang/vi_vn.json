@@ -236,6 +236,9 @@
   "SecurityHealthTray": "Nút Security Health trên khay hệ thống",
   "SecurityHealthTrayDescription": "Hiển thị hoặc ẩn nút Security Health trên khay hệ thống (taskbar tray)",
 
+  "UAC": "Kiểm soát tài khoản người dùng",
+  "UACDescription": "Yêu cầu nâng quyền khi ứng dụng cần quyền quản trị. Tắt sẽ bỏ lời nhắc UAC (mặc định SynergyOS) nhưng giảm bảo vệ. Cần khởi động lại.",
+
   "FaultTolerantHeap": "Fault Tolerant Heap",
   "FaultTolerantHeapDescription": "Bật hoặc tắt tính năng giảm nhẹ rủi ro Fault Tolerant Heap",
 
@@ -346,7 +349,7 @@
   "Windows": "Cài đặt Windows",
   "Advanced": "Cấu hình Nâng cao",
   "Security": "Bảo mật",
-  "Troubleshooting": "Khắc phục sự cố",
+  "Troubleshooting": "Khôi phục",
 
   "Language": "Ngôn ngữ",
 

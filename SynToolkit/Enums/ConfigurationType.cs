@@ -15,7 +15,7 @@ namespace SynToolkit.Enums
         Advanced,
         [Description("Security")]
         Security,
-        [Description("Troubleshooting")]
+        [Description("Restoration")]
         Troubleshooting,
         [Description("Software")]
         Software,

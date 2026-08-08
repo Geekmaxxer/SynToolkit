@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,7 +37,8 @@ namespace SynToolkit.Utils
                 detachedStartInfo.ArgumentList.Add("/c");
                 detachedStartInfo.ArgumentList.Add(command);
 
-                using Process detachedProcess = Process.Start(detachedStartInfo);
+                using Process detachedProcess = Process.Start(detachedStartInfo)
+                    ?? throw new InvalidOperationException("Unable to start cmd.exe.");
                 return string.Empty;
             }
 
@@ -59,6 +62,26 @@ namespace SynToolkit.Utils
                 ["/d", "/s", "/c", command],
                 timeoutMilliseconds,
                 noWindow);
+        }
+
+        /// <summary>
+        /// Runs a trusted batch file without embedding a quoted path in the command string.
+        /// ProcessStartInfo.ArgumentList escapes embedded quotes for normal executables, but
+        /// cmd.exe interprets that escaping literally when the /c command itself starts with a
+        /// quoted path. Passing CALL, the path, and each argument separately avoids that mismatch.
+        /// </summary>
+        public static CommandResult RunBatchFileResult(
+            string batchFilePath,
+            IEnumerable<string> arguments,
+            int timeoutMilliseconds = DEFAULT_TIMEOUT_MILLISECONDS,
+            bool noWindow = true)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(batchFilePath);
+            ArgumentNullException.ThrowIfNull(arguments);
+
+            List<string> commandArguments = ["/d", "/s", "/c", "call", batchFilePath];
+            commandArguments.AddRange(arguments);
+            return RunProcessResult("cmd.exe", commandArguments, timeoutMilliseconds, noWindow);
         }
 
         public static CommandResult RunProcessResult(
@@ -159,7 +182,8 @@ namespace SynToolkit.Utils
             }
 
             ProcessStartInfo startInfo = CreateStartInfo("explorer.exe", noWindow: true);
-            using Process explorer = Process.Start(startInfo);
+            using Process explorer = Process.Start(startInfo)
+                ?? throw new InvalidOperationException("Unable to restart Explorer.");
         }
 
         public static string ReturnRunCommand(string command)
@@ -185,7 +209,7 @@ namespace SynToolkit.Utils
             };
         }
 
-        private static void AppendLine(StringBuilder builder, string value)
+        private static void AppendLine(StringBuilder builder, string? value)
         {
             if (value is null)
             {

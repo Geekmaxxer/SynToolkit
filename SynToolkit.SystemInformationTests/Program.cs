@@ -2,6 +2,10 @@ using SynToolkit.Models;
 using SynToolkit.Commands;
 using SynToolkit.Services;
 using SynToolkit.Services.Bcd;
+using SynToolkit.Services.NvidiaProfileInspector;
+using SynToolkit.Services.RadeonSlimmer;
+using SynToolkit.Utils;
+using System.ComponentModel;
 using System.Text;
 
 namespace SynToolkit.SystemInformationTests;
@@ -45,10 +49,13 @@ internal static class Program
         Run("Deleting an absent BCD element is idempotent", BcdDeleteIsIdempotent);
         Run("Async commands prevent concurrent execution", AsyncCommandPreventsConcurrentExecution);
         Run("Async command failures are contained and logged", AsyncCommandFailureIsContained);
+        Run("Batch file paths with spaces execute correctly", BatchFilePathsWithSpacesExecuteCorrectly);
+        Run("Radeon bulk selections notify the UI", RadeonBulkSelectionsNotifyTheUi);
         Run("Legacy profile registration match is exact", LegacyRegistrationMatchIsExact);
         Run("Valid legacy profile JSON is accepted", ValidLegacyProfileIsAccepted);
         Run("Malformed legacy profiles are rejected", MalformedLegacyProfilesAreRejected);
         Run("Oversized legacy profiles are rejected", OversizedLegacyProfileIsRejected);
+        Run("NVIDIA profile export preserves imported settings", NvidiaProfileExportRoundTrips);
 
         Console.WriteLine(_failures == 0
             ? "All SynToolkit service tests passed."
@@ -236,6 +243,79 @@ internal static class Program
         True(command.CanExecute(null), "A failed command should not remain permanently disabled.");
     }
 
+    private static void BatchFilePathsWithSpacesExecuteCorrectly()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "SynToolkit Batch Tests " + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        string batchFilePath = Path.Combine(directory, "Safe Mode Test.cmd");
+        try
+        {
+            File.WriteAllText(
+                batchFilePath,
+                "@echo off\r\nif not \"%~1\"==\"first argument\" exit /b 7\r\necho batch-ok\r\nexit /b 0\r\n",
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+
+            CommandResult result = CommandPromptHelper.RunBatchFileResult(
+                batchFilePath,
+                ["first argument"],
+                timeoutMilliseconds: 10_000);
+
+            True(result.Succeeded, $"A quoted batch path should execute successfully: {result.CombinedOutput}");
+            True(result.StandardOutput.Contains("batch-ok", StringComparison.Ordinal), "The batch payload must actually run.");
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(directory);
+        }
+    }
+
+    private static void RadeonBulkSelectionsNotifyTheUi()
+    {
+        RadeonPackage package = new()
+        {
+            SourceFile = "manifest.json",
+            ProductName = "Package",
+            Url = "package.zip",
+            Type = "driver",
+            Description = "Package description",
+        };
+        RadeonScheduledTask task = new()
+        {
+            SourceFile = "task.xml",
+            Description = "Scheduled task",
+            Command = "task.exe",
+        };
+        RadeonDisplayComponent component = new()
+        {
+            DirectoryPath = "DisplayComponent",
+            Name = "Display component",
+        };
+
+        PropertyChangeIsRaised(package, nameof(RadeonPackage.Keep), () => package.Keep = false);
+        PropertyChangeIsRaised(task, nameof(RadeonScheduledTask.Enabled), () => task.Enabled = true);
+        PropertyChangeIsRaised(component, nameof(RadeonDisplayComponent.Keep), () => component.Keep = false);
+    }
+
+    private static void PropertyChangeIsRaised(
+        INotifyPropertyChanged item,
+        string expectedPropertyName,
+        Action change)
+    {
+        int notifications = 0;
+        item.PropertyChanged += (_, eventArgs) =>
+        {
+            if (eventArgs.PropertyName == expectedPropertyName)
+            {
+                notifications++;
+            }
+        };
+
+        change();
+        Equal(1, notifications, $"Changing {expectedPropertyName} must notify its checkbox binding.");
+        change();
+        Equal(1, notifications, $"Reapplying {expectedPropertyName} must not raise a duplicate notification.");
+    }
+
     private static void LegacyRegistrationMatchIsExact()
     {
         True(
@@ -314,6 +394,64 @@ internal static class Program
                 "Gaming.json",
                 out _),
             "A profile larger than the migration limit must be rejected before parsing.");
+    }
+
+    private static void NvidiaProfileExportRoundTrips()
+    {
+        List<NvidiaProfile> expected =
+        [
+            new NvidiaProfile
+            {
+                ProfileName = "Base Profile",
+                Settings =
+                [
+                    new NvidiaProfileSetting
+                    {
+                        SettingNameInfo = "Power management mode",
+                        SettingId = 274197361,
+                        SettingValue = "1",
+                        ValueType = NvidiaSettingValueType.Dword,
+                    },
+                ],
+            },
+            new NvidiaProfile
+            {
+                ProfileName = "Game & Launcher",
+                Executeables = ["game.exe", "launcher.exe"],
+                Settings =
+                [
+                    new NvidiaProfileSetting
+                    {
+                        SettingNameInfo = "Application note",
+                        SettingId = 550564838,
+                        SettingValue = "GPU <preferred>",
+                        ValueType = NvidiaSettingValueType.String,
+                    },
+                ],
+            },
+        ];
+
+        string exportPath = Path.Combine(Path.GetTempPath(), "SynToolkit-NipTests-" + Guid.NewGuid().ToString("N") + ".nip");
+        try
+        {
+            NvidiaProfilePreviewService.SaveProfiles(expected, exportPath);
+            List<NvidiaProfile> actual = NvidiaProfilePreviewService.LoadProfiles(exportPath);
+
+            Equal(2, actual.Count, "Every loaded profile must be exported.");
+            Equal("Base Profile", actual[0].ProfileName, "The base profile name must be preserved.");
+            Equal(1, actual[0].Settings.Count, "Base-profile settings must be preserved.");
+            Equal(274197361U, actual[0].Settings[0].SettingId, "Setting IDs must be preserved.");
+            Equal("1", actual[0].Settings[0].SettingValue, "Setting values must be preserved.");
+            Equal(2, actual[1].Executeables.Count, "Executable associations must be preserved.");
+            Equal("GPU <preferred>", actual[1].Settings[0].SettingValue, "Escaped string values must round-trip.");
+        }
+        finally
+        {
+            if (File.Exists(exportPath))
+            {
+                File.Delete(exportPath);
+            }
+        }
     }
 
     private static void NoMetadata()

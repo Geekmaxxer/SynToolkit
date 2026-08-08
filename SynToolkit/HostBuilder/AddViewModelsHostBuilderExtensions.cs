@@ -184,7 +184,7 @@ namespace SynToolkit.HostBuilder
 
                 ["StartMenuSubMenu"] = new("StartMenuSubMenu", App.GetValueFromItemList("StartMenuSubMenu"), App.GetValueFromItemList("StartMenuSubMenu", true), ConfigurationType.Interface, "ms-appx:///assets/Icons/Windows.png"),
                 ["ContextMenuSubMenu"] = new("ContextMenuSubMenu", App.GetValueFromItemList("ContextMenuSubMenu"), App.GetValueFromItemList("ContextMenuSubMenu", true), ConfigurationType.Interface, "ms-appx:///assets/Icons/Windows.png"),
-                ["ServicesSubMenu"] = new("ServicesSubMenu", App.GetValueFromItemList("ServicesSubMenu"), App.GetValueFromItemList("ServicesSubMenu", true), ConfigurationType.Advanced, "ms-appx:///assets/Icons/Services.png"),
+                ["ServicesSubMenu"] = new("ServicesSubMenu", App.GetValueFromItemList("ServicesSubMenu"), App.GetValueFromItemList("ServicesSubMenu", true), ConfigurationType.Troubleshooting, "ms-appx:///assets/Icons/Services.png"),
                 ["BootConfigurationSubMenu"] = new("BootConfigurationSubMenu", App.GetValueFromItemList("BootConfigurationSubMenu"), App.GetValueFromItemList("BootConfigurationSubMenu", true), ConfigurationType.Advanced, "ms-appx:///assets/Icons/Bios.png"),
                 ["FileExplorerSubMenu"] = new("FileExplorerSubMenu", App.GetValueFromItemList("FileExplorerSubMenu"), App.GetValueFromItemList("FileExplorerSubMenu", true), ConfigurationType.Interface, "ms-appx:///assets/Icons/explorer.png"),
                 ["DriverConfigurationSubMenu"] = new("DriverConfigurationSubMenu", App.GetValueFromItemList("DriverConfigurationSubMenu"), App.GetValueFromItemList("DriverConfigurationSubMenu", true), ConfigurationType.Advanced, "ms-appx:///assets/Icons/Devices.png"),
@@ -233,7 +233,7 @@ namespace SynToolkit.HostBuilder
                 ["ContextMenuTerminals"] = new(App.GetValueFromItemList("ContextMenuTerminals"), "ContextMenuTerminals", ConfigurationType.ContextMenuSubMenu, "ms-appx:///assets/Icons/Windows.png"),
                 ["ShortcutIcon"] = new(App.GetValueFromItemList("ShortcutIcon"), "ShortcutIcon", ConfigurationType.Interface, "ms-appx:///assets/Icons/Windows.png"),
                 ["Mitigations"] = new(App.GetValueFromItemList("Mitigations"), "Mitigations", ConfigurationType.MitigationsSubMenu, "ms-appx:///assets/Icons/Security.png"),
-                ["SafeMode"] = new(App.GetValueFromItemList("SafeMode"), "SafeMode", ConfigurationType.Troubleshooting, "ms-appx:///assets/Icons/Power.png"),
+                ["SafeMode"] = new(App.GetValueFromItemList("SafeMode"), "SafeMode", ConfigurationType.Troubleshooting, "ms-appx:///assets/Icons/SafeMode.png"),
             };
 
             host.ConfigureServices((_, services) =>
@@ -269,12 +269,28 @@ namespace SynToolkit.HostBuilder
                 ["Bluetooth"] = new(
                     App.GetValueFromItemList("Bluetooth"),
                     "Bluetooth",
-                    ConfigurationType.ServicesSubMenu,
+                    ConfigurationType.Troubleshooting,
                     "ms-appx:///assets/Icons/Bluetooth.png"),
                 ["XboxServices"] = new(
                     App.GetValueFromItemList("XboxServices"),
                     "XboxServices",
-                    ConfigurationType.ServicesSubMenu),
+                    ConfigurationType.Troubleshooting,
+                    "ms-appx:///assets/Icons/Games.png"),
+                ["WiFi"] = new(
+                    App.GetValueFromItemList("WiFi"),
+                    "WiFi",
+                    ConfigurationType.Troubleshooting,
+                    "ms-appx:///assets/Icons/Internet.png"),
+                ["Printing"] = new(
+                    App.GetValueFromItemList("Printing"),
+                    "Printing",
+                    ConfigurationType.Troubleshooting,
+                    "ms-appx:///assets/Icons/Devices.png"),
+                ["VbsState"] = new(
+                    App.GetValueFromItemList("VbsState"),
+                    "VbsState",
+                    ConfigurationType.CoreIsolationSubMenu,
+                    "ms-appx:///assets/Icons/Security.png"),
                 ["LanmanWorkstation"] = new(App.GetValueFromItemList("LanmanWorkstation"), "LanmanWorkstation", ConfigurationType.ServicesSubMenu),
                 ["NvidiaDispayContainer"] = new(App.GetValueFromItemList("NvidiaDispayContainer"), "NvidiaDispayContainer", ConfigurationType.NvidiaDisplayContainerSubMenu),
                 ["AddNvidiaDisplayContainerContextMenu"] = new(App.GetValueFromItemList("AddNvidiaDisplayContainerContextMenu"), "AddNvidiaDisplayContainerContextMenu", ConfigurationType.NvidiaDisplayContainerSubMenu),
@@ -310,6 +326,7 @@ namespace SynToolkit.HostBuilder
                 ["SnapLayout"] = new(App.GetValueFromItemList("SnapLayout"), "SnapLayout", ConfigurationType.Interface),
                 ["RecentItems"] = new(App.GetValueFromItemList("RecentItems"), "RecentItems", ConfigurationType.Interface),
                 ["VerboseStatusMessage"] = new(App.GetValueFromItemList("VerboseStatusMessage"), "VerboseStatusMessage", ConfigurationType.Interface),
+                ["UAC"] = new(App.GetValueFromItemList("UAC"), "UAC", ConfigurationType.Security, "ms-appx:///assets/Icons/UserAccount.png"),
                 ["HideAppBrowserControl"] = new(App.GetValueFromItemList("HideAppBrowserControl"), "HideAppBrowserControl", ConfigurationType.DefenderSubMenu),
                 ["SecurityHealthTray"] = new(App.GetValueFromItemList("SecurityHealthTray"), "SecurityHealthTray", ConfigurationType.DefenderSubMenu),
                 ["DefenderRealtimeProtection"] = new(App.GetValueFromItemList("DefenderRealtimeProtection"), "DefenderRealtimeProtection", ConfigurationType.DefenderSubMenu),

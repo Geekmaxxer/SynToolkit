@@ -209,7 +209,7 @@
                 </NavigationViewItem>
                 <NavigationViewItem x:Name="Troubleshooting" Tag="Troubleshooting">
                     <NavigationViewItem.Icon>
-                        <ImageIcon Source="ms-appx:///assets/Icons/troubleshooting.png" />
+                        <ImageIcon Source="ms-appx:///assets/Icons/Restoration.png" />
                     </NavigationViewItem.Icon>
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock x:Name="TroubleshootingText" VerticalAlignment="Center" />

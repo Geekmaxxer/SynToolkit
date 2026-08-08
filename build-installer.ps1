@@ -79,9 +79,9 @@ if (-not [string]::Equals(
 Write-Host "Validated embedded SOS.pow ($actualPowerPlanSha256)."
 
 Write-Host 'Regenerating SynToolkit branding assets...'
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $brandingScript
-if ($LASTEXITCODE -ne 0) {
-    throw "Branding generation failed with exit code $LASTEXITCODE."
+& $brandingScript
+if (-not $?) {
+    throw 'Branding generation failed.'
 }
 
 Write-Host 'Running non-invasive SynToolkit service tests...'

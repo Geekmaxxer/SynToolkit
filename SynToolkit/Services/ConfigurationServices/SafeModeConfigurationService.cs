@@ -30,6 +30,7 @@ namespace SynToolkit.Services.ConfigurationServices
         };
 
         private readonly IBcdService _bcdService;
+        private int? _lastAppliedStatus;
 
         public SafeModeConfigurationService(
             [FromKeyedServices("SafeMode")] MultiOptionConfigurationStore safeModeConfigurationService,
@@ -54,8 +55,9 @@ namespace SynToolkit.Services.ConfigurationServices
                 throw new FileNotFoundException("The Safe Mode payload is missing.", payloadPath);
             }
 
-            CommandResult result = CommandPromptHelper.RunCommandResult(
-                $"\"{payloadPath}\" /silent",
+            CommandResult result = CommandPromptHelper.RunBatchFileResult(
+                payloadPath,
+                ["/silent"],
                 timeoutMilliseconds: 30_000);
 
             if (!result.Succeeded)
@@ -63,6 +65,10 @@ namespace SynToolkit.Services.ConfigurationServices
                 throw new InvalidOperationException($"The Safe Mode payload failed: {result.CombinedOutput}");
             }
 
+            // The BCD WMI provider is commonly unavailable while Windows is already running
+            // in Safe Mode. The payload checks every BCDEdit exit code, so remember a successful
+            // request and use it as the UI state if the immediate WMI read cannot run.
+            _lastAppliedStatus = status;
             string detectedStatus = Status();
             _safeModeConfigurationService.CurrentSetting = detectedStatus;
 
@@ -98,7 +104,9 @@ namespace SynToolkit.Services.ConfigurationServices
             catch (Exception exception)
             {
                 App.logger.Warn(exception, "Unable to read the active Safe Mode BCD state.");
-                return options[4];
+                return _lastAppliedStatus is int lastAppliedStatus
+                    ? options[lastAppliedStatus]
+                    : options[4];
             }
         }
     }

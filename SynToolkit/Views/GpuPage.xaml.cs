@@ -133,6 +133,19 @@ namespace SynToolkit.Views
             await _viewModel.ApplyNvidiaProfilesAsync();
         }
 
+        private async void ExportLoadedProfilesButton_Click(object sender, RoutedEventArgs e)
+        {
+            IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(App.m_window);
+            string suggestedFileName = string.IsNullOrWhiteSpace(_viewModel.NipFilePath)
+                ? "NVIDIA Profiles.nip"
+                : System.IO.Path.GetFileName(_viewModel.NipFilePath);
+            string? filePath = NativeFileDialogHelper.ShowSaveFileDialog(windowHandle, NipFileFilter, suggestedFileName);
+            if (filePath is not null)
+            {
+                await _viewModel.ExportLoadedProfilesAsync(filePath);
+            }
+        }
+
         private async void LoadBundledProfileButton_Click(object sender, RoutedEventArgs e)
         {
             if (BundledProfilesComboBox.SelectedItem is BundledNvidiaProfileFile selected)
@@ -154,7 +167,10 @@ namespace SynToolkit.Views
         private async void ExportNewProfileButton_Click(object sender, RoutedEventArgs e)
         {
             IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(App.m_window);
-            string? filePath = NativeFileDialogHelper.ShowSaveFileDialog(windowHandle, NipFileFilter, "New Profile.nip");
+            string suggestedFileName = string.IsNullOrWhiteSpace(_viewModel.NewProfileName)
+                ? "New Profile.nip"
+                : $"{_viewModel.NewProfileName.Trim()}.nip";
+            string? filePath = NativeFileDialogHelper.ShowSaveFileDialog(windowHandle, NipFileFilter, suggestedFileName);
             if (filePath is not null)
             {
                 await _viewModel.ExportNewProfileAsync(filePath);

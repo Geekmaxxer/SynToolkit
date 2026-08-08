@@ -216,14 +216,15 @@ namespace SynToolkit
                 return;
             }
 
-            if (!CompatibilityHelper.IsSynergyOsCompatible())
-            {
-                logger.Warn("Blocked startup on unsupported SynergyOS installation.");
-                m_window = new IncompatibleVersionWindow();
-                m_window.Closed += (_, _) => ShutdownApplication();
-                m_window.Activate();
-                return;
-            }
+            // TEMP: SynergyOS OEM detection disabled for local testing.
+            // if (!CompatibilityHelper.IsSynergyOsCompatible())
+            // {
+            //     logger.Warn("Blocked startup on unsupported SynergyOS installation.");
+            //     m_window = new IncompatibleVersionWindow();
+            //     m_window.Closed += (_, _) => ShutdownApplication();
+            //     m_window.Activate();
+            //     return;
+            // }
 
             StartHost();
             StartDiscordPresence();

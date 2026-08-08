@@ -10,26 +10,25 @@ using System.ServiceProcess;
 namespace SynToolkit.Services.ConfigurationServices
 {
     /// <summary>
-    /// Bluetooth services toggle matching SynergyOS Disable Bluetooth / Enable Bluetooth scripts.
+    /// Printing services toggle matching SynergyOS Disable Print / Enable Print scripts.
     /// </summary>
-    public sealed class BluetoothConfigurationService : IConfigurationService
+    public sealed class PrintingConfigurationService : IConfigurationService
     {
-        private const string SynToolkitStoreKey = @"HKLM\SOFTWARE\SynToolkit\Services\Bluetooth";
+        private const string SynToolkitStoreKey = @"HKLM\SOFTWARE\SynToolkit\Services\Printing";
 
-        // SynergyOS 2. Configuration\Bluetooth\*.bat
+        // SynergyOS 2. Configuration\Print\*.bat
         private static readonly string[] ServiceNames =
         {
-            "BTAGService",
-            "bthserv",
-            "BthAvctpSvc",
-            "NaturalAuthentication",
-            "BluetoothUserService"
+            "Spooler",
+            "PrintNotify",
+            "Fax",
+            "PrintWorkflowUserSvc"
         };
 
         private readonly ConfigurationStore _configurationStore;
 
-        public BluetoothConfigurationService(
-            [FromKeyedServices("Bluetooth")] ConfigurationStore configurationStore)
+        public PrintingConfigurationService(
+            [FromKeyedServices("Printing")] ConfigurationStore configurationStore)
         {
             _configurationStore = configurationStore;
         }
@@ -102,7 +101,7 @@ namespace SynToolkit.Services.ConfigurationServices
             if (installedServices.Count == 0)
             {
                 throw new InvalidOperationException(
-                    "No supported Windows Bluetooth services are installed on this computer.");
+                    "No supported Windows printing services are installed on this computer.");
             }
         }
 
@@ -145,7 +144,7 @@ namespace SynToolkit.Services.ConfigurationServices
         {
             if (!HasSnapshot(serviceName))
             {
-                // SynergyOS Enable Bluetooth sets Start=2 (Automatic).
+                // SynergyOS Enable Print sets Start=2 (Automatic).
                 return new ServiceSnapshot(ServiceStartMode.Automatic, false, false);
             }
 
@@ -155,7 +154,7 @@ namespace SynToolkit.Services.ConfigurationServices
             if (storedMode is not int modeValue || !Enum.IsDefined(typeof(ServiceStartMode), modeValue))
             {
                 throw new InvalidOperationException(
-                    $"The saved state for Bluetooth service '{serviceName}' is invalid. No services were restored.");
+                    $"The saved state for printing service '{serviceName}' is invalid. No services were restored.");
             }
 
             return new ServiceSnapshot(

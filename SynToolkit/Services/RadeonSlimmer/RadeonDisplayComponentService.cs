@@ -7,13 +7,6 @@ using System.Linq;
 
 namespace SynToolkit.Services.RadeonSlimmer
 {
-    public sealed class RadeonDisplayComponent
-    {
-        public required string DirectoryPath { get; init; }
-        public required string Name { get; init; }
-        public bool Keep { get; set; } = true;
-    }
-
     /// <summary>
     /// Enumerates and removes individual display-driver components bundled with an extracted
     /// Radeon Software installer. Ported from GSDragoon/RadeonSoftwareSlimmer's
