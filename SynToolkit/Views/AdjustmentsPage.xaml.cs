@@ -1,6 +1,8 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -12,11 +14,24 @@ using SynToolkit.Utils;
 
 namespace SynToolkit.Views
 {
+    internal sealed class WallpaperItem
+    {
+        public required string FilePath { get; init; }
+        public required string DisplayName { get; init; }
+        public string ThumbnailPath => FilePath;
+        public bool IsSelected { get; set; }
+        public Microsoft.UI.Xaml.Media.Brush BorderBrush => IsSelected
+            ? (Microsoft.UI.Xaml.Media.Brush)Microsoft.UI.Xaml.Application.Current.Resources["AccentFillColorDefaultBrush"]
+            : (Microsoft.UI.Xaml.Media.Brush)Microsoft.UI.Xaml.Application.Current.Resources["ControlStrokeColorDefaultBrush"];
+        public Thickness BorderThickness => IsSelected ? new Thickness(2) : new Thickness(1);
+    }
+
     public sealed partial class AdjustmentsPage : Page
     {
         private const string ImageFileFilter = "Image files (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp";
 
         private bool _isPageLoaded;
+        private string? _currentWallpaperPath;
 
         public AdjustmentsPage()
         {
@@ -29,6 +44,7 @@ namespace SynToolkit.Views
             bool isElevated = IsCurrentProcessElevated();
             ElevationInfoBar.IsOpen = !isElevated;
             SetActionsEnabled(isElevated);
+            LoadWallpapers();
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e) => _isPageLoaded = false;
@@ -294,6 +310,164 @@ namespace SynToolkit.Views
             OperationInfoBar.Message = message;
             OperationInfoBar.Severity = severity;
             OperationInfoBar.IsOpen = true;
+        }
+
+        private void LoadWallpapers()
+        {
+            _currentWallpaperPath = WindowsWallpaperService.GetCurrentWallpaper();
+            UpdateCurrentWallpaperPreview();
+
+            IReadOnlyList<string> availableWallpapers = WindowsWallpaperService.GetAvailableWallpapers();
+            List<WallpaperItem> wallpaperItems = availableWallpapers
+                .Select(path => new WallpaperItem
+                {
+                    FilePath = path,
+                    DisplayName = WindowsWallpaperService.GetDisplayName(path),
+                    IsSelected = IsCurrentWallpaper(path)
+                })
+                .ToList();
+
+            WallpaperGridView.ItemsSource = wallpaperItems;
+            WallpaperEmptyMessage.Visibility = wallpaperItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            WallpaperGridView.Visibility = wallpaperItems.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            
+            UpdateRestoreDefaultButtonState(wallpaperItems);
+        }
+
+        private void UpdateCurrentWallpaperPreview()
+        {
+            if (string.IsNullOrEmpty(_currentWallpaperPath) || !File.Exists(_currentWallpaperPath))
+            {
+                CurrentWallpaperName.Text = "Custom wallpaper";
+                CurrentWallpaperPath.Text = _currentWallpaperPath ?? "No wallpaper set";
+                CurrentWallpaperPreview.ImageSource = null;
+                return;
+            }
+
+            CurrentWallpaperName.Text = WindowsWallpaperService.GetDisplayName(_currentWallpaperPath);
+            CurrentWallpaperPath.Text = _currentWallpaperPath;
+            
+            try
+            {
+                CurrentWallpaperPreview.ImageSource = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(_currentWallpaperPath));
+            }
+            catch
+            {
+                CurrentWallpaperPreview.ImageSource = null;
+            }
+        }
+
+        private void UpdateRestoreDefaultButtonState(List<WallpaperItem>? items = null)
+        {
+            items ??= WallpaperGridView.ItemsSource as List<WallpaperItem>;
+            string? defaultPath = WindowsWallpaperService.GetDefaultWallpaperPath();
+            
+            bool isDefaultApplied = !string.IsNullOrEmpty(defaultPath) && 
+                                    !string.IsNullOrEmpty(_currentWallpaperPath) &&
+                                    string.Equals(Path.GetFullPath(defaultPath), Path.GetFullPath(_currentWallpaperPath), StringComparison.OrdinalIgnoreCase);
+            
+            RestoreDefaultButton.IsEnabled = !isDefaultApplied && defaultPath != null;
+        }
+
+        private bool IsCurrentWallpaper(string path)
+        {
+            if (string.IsNullOrEmpty(_currentWallpaperPath))
+                return false;
+
+            try
+            {
+                return string.Equals(
+                    Path.GetFullPath(path),
+                    Path.GetFullPath(_currentWallpaperPath),
+                    StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void RefreshWallpapersButton_Click(object sender, RoutedEventArgs e)
+        {
+            LoadWallpapers();
+        }
+
+        private async void RestoreDefaultButton_Click(object sender, RoutedEventArgs e)
+        {
+            string? defaultPath = WindowsWallpaperService.GetDefaultWallpaperPath();
+            if (string.IsNullOrEmpty(defaultPath))
+            {
+                ShowResult("Restore failed", "No default wallpaper available.", InfoBarSeverity.Error);
+                return;
+            }
+
+            await ApplyWallpaperAsync(defaultPath);
+        }
+
+        private async void WallpaperGridView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            if (e.ClickedItem is not WallpaperItem item)
+                return;
+
+            await ApplyWallpaperAsync(item.FilePath);
+        }
+
+        private async Task ApplyWallpaperAsync(string wallpaperPath)
+        {
+            SetActionsEnabled(false);
+            RestoreDefaultButton.IsEnabled = false;
+            OperationInfoBar.IsOpen = false;
+
+            try
+            {
+                WallpaperApplyResult result = await Task.Run(() => WindowsWallpaperService.Apply(wallpaperPath));
+
+                if (!_isPageLoaded)
+                    return;
+
+                if (result.Success)
+                {
+                    _currentWallpaperPath = wallpaperPath;
+                    UpdateCurrentWallpaperPreview();
+                    UpdateWallpaperActiveStates();
+                    UpdateRestoreDefaultButtonState();
+                    ShowResult("Done", result.Message, InfoBarSeverity.Success);
+                }
+                else
+                {
+                    ShowResult("Wallpaper change failed", result.Message, InfoBarSeverity.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                App.logger.Error(exception, "[Adjustments] Wallpaper apply failed.");
+                if (_isPageLoaded)
+                {
+                    ShowResult("Wallpaper change failed", exception.Message, InfoBarSeverity.Error);
+                }
+            }
+            finally
+            {
+                if (_isPageLoaded)
+                {
+                    SetActionsEnabled(IsCurrentProcessElevated());
+                    UpdateRestoreDefaultButtonState();
+                }
+            }
+        }
+
+        private void UpdateWallpaperActiveStates()
+        {
+            if (WallpaperGridView.ItemsSource is not List<WallpaperItem> items)
+                return;
+
+            foreach (WallpaperItem item in items)
+            {
+                item.IsSelected = IsCurrentWallpaper(item.FilePath);
+            }
+
+            WallpaperGridView.ItemsSource = null;
+            WallpaperGridView.ItemsSource = items;
         }
     }
 }
