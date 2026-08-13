@@ -12,6 +12,13 @@ using SynToolkit.Services.RadeonSlimmer;
 
 namespace SynToolkit.ViewModels
 {
+    public enum GpuVendorSelection
+    {
+        None,   // Landing page - no vendor selected
+        AMD,
+        NVIDIA,
+    }
+
     public enum GpuWizardStep
     {
         SelectInstaller,
@@ -43,6 +50,9 @@ namespace SynToolkit.ViewModels
         private GpuWizardStep _currentStep = GpuWizardStep.SelectInstaller;
 
         [ObservableProperty]
+        private GpuVendorSelection _selectedVendor = GpuVendorSelection.None;
+
+        [ObservableProperty]
         private bool _isBusy;
 
         [ObservableProperty]
@@ -52,6 +62,25 @@ namespace SynToolkit.ViewModels
         private string _statusMessage = string.Empty;
 
         [ObservableProperty]
+        private string _optimizationResultMessage = string.Empty;
+
+        [ObservableProperty]
+        private bool _optimizationResultIsWarning;
+
+        public bool HasOptimizationResult => !string.IsNullOrEmpty(OptimizationResultMessage);
+
+        partial void OnOptimizationResultMessageChanged(string value) => OnPropertyChanged(nameof(HasOptimizationResult));
+
+        [ObservableProperty]
+        private string _resetSuccessMessage = string.Empty;
+
+        public bool HasResetSuccessMessage => !string.IsNullOrEmpty(ResetSuccessMessage);
+
+        partial void OnResetSuccessMessageChanged(string value) => OnPropertyChanged(nameof(HasResetSuccessMessage));
+
+        public void ClearResetSuccessMessage() => ResetSuccessMessage = string.Empty;
+
+        [ObservableProperty]
         private bool _hasAmdGpu;
 
         [ObservableProperty]
@@ -59,9 +88,11 @@ namespace SynToolkit.ViewModels
 
         public bool NoAmdGpuDetected => !HasAmdGpu;
         public bool NoNvidiaGpuDetected => !HasNvidiaGpu;
+        public bool CanOptimize => CurrentStep == GpuWizardStep.Customize;
 
         partial void OnHasAmdGpuChanged(bool value) => OnPropertyChanged(nameof(NoAmdGpuDetected));
         partial void OnHasNvidiaGpuChanged(bool value) => OnPropertyChanged(nameof(NoNvidiaGpuDetected));
+        partial void OnCurrentStepChanged(GpuWizardStep value) => OnPropertyChanged(nameof(CanOptimize));
 
         [ObservableProperty]
         private string _detectedGpuSummary = "Detecting installed GPUs...";
@@ -338,6 +369,31 @@ namespace SynToolkit.ViewModels
             }
         }
 
+        /// <summary>
+        /// Applies the recommended optimization preset across all three tabs (Packages,
+        /// Scheduled Tasks, Display Driver Components) in a single action. Matches items
+        /// by their stable identifiers (ProductName, URI/Description, folder name) rather
+        /// than position, and handles partial matches gracefully.
+        /// </summary>
+        public void ApplyRecommendedOptimization()
+        {
+            OptimizationResultMessage = string.Empty;
+            OptimizationResultIsWarning = false;
+
+            OptimizationResult result = RadeonOptimizationService.ApplyRecommendedOptimization(
+                Packages,
+                ScheduledTasks,
+                DisplayComponents);
+
+            OptimizationResultMessage = RadeonOptimizationService.GetResultMessage(result);
+            OptimizationResultIsWarning = result.NoTabsMatched || result.AnyTabSkipped || result.AnyTabPartiallyMatched;
+        }
+
+        public void ClearOptimizationResult()
+        {
+            OptimizationResultMessage = string.Empty;
+        }
+
         public async Task ApplyAndInstallAsync()
         {
             HasError = false;
@@ -378,6 +434,7 @@ namespace SynToolkit.ViewModels
         public async Task ResetToDefaultsAsync()
         {
             HasError = false;
+            ResetSuccessMessage = string.Empty;
             IsBusy = true;
             try
             {
@@ -389,6 +446,7 @@ namespace SynToolkit.ViewModels
                 });
 
                 LoadCustomizationLists();
+                ResetSuccessMessage = "Reset to default complete.";
             }
             catch (Exception exception)
             {
@@ -411,6 +469,21 @@ namespace SynToolkit.ViewModels
             ScheduledTasks.Clear();
             DisplayComponents.Clear();
             CurrentStep = GpuWizardStep.SelectInstaller;
+        }
+
+        public void SelectVendor(GpuVendorSelection vendor)
+        {
+            SelectedVendor = vendor;
+        }
+
+        public void ReturnToLandingPage()
+        {
+            SelectedVendor = GpuVendorSelection.None;
+            // Reset AMD wizard state when returning to landing
+            if (CurrentStep != GpuWizardStep.SelectInstaller)
+            {
+                StartOver();
+            }
         }
     }
 }

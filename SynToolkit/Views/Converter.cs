@@ -23,6 +23,19 @@ namespace SynToolkit.Views
         }
     }
 
+    public class BoolToSeverityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            return value is bool isWarning && isWarning ? InfoBarSeverity.Warning : InfoBarSeverity.Success;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     internal class FontIconConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)

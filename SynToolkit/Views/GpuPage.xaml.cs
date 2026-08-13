@@ -20,6 +20,7 @@ namespace SynToolkit.Views
         private const string NipFileFilter = "NVIDIA Profile Inspector profiles (*.nip)|*.nip|All files (*.*)|*.*";
 
         private readonly GpuPageViewModel _viewModel;
+        private int _currentSlimmerTab = 0; // 0 = Packages, 1 = Scheduled Tasks, 2 = Display Components
 
         public GpuPage()
         {
@@ -32,10 +33,32 @@ namespace SynToolkit.Views
                 {
                     UpdateStepVisibility();
                 }
+                else if (e.PropertyName == nameof(GpuPageViewModel.SelectedVendor))
+                {
+                    UpdateVendorPanelVisibility();
+                }
             };
             UpdateStepVisibility();
+            UpdateVendorPanelVisibility();
             _ = _viewModel.DetectGpusAsync();
         }
+
+        private void UpdateVendorPanelVisibility()
+        {
+            VendorLandingPanel.Visibility = _viewModel.SelectedVendor == GpuVendorSelection.None
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            AmdVendorPanel.Visibility = _viewModel.SelectedVendor == GpuVendorSelection.AMD
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            NvidiaVendorPanel.Visibility = _viewModel.SelectedVendor == GpuVendorSelection.NVIDIA
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private void AmdVendorCard_Click(object sender, RoutedEventArgs e) => _viewModel.SelectVendor(GpuVendorSelection.AMD);
+        private void NvidiaVendorCard_Click(object sender, RoutedEventArgs e) => _viewModel.SelectVendor(GpuVendorSelection.NVIDIA);
+        private void BackToLandingPage_Click(object sender, RoutedEventArgs e) => _viewModel.ReturnToLandingPage();
 
         private void UpdateStepVisibility()
         {
@@ -43,7 +66,35 @@ namespace SynToolkit.Views
             ExtractingPanel.Visibility = _viewModel.CurrentStep == GpuWizardStep.Extracting ? Visibility.Visible : Visibility.Collapsed;
             CustomizePanel.Visibility = _viewModel.CurrentStep == GpuWizardStep.Customize ? Visibility.Visible : Visibility.Collapsed;
             DonePanel.Visibility = _viewModel.CurrentStep == GpuWizardStep.Done ? Visibility.Visible : Visibility.Collapsed;
+
+            // Reset to first tab when entering customize step
+            if (_viewModel.CurrentStep == GpuWizardStep.Customize)
+            {
+                SwitchSlimmerTab(0);
+            }
         }
+
+        private void SwitchSlimmerTab(int tabIndex)
+        {
+            _currentSlimmerTab = tabIndex;
+
+            // Update tab panel visibility
+            PackagesTabPanel.Visibility = tabIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+            ScheduledTasksTabPanel.Visibility = tabIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+            DisplayComponentsTabPanel.Visibility = tabIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+
+            // Update breadcrumb tab button styles
+            Style activeStyle = (Style)Resources["BreadcrumbTabActive"];
+            Style inactiveStyle = (Style)Resources["BreadcrumbTabInactive"];
+
+            PackagesTabButton.Style = tabIndex == 0 ? activeStyle : inactiveStyle;
+            ScheduledTasksTabButton.Style = tabIndex == 1 ? activeStyle : inactiveStyle;
+            DisplayComponentsTabButton.Style = tabIndex == 2 ? activeStyle : inactiveStyle;
+        }
+
+        private void PackagesTab_Click(object sender, RoutedEventArgs e) => SwitchSlimmerTab(0);
+        private void ScheduledTasksTab_Click(object sender, RoutedEventArgs e) => SwitchSlimmerTab(1);
+        private void DisplayComponentsTab_Click(object sender, RoutedEventArgs e) => SwitchSlimmerTab(2);
 
         private void BrowseInstallerButton_Click(object sender, RoutedEventArgs e)
         {
@@ -84,6 +135,12 @@ namespace SynToolkit.Views
         private void KeepAllDisplayComponents_Click(object sender, RoutedEventArgs e) => _viewModel.SetAllDisplayComponents(true);
 
         private void RemoveAllDisplayComponents_Click(object sender, RoutedEventArgs e) => _viewModel.SetAllDisplayComponents(false);
+
+        private void OptimizeDriverButton_Click(object sender, RoutedEventArgs e) => _viewModel.ApplyRecommendedOptimization();
+
+        private void OptimizationResultInfoBar_Closed(InfoBar sender, InfoBarClosedEventArgs args) => _viewModel.ClearOptimizationResult();
+
+        private void ResetSuccessInfoBar_Closed(InfoBar sender, InfoBarClosedEventArgs args) => _viewModel.ClearResetSuccessMessage();
 
         private async void ApplyAndInstallButton_Click(object sender, RoutedEventArgs e) => await _viewModel.ApplyAndInstallAsync();
 

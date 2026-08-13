@@ -413,5 +413,12 @@
   "SearchExperiment": "Search bar",
   "SearchExperimentDescription": "Enables a search bar to quickly find settings in SynToolkit",
   "IconsExperiment": "Icons",
-  "IconsExperimentDescription": "Enables icons next to each setting for easier identification and more visual appeal"
+  "IconsExperimentDescription": "Enables icons next to each setting for easier identification and more visual appeal",
+
+  "RadeonSlimmer_OptimizeDriver": "Optimize Driver",
+  "RadeonSlimmer_OptimizeDriverTooltip": "Applies a recommended configuration: disables all scheduled tasks, keeps only the display driver and AMD Settings packages, and keeps only the core display components. If your imported package differs from AMD's standard layout, only matching items will be adjusted.",
+  "RadeonSlimmer_OptimizationSuccess": "Recommended optimization applied.",
+  "RadeonSlimmer_OptimizationPartial": "Recommended optimization applied. Some items in your import didn't match the standard AMD layout and were left unchanged — review the tabs if needed.",
+  "RadeonSlimmer_OptimizationSkipped": "Optimization applied where possible. {0} didn't match this package and were skipped.",
+  "RadeonSlimmer_OptimizationNoMatch": "This import doesn't match a recognized AMD package layout, so no optimization was applied. You can still configure settings manually."
 }

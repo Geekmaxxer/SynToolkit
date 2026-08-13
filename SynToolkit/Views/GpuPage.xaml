@@ -15,6 +15,7 @@
 
     <Page.Resources>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <local:BoolToSeverityConverter x:Key="BoolToSeverityConverter" />
         <Style x:Key="GroupHeader" TargetType="TextBlock">
             <Setter Property="FontSize" Value="18" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -24,6 +25,39 @@
             <Setter Property="FontSize" Value="14" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Margin" Value="0,8,0,8" />
+        </Style>
+
+        <!--  Breadcrumb tab navigation styles  -->
+        <Style x:Key="BreadcrumbTabActive" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="4,4" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        </Style>
+        <Style x:Key="BreadcrumbTabInactive" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="4,4" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="BreadcrumbChevron" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorTertiaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="6,0" />
+        </Style>
+
+        <!--  Info button style for clickable tooltips  -->
+        <Style x:Key="InfoButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="6,4" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="4,0,0,0" />
         </Style>
     </Page.Resources>
 
@@ -65,20 +99,96 @@
         <ScrollViewer Grid.Row="3">
             <StackPanel Margin="0,0,36,48">
 
-                <!--  AMD Radeon Software slimmer  -->
-                <TextBlock Style="{StaticResource GroupHeader}" Text="AMD Radeon Software slimmer" />
-                <InfoBar
-                    Margin="0,0,0,10"
-                    IsClosable="False"
-                    IsOpen="{Binding NoAmdGpuDetected, Mode=OneWay}"
-                    Message="No AMD GPU was detected on this system. This section is unavailable."
-                    Severity="Informational" />
+                <!--  VENDOR SELECTION LANDING PAGE  -->
+                <!--  Styled as full-width rows matching Windows Settings list-item style  -->
+                <StackPanel x:Name="VendorLandingPanel" Spacing="4">
 
-                <ContentControl
-                    HorizontalContentAlignment="Stretch"
-                    VerticalContentAlignment="Stretch"
-                    IsEnabled="{Binding HasAmdGpu, Mode=OneWay}"
-                    IsTabStop="False">
+                    <!--  AMD Row - full width, icon left, title+description middle, chevron right  -->
+                    <controls:SettingsCard
+                        Click="AmdVendorCard_Click"
+                        IsClickEnabled="True"
+                        Header="AMD"
+                        Description="Manage AMD GPU drivers and settings"
+                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/Amd.png" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                            <Border
+                                x:Name="AmdDetectedBadge"
+                                Padding="8,4"
+                                Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
+                                CornerRadius="4"
+                                VerticalAlignment="Center"
+                                Visibility="{Binding HasAmdGpu, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <TextBlock
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                    Text="Detected" />
+                            </Border>
+                            <FontIcon
+                                FontSize="14"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Glyph="&#xE76C;" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <!--  NVIDIA Row - full width, icon left, title+description middle, chevron right  -->
+                    <controls:SettingsCard
+                        Click="NvidiaVendorCard_Click"
+                        IsClickEnabled="True"
+                        Header="NVIDIA"
+                        Description="Manage NVIDIA GPU drivers and settings"
+                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="ms-appx:///assets/Icons/Nvidia.png" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                            <Border
+                                x:Name="NvidiaDetectedBadge"
+                                Padding="8,4"
+                                Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
+                                CornerRadius="4"
+                                VerticalAlignment="Center"
+                                Visibility="{Binding HasNvidiaGpu, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <TextBlock
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                    Text="Detected" />
+                            </Border>
+                            <FontIcon
+                                FontSize="14"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Glyph="&#xE76C;" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                </StackPanel>
+
+                <!--  AMD VENDOR SECTION  -->
+                <StackPanel x:Name="AmdVendorPanel" Visibility="Collapsed">
+
+                    <!--  Back to landing page  -->
+                    <Button
+                        x:Name="AmdBackButton"
+                        Margin="0,0,0,16"
+                        Click="BackToLandingPage_Click"
+                        Background="Transparent"
+                        BorderThickness="0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontSize="12" Glyph="&#xE72B;" />
+                            <TextBlock Text="Back to GPU selection" />
+                        </StackPanel>
+                    </Button>
+
+                    <TextBlock Style="{StaticResource GroupHeader}" Text="AMD Radeon Software slimmer" Margin="0,0,0,10" />
+                    <InfoBar
+                        Margin="0,0,0,10"
+                        IsClosable="False"
+                        IsOpen="{Binding NoAmdGpuDetected, Mode=OneWay}"
+                        Message="No AMD GPU was detected on this system. This section may not work correctly."
+                        Severity="Warning" />
+
                 <StackPanel>
 
                     <!--  Step 1: select installer  -->
@@ -137,79 +247,200 @@
                         Margin="0,0,0,10"
                         Visibility="Collapsed">
 
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Style="{StaticResource SubGroupHeader}" Text="Packages" />
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
-                                <Button Click="KeepAllPackages_Click" Content="Keep all" />
-                                <Button Click="RemoveAllPackages_Click" Content="Remove all" />
-                            </StackPanel>
-                        </Grid>
-                        <ItemsControl ItemsSource="{Binding Packages}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="radeon:RadeonPackage">
-                                    <controls:SettingsCard
-                                        Margin="0,0,0,6"
-                                        Description="{x:Bind Description, Mode=OneWay}"
-                                        Header="{x:Bind ProductName, Mode=OneWay}"
-                                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
-                                        <CheckBox Content="Keep" IsChecked="{x:Bind Keep, Mode=TwoWay}" />
-                                    </controls:SettingsCard>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <!--  Reset success InfoBar  -->
+                        <InfoBar
+                            x:Name="ResetSuccessInfoBar"
+                            Margin="0,0,0,10"
+                            IsClosable="True"
+                            IsOpen="{Binding HasResetSuccessMessage, Mode=OneWay}"
+                            Message="{Binding ResetSuccessMessage, Mode=OneWay}"
+                            Severity="Success"
+                            Closed="ResetSuccessInfoBar_Closed" />
 
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Style="{StaticResource SubGroupHeader}" Text="Scheduled tasks" />
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
-                                <Button Click="EnableAllScheduledTasks_Click" Content="Enable all" />
-                                <Button Click="DisableAllScheduledTasks_Click" Content="Disable all" />
-                            </StackPanel>
-                        </Grid>
-                        <ItemsControl ItemsSource="{Binding ScheduledTasks}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="radeon:RadeonScheduledTask">
-                                    <controls:SettingsCard
-                                        Margin="0,0,0,6"
-                                        Description="{x:Bind Command, Mode=OneWay}"
-                                        Header="{x:Bind Description, Mode=OneWay}"
-                                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
-                                        <CheckBox Content="Enabled" IsChecked="{x:Bind Enabled, Mode=TwoWay}" />
-                                    </controls:SettingsCard>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <!--  Optimization result InfoBar  -->
+                        <InfoBar
+                            x:Name="OptimizationResultInfoBar"
+                            Margin="0,0,0,10"
+                            IsClosable="True"
+                            IsOpen="{Binding HasOptimizationResult, Mode=OneWay}"
+                            Message="{Binding OptimizationResultMessage, Mode=OneWay}"
+                            Severity="{Binding OptimizationResultIsWarning, Mode=OneWay, Converter={StaticResource BoolToSeverityConverter}}"
+                            Closed="OptimizationResultInfoBar_Closed" />
 
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Style="{StaticResource SubGroupHeader}" Text="Display driver components" />
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
-                                <Button Click="KeepAllDisplayComponents_Click" Content="Keep all" />
-                                <Button Click="RemoveAllDisplayComponents_Click" Content="Remove all" />
-                            </StackPanel>
-                        </Grid>
-                        <ItemsControl ItemsSource="{Binding DisplayComponents}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="radeon:RadeonDisplayComponent">
-                                    <controls:SettingsCard
-                                        Margin="0,0,0,6"
-                                        Header="{x:Bind Name, Mode=OneWay}"
-                                        Style="{StaticResource ConfigurationSettingsCardTemplate}">
-                                        <CheckBox Content="Keep" IsChecked="{x:Bind Keep, Mode=TwoWay}" />
-                                    </controls:SettingsCard>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <!--  Breadcrumb-style tab navigation  -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Button
+                                x:Name="PackagesTabButton"
+                                Click="PackagesTab_Click"
+                                Style="{StaticResource BreadcrumbTabActive}"
+                                Content="Packages" />
+                            <TextBlock Style="{StaticResource BreadcrumbChevron}" Text="›" />
+                            <Button
+                                x:Name="ScheduledTasksTabButton"
+                                Click="ScheduledTasksTab_Click"
+                                Style="{StaticResource BreadcrumbTabInactive}"
+                                Content="Scheduled Tasks" />
+                            <TextBlock Style="{StaticResource BreadcrumbChevron}" Text="›" />
+                            <Button
+                                x:Name="DisplayComponentsTabButton"
+                                Click="DisplayComponentsTab_Click"
+                                Style="{StaticResource BreadcrumbTabInactive}"
+                                Content="Display Driver Components" />
+                        </StackPanel>
+
+                        <!--  Global toolbar with Optimize Driver button  -->
+                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,12">
+                            <Button
+                                x:Name="OptimizeDriverButton"
+                                Click="OptimizeDriverButton_Click"
+                                Content="Optimize Driver"
+                                Style="{StaticResource AccentButtonStyle}" />
+                            <Button
+                                x:Name="OptimizeDriverInfoButton"
+                                Style="{StaticResource InfoButtonStyle}"
+                                ToolTipService.ToolTip="Applies a recommended configuration: disables all scheduled tasks, keeps only the display driver and AMD Settings packages, and keeps only the core display components.">
+                                <Button.Flyout>
+                                    <Flyout Placement="Bottom">
+                                        <TextBlock
+                                            MaxWidth="320"
+                                            TextWrapping="Wrap"
+                                            Text="Applies a recommended configuration: disables all scheduled tasks, keeps only the display driver and AMD Settings packages, and keeps only the core display components. If your imported package differs from AMD's standard layout, only matching items will be adjusted." />
+                                    </Flyout>
+                                </Button.Flyout>
+                                <FontIcon FontSize="14" Glyph="&#xE946;" />
+                            </Button>
+                        </StackPanel>
+
+                        <!--  TAB 1: Packages  -->
+                        <StackPanel x:Name="PackagesTabPanel">
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="Uncheck 'Keep' for packages you want to remove." />
+                                    <Button Style="{StaticResource InfoButtonStyle}" ToolTipService.ToolTip="Packages are MSI installers and drivers bundled with the AMD Radeon Software. Unchecked packages will be excluded from installation.">
+                                        <Button.Flyout>
+                                            <Flyout Placement="Bottom">
+                                                <TextBlock
+                                                    MaxWidth="300"
+                                                    TextWrapping="Wrap"
+                                                    Text="Packages are MSI installers and drivers bundled with the AMD Radeon Software. Unchecked packages will be excluded from installation." />
+                                            </Flyout>
+                                        </Button.Flyout>
+                                        <FontIcon FontSize="12" Glyph="&#xE946;" />
+                                    </Button>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                    <Button Click="KeepAllPackages_Click" Content="Select All" />
+                                    <Button Click="RemoveAllPackages_Click" Content="Select None" />
+                                </StackPanel>
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding Packages}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="radeon:RadeonPackage">
+                                        <controls:SettingsCard
+                                            Margin="0,0,0,6"
+                                            Description="{x:Bind Description, Mode=OneWay}"
+                                            Header="{x:Bind ProductName, Mode=OneWay}"
+                                            Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                                            <CheckBox Content="Keep" IsChecked="{x:Bind Keep, Mode=TwoWay}" />
+                                        </controls:SettingsCard>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!--  TAB 2: Scheduled Tasks  -->
+                        <StackPanel x:Name="ScheduledTasksTabPanel" Visibility="Collapsed">
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="Uncheck 'Enabled' to disable the scheduled task." />
+                                    <Button Style="{StaticResource InfoButtonStyle}" ToolTipService.ToolTip="Scheduled tasks are created by AMD to run background operations like driver updates, telemetry, and auto-launch features.">
+                                        <Button.Flyout>
+                                            <Flyout Placement="Bottom">
+                                                <TextBlock
+                                                    MaxWidth="300"
+                                                    TextWrapping="Wrap"
+                                                    Text="Scheduled tasks are created by AMD to run background operations like driver updates, telemetry, and auto-launch features. Disabling these prevents unnecessary background activity." />
+                                            </Flyout>
+                                        </Button.Flyout>
+                                        <FontIcon FontSize="12" Glyph="&#xE946;" />
+                                    </Button>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                    <Button Click="EnableAllScheduledTasks_Click" Content="Select All" />
+                                    <Button Click="DisableAllScheduledTasks_Click" Content="Select None" />
+                                </StackPanel>
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding ScheduledTasks}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="radeon:RadeonScheduledTask">
+                                        <controls:SettingsCard
+                                            Margin="0,0,0,6"
+                                            Description="{x:Bind Command, Mode=OneWay}"
+                                            Header="{x:Bind Description, Mode=OneWay}"
+                                            Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                                            <CheckBox Content="Enabled" IsChecked="{x:Bind Enabled, Mode=TwoWay}" />
+                                        </controls:SettingsCard>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!--  TAB 3: Display Driver Components  -->
+                        <StackPanel x:Name="DisplayComponentsTabPanel" Visibility="Collapsed">
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="Uncheck 'Keep' for components you want to remove." />
+                                    <Button Style="{StaticResource InfoButtonStyle}" ToolTipService.ToolTip="Display driver components are INF driver packages that provide specific GPU functionality.">
+                                        <Button.Flyout>
+                                            <Flyout Placement="Bottom">
+                                                <TextBlock
+                                                    MaxWidth="300"
+                                                    TextWrapping="Wrap"
+                                                    Text="Display driver components are INF driver packages that provide specific GPU functionality. Core components like the display driver, OpenCL, OpenGL, and Vulkan should be kept. Audio, camera, and telemetry components can typically be removed." />
+                                            </Flyout>
+                                        </Button.Flyout>
+                                        <FontIcon FontSize="12" Glyph="&#xE946;" />
+                                    </Button>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                    <Button Click="KeepAllDisplayComponents_Click" Content="Select All" />
+                                    <Button Click="RemoveAllDisplayComponents_Click" Content="Select None" />
+                                </StackPanel>
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding DisplayComponents}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="radeon:RadeonDisplayComponent">
+                                        <controls:SettingsCard
+                                            Margin="0,0,0,6"
+                                            Header="{x:Bind Name, Mode=OneWay}"
+                                            Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                                            <CheckBox Content="Keep" IsChecked="{x:Bind Keep, Mode=TwoWay}" />
+                                        </controls:SettingsCard>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
 
                         <StackPanel Margin="0,10,0,0" Orientation="Horizontal" Spacing="10">
                             <Button
@@ -248,28 +479,40 @@
                     </StackPanel>
 
                 </StackPanel>
-                </ContentControl>
 
-                <!--  NVIDIA Profile Inspector  -->
-                <TextBlock Style="{StaticResource GroupHeader}" Text="NVIDIA Profile Inspector" />
-                <InfoBar
-                    Margin="0,0,0,10"
-                    IsClosable="False"
-                    IsOpen="{Binding NoNvidiaGpuDetected, Mode=OneWay}"
-                    Message="No NVIDIA GPU was detected on this system. This section is unavailable."
-                    Severity="Informational" />
-                <InfoBar
-                    Margin="0,0,0,10"
-                    IsClosable="True"
-                    IsOpen="{Binding HasNvidiaApplyResult, Mode=OneWay}"
-                    Message="{Binding NvidiaApplyResultSummary, Mode=OneWay}"
-                    Severity="Informational" />
+                </StackPanel>
+                <!--  END AMD VENDOR SECTION  -->
 
-                <ContentControl
-                    HorizontalContentAlignment="Stretch"
-                    VerticalContentAlignment="Stretch"
-                    IsEnabled="{Binding HasNvidiaGpu, Mode=OneWay}"
-                    IsTabStop="False">
+                <!--  NVIDIA VENDOR SECTION  -->
+                <StackPanel x:Name="NvidiaVendorPanel" Visibility="Collapsed">
+
+                    <!--  Back to landing page  -->
+                    <Button
+                        x:Name="NvidiaBackButton"
+                        Margin="0,0,0,16"
+                        Click="BackToLandingPage_Click"
+                        Background="Transparent"
+                        BorderThickness="0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontSize="12" Glyph="&#xE72B;" />
+                            <TextBlock Text="Back to GPU selection" />
+                        </StackPanel>
+                    </Button>
+
+                    <TextBlock Style="{StaticResource GroupHeader}" Text="NVIDIA Profile Inspector" Margin="0,0,0,10" />
+                    <InfoBar
+                        Margin="0,0,0,10"
+                        IsClosable="False"
+                        IsOpen="{Binding NoNvidiaGpuDetected, Mode=OneWay}"
+                        Message="No NVIDIA GPU was detected on this system. This section may not work correctly."
+                        Severity="Warning" />
+                    <InfoBar
+                        Margin="0,0,0,10"
+                        IsClosable="True"
+                        IsOpen="{Binding HasNvidiaApplyResult, Mode=OneWay}"
+                        Message="{Binding NvidiaApplyResultSummary, Mode=OneWay}"
+                        Severity="Informational" />
+
                 <StackPanel>
                     <controls:SettingsCard
                         Margin="0,0,0,10"
@@ -458,7 +701,9 @@
                             Style="{StaticResource AccentButtonStyle}" />
                     </StackPanel>
                 </StackPanel>
-                </ContentControl>
+
+                </StackPanel>
+                <!--  END NVIDIA VENDOR SECTION  -->
 
             </StackPanel>
         </ScrollViewer>
