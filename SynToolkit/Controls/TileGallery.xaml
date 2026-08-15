@@ -124,9 +124,9 @@
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <local:HeaderTile
                         x:Name="UpdateNotesTile"
-                        AutomationProperties.HelpText="Open local release notes for SynergyOS 1.5.1"
+                        AutomationProperties.HelpText="Open local release notes for SynToolkit 1.6.0"
                         Click="UpdateNotesTile_Click"
-                        ToolTipService.ToolTip="Open SynergyOS 1.5.1 update notes">
+                        ToolTipService.ToolTip="Open SynToolkit 1.6.0 update notes">
                         <local:HeaderTile.Source>
                             <Image
                                 Width="56"
@@ -194,17 +194,17 @@
             x:Name="UpdateNotesDialog"
             CloseButtonText="Close"
             DefaultButton="Close"
-            Title="SynergyOS 1.5.1 update notes">
+            Title="SynToolkit 1.6.0 update notes">
             <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="500" Spacing="18">
                     <StackPanel Spacing="4">
                         <TextBlock
                             FontSize="16"
                             FontWeight="SemiBold"
-                            Text="SynergyOS refresh" />
+                            Text="SynToolkit 1.6.0" />
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="A major UI and feature update with new icons, smarter navigation, and expanded Windows tweaks."
+                            Text="New Installers page, polished checkbox styling, version sync, and codebase-wide audit fixes."
                             TextWrapping="Wrap" />
                     </StackPanel>
 
@@ -216,12 +216,30 @@
                         <FontIcon
                             FontSize="16"
                             Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                            Glyph="&#xE771;" />
+                            Glyph="&#xE896;" />
                         <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="New look and icons" />
+                            <TextBlock FontWeight="SemiBold" Text="Installers page" />
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Updated sidebar, settings pages, Specs, GPU profiles, and search bar with dedicated SynergyOS icon assets."
+                                Text="Browse a curated catalog of game launchers, browsers, media apps, dev tools, and runtimes. Detects already-installed apps from your system."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE771;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Polished checkbox styling" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Custom-styled checkboxes with rounded corners, accent color fill, and hover states matching the app's design language."
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </Grid>
@@ -236,100 +254,10 @@
                             Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                             Glyph="&#xE713;" />
                         <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="Windows tweaks" />
+                            <TextBlock FontWeight="SemiBold" Text="Version synchronization" />
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Added Hardware-accelerated GPU scheduling, optimizations for windowed games, and a Restart to BIOS button in Advanced settings."
-                                TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="28" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <FontIcon
-                            FontSize="16"
-                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                            Glyph="&#xE7E8;" />
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="User Adjustments" />
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Renamed and refreshed the adjustments tab with profile picture, lock screen, and keyboard language tools."
-                                TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="28" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <FontIcon
-                            FontSize="16"
-                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                            Glyph="&#xE74D;" />
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="Disk Cleanup" />
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Replaced the Cleaner tab with a full Disk Cleanup page and linked troubleshooting shortcuts to it."
-                                TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="28" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <FontIcon
-                            FontSize="16"
-                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                            Glyph="&#xE896;" />
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="App Fetch" />
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Redesigned search experience with animations, cancelable installs, and smoother Xbox services warnings."
-                                TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="28" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <FontIcon
-                            FontSize="16"
-                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                            Glyph="&#xE946;" />
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="Home and navigation" />
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Live GitHub release notes, sidebar setting counters, rotating greetings, and Favorites/Profiles icons."
-                                TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="28" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <FontIcon
-                            FontSize="16"
-                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                            Glyph="&#xE902;" />
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="Settings and presence" />
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Discord RPC can now be toggled off, and the SynergyOS GitHub link replaces the old SynToolkit link."
+                                Text="All version strings across manifests, CI workflows, and UI are now unified at 1.6.0 for consistency."
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </Grid>
@@ -344,10 +272,46 @@
                             Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                             Glyph="&#xE9F5;" />
                         <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="Specs page" />
+                            <TextBlock FontWeight="SemiBold" Text="Installed app detection" />
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="GPU, RAM, storage, and motherboard sections now show vendor-specific icons based on detected hardware."
+                                Text="Registry-based detection scans both 64-bit and 32-bit uninstall keys, plus common installation paths, to mark apps as installed."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE946;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="View modes" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Switch between List and Grid views in the Installers page, with category filtering and search."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE90F;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Codebase audit" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Comprehensive review of detection systems, feature wiring, and DI registrations with fixes applied."
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </Grid>

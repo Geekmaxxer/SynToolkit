@@ -101,7 +101,7 @@ namespace SynToolkit.Utils
             {
                 Timeout = TimeSpan.FromSeconds(30)
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("SynToolkit/1.5.1");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("SynToolkit/1.6.0");
             client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
             return client;
         }

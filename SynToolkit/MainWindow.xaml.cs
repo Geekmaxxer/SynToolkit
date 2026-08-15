@@ -138,6 +138,7 @@ namespace SynToolkit
             // Navigation Items
             Home.Content = App.GetValueFromItemList("Home_HeaderText");
             AppFetch.Content = App.GetValueFromItemList("AppFetch");
+            Installers.Content = App.GetValueFromItemList("Installers");
             PowerPlans.Content = App.GetValueFromItemList("PowerPlans");
             Adjustments.Content = App.GetValueFromItemList("Adjustments");
             Gpu.Content = App.GetValueFromItemList("Gpu");
@@ -229,6 +230,7 @@ namespace SynToolkit
             {
                 "SettingsPage" => typeof(SettingsPage),
                 "SynToolkit.Views.AppFetchPage" => typeof(AppFetchPage),
+                "SynToolkit.Views.InstallersPage" => typeof(InstallersPage),
                 "SynToolkit.Views.PowerPlansPage" => typeof(PowerPlansPage),
                 "SynToolkit.Views.AdjustmentsPage" => typeof(AdjustmentsPage),
                 "SynToolkit.Views.GpuPage" => typeof(GpuPage),

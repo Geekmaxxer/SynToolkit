@@ -23,6 +23,19 @@ namespace SynToolkit.Views
         }
     }
 
+    public class BoolToVisibilityInverseConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            return value is bool boolValue && boolValue ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            return value is Visibility visibility && visibility == Visibility.Collapsed;
+        }
+    }
+
     public class BoolToSeverityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)

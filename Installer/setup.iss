@@ -8,6 +8,8 @@
 #define AppChannel "Stable"
 
 [Setup]
+; AppId is the stable GUID used by Inno Setup for upgrade detection.
+; NEVER change this GUID between versions — only change AppVersion.
 AppId={{FE4CD776-C158-49D7-8B5F-F73D3D342E8C}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
@@ -44,12 +46,18 @@ WizardStyle=modern
 CloseApplications=yes
 CloseApplicationsFilter={#MyAppExeName}
 RestartApplications=no
+; UsePreviousAppDir enables in-place upgrade: reuses the existing install path.
 UsePreviousAppDir=yes
+; UsePreviousGroup and UsePreviousTasks preserve user choices from prior install.
+UsePreviousGroup=yes
+UsePreviousTasks=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Dirs]
+; User data directory: preserved across updates, upgrades, repairs, and even uninstalls.
+; The uninsneveruninstall flag ensures user profiles are NEVER deleted.
 Name: "{commonappdata}\Synergy\Profiles"; Permissions: users-modify; Flags: uninsneveruninstall
 
 [Files]
@@ -103,6 +111,17 @@ Type: files; Name: "{commonappdata}\Synergy\InstallState.ini"
 Type: files; Name: "{commonappdata}\Synergy\InstallState.ini.tmp"
 
 [Code]
+var
+  InstalledVersion: String;
+  InstallerVersion: String;
+  UpgradeMode: Integer;  // 0=Fresh, 1=Upgrade, 2=Repair, 3=Downgrade
+
+const
+  MODE_FRESH = 0;
+  MODE_UPGRADE = 1;
+  MODE_REPAIR = 2;
+  MODE_DOWNGRADE = 3;
+
 function LegacySynToolkitInstalled(): Boolean;
 var
   DisplayName: String;
@@ -130,7 +149,99 @@ begin
     (CompareText(Trim(DisplayVersion), '1.5.0') = 0);
 end;
 
+function GetInstalledVersion(): String;
+var
+  Version: String;
+begin
+  Result := '';
+  if RegQueryStringValue(HKLM64, 'Software\SynToolkit', 'Version', Version) then
+    Result := Trim(Version)
+  else if RegQueryStringValue(
+      HKLM64,
+      'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{FE4CD776-C158-49D7-8B5F-F73D3D342E8C}_is1',
+      'DisplayVersion',
+      Version) then
+    Result := Trim(Version);
+end;
+
+function ParseVersionPart(const S: String; PartIndex: Integer): Integer;
+var
+  Parts: TArrayOfString;
+  I, Start, PartCount: Integer;
+begin
+  Result := 0;
+  if S = '' then exit;
+
+  SetArrayLength(Parts, 4);
+  for I := 0 to 3 do Parts[I] := '0';
+
+  Start := 1;
+  PartCount := 0;
+  for I := 1 to Length(S) do
+  begin
+    if (S[I] = '.') or (I = Length(S)) then
+    begin
+      if I = Length(S) then
+        Parts[PartCount] := Copy(S, Start, I - Start + 1)
+      else
+        Parts[PartCount] := Copy(S, Start, I - Start);
+      PartCount := PartCount + 1;
+      Start := I + 1;
+      if PartCount >= 4 then break;
+    end;
+  end;
+
+  if (PartIndex >= 0) and (PartIndex < 4) then
+    Result := StrToIntDef(Parts[PartIndex], 0);
+end;
+
+function CompareVersions(const V1, V2: String): Integer;
+var
+  I, P1, P2: Integer;
+begin
+  Result := 0;
+  for I := 0 to 3 do
+  begin
+    P1 := ParseVersionPart(V1, I);
+    P2 := ParseVersionPart(V2, I);
+    if P1 > P2 then
+    begin
+      Result := 1;
+      exit;
+    end
+    else if P1 < P2 then
+    begin
+      Result := -1;
+      exit;
+    end;
+  end;
+end;
+
+function DetermineUpgradeMode(): Integer;
+var
+  Comparison: Integer;
+begin
+  InstalledVersion := GetInstalledVersion();
+  InstallerVersion := '{#MyAppVersion}';
+
+  if InstalledVersion = '' then
+  begin
+    Result := MODE_FRESH;
+    exit;
+  end;
+
+  Comparison := CompareVersions(InstallerVersion, InstalledVersion);
+  if Comparison > 0 then
+    Result := MODE_UPGRADE
+  else if Comparison = 0 then
+    Result := MODE_REPAIR
+  else
+    Result := MODE_DOWNGRADE;
+end;
+
 function InitializeSetup(): Boolean;
+var
+  Response: Integer;
 begin
   Result := True;
   if not IsWin64 then
@@ -138,6 +249,50 @@ begin
     MsgBox('{#MyAppName} requires a 64-bit version of Windows.', mbError, MB_OK);
     Result := False;
     exit;
+  end;
+
+  UpgradeMode := DetermineUpgradeMode();
+
+  case UpgradeMode of
+    MODE_UPGRADE:
+      begin
+        MsgBox(
+          'Updating {#MyAppName}' + #13#10 + #13#10 +
+          'Installed version: ' + InstalledVersion + #13#10 +
+          'New version: ' + InstallerVersion + #13#10 + #13#10 +
+          'Your settings and profiles will be preserved.',
+          mbInformation, MB_OK);
+      end;
+
+    MODE_REPAIR:
+      begin
+        Response := MsgBox(
+          '{#MyAppName} ' + InstallerVersion + ' is already installed.' + #13#10 + #13#10 +
+          'Would you like to repair the installation?' + #13#10 +
+          '(This will reinstall application files without removing your settings or profiles.)',
+          mbConfirmation, MB_YESNO);
+        if Response <> IDYES then
+        begin
+          Result := False;
+          exit;
+        end;
+      end;
+
+    MODE_DOWNGRADE:
+      begin
+        Response := MsgBox(
+          'A newer version is already installed!' + #13#10 + #13#10 +
+          'Installed version: ' + InstalledVersion + #13#10 +
+          'This installer version: ' + InstallerVersion + #13#10 + #13#10 +
+          'Downgrading is not recommended and may cause issues.' + #13#10 +
+          'Are you sure you want to continue?',
+          mbError, MB_YESNO);
+        if Response <> IDYES then
+        begin
+          Result := False;
+          exit;
+        end;
+      end;
   end;
 
   if LegacySynToolkitInstalled() then
@@ -359,6 +514,63 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
     RunPostInstallPreparation();
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+var
+  PageTitle: String;
+  PageDescription: String;
+begin
+  if CurPageID = wpWelcome then
+  begin
+    case UpgradeMode of
+      MODE_UPGRADE:
+        begin
+          PageTitle := 'Update {#MyAppName}';
+          PageDescription := 'Setup will update {#MyAppName} from ' + InstalledVersion + ' to ' + InstallerVersion + '.';
+        end;
+      MODE_REPAIR:
+        begin
+          PageTitle := 'Repair {#MyAppName}';
+          PageDescription := 'Setup will repair {#MyAppName} ' + InstallerVersion + '.';
+        end;
+      MODE_DOWNGRADE:
+        begin
+          PageTitle := 'Downgrade {#MyAppName}';
+          PageDescription := 'Setup will downgrade {#MyAppName} from ' + InstalledVersion + ' to ' + InstallerVersion + '.';
+        end;
+    else
+      begin
+        PageTitle := 'Install {#MyAppName}';
+        PageDescription := 'Setup will install {#MyAppName} ' + InstallerVersion + ' on your computer.';
+      end;
+    end;
+    WizardForm.WelcomeLabel1.Caption := PageTitle;
+    WizardForm.WelcomeLabel2.Caption := PageDescription + #13#10 + #13#10 +
+      'Click Next to continue, or Cancel to exit Setup.';
+  end;
+
+  if CurPageID = wpFinished then
+  begin
+    case UpgradeMode of
+      MODE_UPGRADE:
+        WizardForm.FinishedLabel.Caption :=
+          '{#MyAppName} has been successfully updated to version ' + InstallerVersion + '.' + #13#10 + #13#10 +
+          'Your settings and profiles have been preserved.';
+      MODE_REPAIR:
+        WizardForm.FinishedLabel.Caption :=
+          '{#MyAppName} ' + InstallerVersion + ' has been successfully repaired.' + #13#10 + #13#10 +
+          'Your settings and profiles have been preserved.';
+      MODE_DOWNGRADE:
+        WizardForm.FinishedLabel.Caption :=
+          '{#MyAppName} has been downgraded to version ' + InstallerVersion + '.' + #13#10 + #13#10 +
+          'Your settings and profiles have been preserved.';
+    else
+      WizardForm.FinishedLabel.Caption :=
+        '{#MyAppName} ' + InstallerVersion + ' has been successfully installed.' + #13#10 + #13#10 +
+        'Click Finish to exit Setup.';
+    end;
+  end;
 end;
 
 function InitializeUninstall(): Boolean;

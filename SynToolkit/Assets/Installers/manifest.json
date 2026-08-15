@@ -1,0 +1,703 @@
+{
+  "apps": [
+    {
+      "id": "steam",
+      "displayName": "Steam",
+      "shortDescription": "Valve's digital game distribution platform.",
+      "category": "GameLaunchers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Steam"],
+        "knownFolderPaths": [
+          "%ProgramFiles(x86)%\\Steam\\steam.exe",
+          "%ProgramFiles%\\Steam\\steam.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "epic-games",
+      "displayName": "Epic Games Launcher",
+      "shortDescription": "Epic Games Store client for PC games.",
+      "category": "GameLaunchers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Epic Games Launcher"],
+        "knownFolderPaths": [
+          "%ProgramFiles(x86)%\\Epic Games\\Launcher\\Portal\\Binaries\\Win32\\EpicGamesLauncher.exe",
+          "%ProgramFiles%\\Epic Games\\Launcher\\Portal\\Binaries\\Win64\\EpicGamesLauncher.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "battlenet",
+      "displayName": "Battle.net",
+      "shortDescription": "Blizzard Entertainment's game launcher.",
+      "category": "GameLaunchers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Battle.net"],
+        "knownFolderPaths": [
+          "%ProgramFiles(x86)%\\Battle.net\\Battle.net.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "riot-client",
+      "displayName": "Riot Client",
+      "shortDescription": "Riot Games launcher for League of Legends, Valorant, etc.",
+      "category": "GameLaunchers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Riot Client"],
+        "knownFolderPaths": [
+          "%ProgramData%\\Riot Games\\RiotClientInstalls.json"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "ubisoft-connect",
+      "displayName": "Ubisoft Connect",
+      "shortDescription": "Ubisoft's game launcher and social platform.",
+      "category": "GameLaunchers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Ubisoft Connect", "Uplay"],
+        "knownFolderPaths": [
+          "%ProgramFiles(x86)%\\Ubisoft\\Ubisoft Game Launcher\\UbisoftConnect.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "ea-app",
+      "displayName": "EA App",
+      "shortDescription": "Electronic Arts' game launcher (successor to Origin).",
+      "category": "GameLaunchers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["EA app", "EA Desktop"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\Electronic Arts\\EA Desktop\\EA Desktop\\EADesktop.exe",
+          "%LocalAppData%\\Electronic Arts\\EA Desktop\\EA Desktop\\EADesktop.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "gog-galaxy",
+      "displayName": "GOG Galaxy",
+      "shortDescription": "GOG.com's DRM-free game launcher.",
+      "category": "GameLaunchers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["GOG Galaxy"],
+        "knownFolderPaths": [
+          "%ProgramFiles(x86)%\\GOG Galaxy\\GalaxyClient.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "xbox-app",
+      "displayName": "Xbox App",
+      "shortDescription": "Microsoft's Xbox gaming app for Windows.",
+      "category": "GameLaunchers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Xbox"],
+        "knownFolderPaths": [],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "discord",
+      "displayName": "Discord",
+      "shortDescription": "Voice, video, and text chat platform for gamers.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Discord"],
+        "knownFolderPaths": [
+          "%LocalAppData%\\Discord\\Update.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "obs-studio",
+      "displayName": "OBS Studio",
+      "shortDescription": "Open-source streaming and recording software.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["OBS Studio"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\obs-studio\\bin\\64bit\\obs64.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "nvidia-app",
+      "displayName": "NVIDIA App",
+      "shortDescription": "NVIDIA's unified GPU control panel and driver updater.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "flaggedForReview": true,
+      "reviewNotes": "NVIDIA renamed GeForce Experience to NVIDIA App in 2024. Verify current naming and detection.",
+      "detectionRule": {
+        "registryNamePatterns": ["NVIDIA App", "NVIDIA GeForce Experience"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\NVIDIA Corporation\\NVIDIA App\\NVIDIAApp.exe",
+          "%ProgramFiles(x86)%\\NVIDIA Corporation\\NVIDIA GeForce Experience\\NVIDIA GeForce Experience.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "msi-afterburner",
+      "displayName": "MSI Afterburner",
+      "shortDescription": "GPU overclocking and monitoring utility.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["MSI Afterburner"],
+        "knownFolderPaths": [
+          "%ProgramFiles(x86)%\\MSI Afterburner\\MSIAfterburner.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "hwinfo",
+      "displayName": "HWiNFO",
+      "shortDescription": "Comprehensive hardware diagnostics and monitoring.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["HWiNFO"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\HWiNFO64\\HWiNFO64.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "cpu-z",
+      "displayName": "CPU-Z",
+      "shortDescription": "CPU, motherboard, and memory information utility.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["CPU-Z"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\CPUID\\CPU-Z\\cpuz.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "gpu-z",
+      "displayName": "GPU-Z",
+      "shortDescription": "GPU information and monitoring utility.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["GPU-Z"],
+        "knownFolderPaths": [],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "logitech-ghub",
+      "displayName": "Logitech G HUB",
+      "shortDescription": "Logitech gaming peripherals software.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Logitech G HUB"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\LGHUB\\lghub.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "razer-synapse",
+      "displayName": "Razer Synapse",
+      "shortDescription": "Razer gaming peripherals software.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Razer Synapse"],
+        "knownFolderPaths": [
+          "%ProgramFiles(x86)%\\Razer\\Synapse3\\WPFUI\\Framework\\Razer Synapse 3 Host\\Razer Synapse 3.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "steelseries-gg",
+      "displayName": "SteelSeries GG",
+      "shortDescription": "SteelSeries peripherals and audio software.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["SteelSeries GG", "SteelSeries Engine"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\SteelSeries\\GG\\SteelSeriesGG.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "voicemeeter",
+      "displayName": "Voicemeeter",
+      "shortDescription": "Virtual audio mixer for Windows.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Voicemeeter", "VB-Audio Voicemeeter"],
+        "knownFolderPaths": [
+          "%ProgramFiles(x86)%\\VB\\Voicemeeter\\voicemeeter.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "sharex",
+      "displayName": "ShareX",
+      "shortDescription": "Open-source screenshot and screen recording tool.",
+      "category": "GamingCreatorApps",
+      "iconPath": null,
+      "installUrl": null,
+      "flaggedForReview": true,
+      "reviewNotes": "ShareX is free and open-source. Confirmed good for inclusion.",
+      "detectionRule": {
+        "registryNamePatterns": ["ShareX"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\ShareX\\ShareX.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "chrome",
+      "displayName": "Google Chrome",
+      "shortDescription": "Google's web browser.",
+      "category": "Browsers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Google Chrome"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe",
+          "%ProgramFiles(x86)%\\Google\\Chrome\\Application\\chrome.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "firefox",
+      "displayName": "Mozilla Firefox",
+      "shortDescription": "Mozilla's open-source web browser.",
+      "category": "Browsers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Mozilla Firefox"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\Mozilla Firefox\\firefox.exe",
+          "%ProgramFiles(x86)%\\Mozilla Firefox\\firefox.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "brave",
+      "displayName": "Brave",
+      "shortDescription": "Privacy-focused Chromium-based browser.",
+      "category": "Browsers",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Brave"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+          "%LocalAppData%\\BraveSoftware\\Brave-Browser\\Application\\brave.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "spotify",
+      "displayName": "Spotify",
+      "shortDescription": "Music streaming service.",
+      "category": "MediaCommunication",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Spotify"],
+        "knownFolderPaths": [
+          "%AppData%\\Spotify\\Spotify.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "vlc",
+      "displayName": "VLC Media Player",
+      "shortDescription": "Free, open-source multimedia player.",
+      "category": "MediaCommunication",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["VLC media player"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\VideoLAN\\VLC\\vlc.exe",
+          "%ProgramFiles(x86)%\\VideoLAN\\VLC\\vlc.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "zoom",
+      "displayName": "Zoom",
+      "shortDescription": "Video conferencing application.",
+      "category": "MediaCommunication",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Zoom"],
+        "knownFolderPaths": [
+          "%AppData%\\Zoom\\bin\\Zoom.exe",
+          "%ProgramFiles%\\Zoom\\bin\\Zoom.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "7zip",
+      "displayName": "7-Zip",
+      "shortDescription": "Free file archiver with high compression ratio.",
+      "category": "DevUtility",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["7-Zip"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\7-Zip\\7z.exe",
+          "%ProgramFiles(x86)%\\7-Zip\\7z.exe"
+        ],
+        "pathExecutables": ["7z"]
+      }
+    },
+    {
+      "id": "notepadpp",
+      "displayName": "Notepad++",
+      "shortDescription": "Free source code editor and Notepad replacement.",
+      "category": "DevUtility",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Notepad++"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\Notepad++\\notepad++.exe",
+          "%ProgramFiles(x86)%\\Notepad++\\notepad++.exe"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "vscode",
+      "displayName": "Visual Studio Code",
+      "shortDescription": "Microsoft's free code editor.",
+      "category": "DevUtility",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Microsoft Visual Studio Code"],
+        "knownFolderPaths": [
+          "%LocalAppData%\\Programs\\Microsoft VS Code\\Code.exe",
+          "%ProgramFiles%\\Microsoft VS Code\\Code.exe"
+        ],
+        "pathExecutables": ["code"]
+      }
+    },
+    {
+      "id": "git",
+      "displayName": "Git",
+      "shortDescription": "Distributed version control system.",
+      "category": "DevUtility",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Git"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\Git\\cmd\\git.exe",
+          "%ProgramFiles(x86)%\\Git\\cmd\\git.exe"
+        ],
+        "pathExecutables": ["git"]
+      }
+    },
+    {
+      "id": "windows-terminal",
+      "displayName": "Windows Terminal",
+      "shortDescription": "Modern terminal application for Windows.",
+      "category": "DevUtility",
+      "iconPath": null,
+      "installUrl": null,
+      "flaggedForReview": true,
+      "reviewNotes": "Windows Terminal is included by default in Windows 11. May not need separate installer on recent OS versions.",
+      "detectionRule": {
+        "registryNamePatterns": ["Windows Terminal"],
+        "knownFolderPaths": [],
+        "pathExecutables": ["wt"]
+      }
+    },
+    {
+      "id": "vcredist-2005-x86",
+      "displayName": "VC++ 2005 Redistributable (x86)",
+      "shortDescription": "Microsoft Visual C++ 2005 runtime (32-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryGuids": [
+          "{A49F249F-0C91-497F-86DF-B2585E8E76B7}",
+          "{837B34E3-7C30-493C-8F6A-2B0F04E2912C}"
+        ],
+        "registryNamePatterns": ["Microsoft Visual C++ 2005 Redistributable"]
+      }
+    },
+    {
+      "id": "vcredist-2005-x64",
+      "displayName": "VC++ 2005 Redistributable (x64)",
+      "shortDescription": "Microsoft Visual C++ 2005 runtime (64-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryGuids": [
+          "{6E8E85E8-CE4B-4FF5-91F7-04999C9FAE6A}",
+          "{6CE5BAE9-D3CA-4B99-891A-1DC6C118A5FC}"
+        ],
+        "registryNamePatterns": ["Microsoft Visual C++ 2005 Redistributable (x64)"]
+      }
+    },
+    {
+      "id": "vcredist-2008-x86",
+      "displayName": "VC++ 2008 Redistributable (x86)",
+      "shortDescription": "Microsoft Visual C++ 2008 runtime (32-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryGuids": [
+          "{9A25302D-30C0-39D9-BD6F-21E6EC160475}"
+        ],
+        "registryNamePatterns": ["Microsoft Visual C++ 2008 Redistributable"]
+      }
+    },
+    {
+      "id": "vcredist-2008-x64",
+      "displayName": "VC++ 2008 Redistributable (x64)",
+      "shortDescription": "Microsoft Visual C++ 2008 runtime (64-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryGuids": [
+          "{5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4}"
+        ],
+        "registryNamePatterns": ["Microsoft Visual C++ 2008 Redistributable - x64"]
+      }
+    },
+    {
+      "id": "vcredist-2010-x86",
+      "displayName": "VC++ 2010 Redistributable (x86)",
+      "shortDescription": "Microsoft Visual C++ 2010 runtime (32-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryGuids": [
+          "{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}"
+        ],
+        "registryNamePatterns": ["Microsoft Visual C++ 2010  x86 Redistributable"]
+      }
+    },
+    {
+      "id": "vcredist-2010-x64",
+      "displayName": "VC++ 2010 Redistributable (x64)",
+      "shortDescription": "Microsoft Visual C++ 2010 runtime (64-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryGuids": [
+          "{1D8E6291-B0D5-35EC-8441-6616F567A0F7}"
+        ],
+        "registryNamePatterns": ["Microsoft Visual C++ 2010  x64 Redistributable"]
+      }
+    },
+    {
+      "id": "vcredist-2012-x86",
+      "displayName": "VC++ 2012 Redistributable (x86)",
+      "shortDescription": "Microsoft Visual C++ 2012 runtime (32-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryGuids": [
+          "{33D1FD90-4274-48A1-9BC1-97E33D9C2D6F}"
+        ],
+        "registryNamePatterns": ["Microsoft Visual C++ 2012 Redistributable (x86)"]
+      }
+    },
+    {
+      "id": "vcredist-2012-x64",
+      "displayName": "VC++ 2012 Redistributable (x64)",
+      "shortDescription": "Microsoft Visual C++ 2012 runtime (64-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryGuids": [
+          "{CA67548A-5EBE-413A-B50C-4B9CEB6D66C6}"
+        ],
+        "registryNamePatterns": ["Microsoft Visual C++ 2012 Redistributable (x64)"]
+      }
+    },
+    {
+      "id": "vcredist-2013-x86",
+      "displayName": "VC++ 2013 Redistributable (x86)",
+      "shortDescription": "Microsoft Visual C++ 2013 runtime (32-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryGuids": [
+          "{F8CFEB22-A2E7-3971-9EDA-4B11EDEFC185}"
+        ],
+        "registryNamePatterns": ["Microsoft Visual C++ 2013 Redistributable (x86)"]
+      }
+    },
+    {
+      "id": "vcredist-2013-x64",
+      "displayName": "VC++ 2013 Redistributable (x64)",
+      "shortDescription": "Microsoft Visual C++ 2013 runtime (64-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryGuids": [
+          "{050D4FC8-5D48-4B8F-8972-47C82C46020F}"
+        ],
+        "registryNamePatterns": ["Microsoft Visual C++ 2013 Redistributable (x64)"]
+      }
+    },
+    {
+      "id": "vcredist-2015-2022-x86",
+      "displayName": "VC++ 2015-2022 Redistributable (x86)",
+      "shortDescription": "Microsoft Visual C++ 2015-2022 combined runtime (32-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Microsoft Visual C++ 2015-2022 Redistributable (x86)", "Microsoft Visual C++ 2015-2019 Redistributable (x86)"]
+      }
+    },
+    {
+      "id": "vcredist-2015-2022-x64",
+      "displayName": "VC++ 2015-2022 Redistributable (x64)",
+      "shortDescription": "Microsoft Visual C++ 2015-2022 combined runtime (64-bit).",
+      "category": "Runtimes",
+      "subcategory": "Visual C++ Redistributables",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Microsoft Visual C++ 2015-2022 Redistributable (x64)", "Microsoft Visual C++ 2015-2019 Redistributable (x64)"]
+      }
+    },
+    {
+      "id": "dotnet-desktop-runtime",
+      "displayName": ".NET Desktop Runtime",
+      "shortDescription": "Microsoft .NET runtime for desktop applications.",
+      "category": "Runtimes",
+      "subcategory": ".NET Runtimes",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "registryNamePatterns": ["Microsoft Windows Desktop Runtime"],
+        "knownFolderPaths": [
+          "%ProgramFiles%\\dotnet\\shared\\Microsoft.WindowsDesktop.App"
+        ],
+        "pathExecutables": []
+      }
+    },
+    {
+      "id": "directx-runtime",
+      "displayName": "DirectX End-User Runtime",
+      "shortDescription": "DirectX components for legacy games.",
+      "category": "Runtimes",
+      "subcategory": "DirectX",
+      "iconPath": null,
+      "installUrl": null,
+      "detectionRule": {
+        "knownFolderPaths": [
+          "%SystemRoot%\\System32\\d3dx9_43.dll",
+          "%SystemRoot%\\System32\\d3dx10_43.dll"
+        ],
+        "registryNamePatterns": []
+      }
+    },
+    {
+      "id": "gpu-drivers-placeholder",
+      "displayName": "GPU Drivers",
+      "shortDescription": "Driver detection coming soon. GPU driver installation requires additional complexity.",
+      "category": "GpuDrivers",
+      "iconPath": null,
+      "installUrl": null,
+      "flaggedForReview": true,
+      "reviewNotes": "GPU driver detection/installation is complex and should be implemented carefully in a future pass.",
+      "detectionRule": {
+        "isStub": true
+      }
+    }
+  ]
+}
