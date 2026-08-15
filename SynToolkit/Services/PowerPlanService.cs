@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Principal;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,8 @@ namespace SynToolkit.Services
         string? PreviousSchemeName);
 
     public sealed record PowerPlanImportResult(Guid SchemeId, string SchemeName);
+
+    public sealed record BundledPowerPlan(string FileName, string DisplayName, string Description, string FilePath);
 
     /// <summary>
     /// Imports and manages Windows power schemes without invoking cmd.exe.
@@ -42,6 +45,11 @@ namespace SynToolkit.Services
         private const string PreviousSchemeValueName = "PreviousSchemeGuid";
         private const string OwnedSchemeValueName = "OwnedSchemeGuid";
         internal const long MaximumPlanFileBytes = 64L * 1024L * 1024L;
+        
+        private static readonly string BundledPlansDirectory = Path.Combine(
+            AppContext.BaseDirectory, "Assets", "PowerPlans");
+        private static readonly string BundledPlansManifestPath = Path.Combine(
+            BundledPlansDirectory, "manifest.json");
 
         private static readonly Regex GuidPattern = new(
             @"[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}",
@@ -51,6 +59,73 @@ namespace SynToolkit.Services
         private readonly string _powerCfgPath = Path.Combine(Environment.SystemDirectory, "powercfg.exe");
 
         public bool CanMutatePowerPlans => IsCurrentProcessElevated();
+
+        public IReadOnlyList<BundledPowerPlan> GetBundledPlans()
+        {
+            var plans = new List<BundledPowerPlan>();
+            
+            if (!Directory.Exists(BundledPlansDirectory))
+                return plans;
+            
+            // Try to load manifest for display names and descriptions
+            Dictionary<string, (string DisplayName, string Description)>? manifest = null;
+            if (File.Exists(BundledPlansManifestPath))
+            {
+                try
+                {
+                    string json = File.ReadAllText(BundledPlansManifestPath);
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("plans", out var plansArray))
+                    {
+                        manifest = new Dictionary<string, (string, string)>(StringComparer.OrdinalIgnoreCase);
+                        foreach (var planElement in plansArray.EnumerateArray())
+                        {
+                            string? fileName = planElement.TryGetProperty("fileName", out var fn) ? fn.GetString() : null;
+                            string? displayName = planElement.TryGetProperty("displayName", out var dn) ? dn.GetString() : null;
+                            string? description = planElement.TryGetProperty("description", out var desc) ? desc.GetString() : null;
+                            
+                            if (!string.IsNullOrEmpty(fileName) && !string.IsNullOrEmpty(displayName))
+                            {
+                                manifest[fileName] = (displayName, description ?? "No description provided.");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    App.logger.Debug(ex, "Failed to parse power plans manifest.");
+                }
+            }
+            
+            // Enumerate .pow files in the directory
+            foreach (string filePath in Directory.EnumerateFiles(BundledPlansDirectory, "*.pow", SearchOption.TopDirectoryOnly))
+            {
+                string fileName = Path.GetFileName(filePath);
+                
+                // Skip the embedded SOS.pow if it somehow exists here
+                if (fileName.Equals("SOS.pow", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                
+                string displayName;
+                string description;
+                
+                if (manifest?.TryGetValue(fileName, out var info) == true)
+                {
+                    displayName = info.DisplayName;
+                    description = info.Description;
+                }
+                else
+                {
+                    // Fallback: use filename without extension as display name
+                    displayName = Path.GetFileNameWithoutExtension(fileName);
+                    description = "No description provided.";
+                }
+                
+                plans.Add(new BundledPowerPlan(fileName, displayName, description, filePath));
+            }
+            
+            return plans.OrderBy(p => p.DisplayName, StringComparer.OrdinalIgnoreCase).ToList();
+        }
 
         public async Task<PowerPlanSnapshot> GetStateAsync(CancellationToken cancellationToken = default)
         {

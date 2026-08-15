@@ -13,16 +13,85 @@ namespace SynToolkit.Views
 {
     public sealed partial class PowerPlansPage : Page
     {
+        private const string TutorialVideoUrl = "https://www.youtube.com/watch?v=GJ3omzm-CYU";
+        
         private readonly PowerPlanService _powerPlanService = new();
         private CancellationTokenSource _lifetimeCancellation = new();
         private PowerPlanSnapshot? _snapshot;
         private bool _isBusy = true;
         private bool _isPageLoaded;
         private int _lifetimeVersion;
+        private bool _isGridView;
 
         public PowerPlansPage()
         {
             InitializeComponent();
+            LoadBundledPlans();
+            UpdateViewModeButtons();
+        }
+
+        private void LoadBundledPlans()
+        {
+            var bundledPlans = _powerPlanService.GetBundledPlans();
+            if (bundledPlans.Count > 0)
+            {
+                BundledPlansListView.ItemsSource = bundledPlans;
+                BundledPlansGridView.ItemsSource = bundledPlans;
+                UpdateViewModeVisibility();
+                BundledPlansEmptyState.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                BundledPlansListView.Visibility = Visibility.Collapsed;
+                BundledPlansGridView.Visibility = Visibility.Collapsed;
+                BundledPlansEmptyState.Visibility = Visibility.Visible;
+            }
+        }
+        
+        private void UpdateViewModeVisibility()
+        {
+            BundledPlansListView.Visibility = _isGridView ? Visibility.Collapsed : Visibility.Visible;
+            BundledPlansGridView.Visibility = _isGridView ? Visibility.Visible : Visibility.Collapsed;
+        }
+        
+        private void UpdateViewModeButtons()
+        {
+            ListViewButton.Style = _isGridView 
+                ? null 
+                : Microsoft.UI.Xaml.Application.Current.Resources["AccentButtonStyle"] as Style;
+            GridViewButton.Style = _isGridView 
+                ? Microsoft.UI.Xaml.Application.Current.Resources["AccentButtonStyle"] as Style 
+                : null;
+        }
+        
+        private void ListViewButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isGridView)
+            {
+                _isGridView = false;
+                UpdateViewModeVisibility();
+                UpdateViewModeButtons();
+            }
+        }
+        
+        private void GridViewButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_isGridView)
+            {
+                _isGridView = true;
+                UpdateViewModeVisibility();
+                UpdateViewModeButtons();
+            }
+        }
+        
+        private async void WatchTutorialButton_Click(object sender, RoutedEventArgs e)
+        {
+            await Windows.System.Launcher.LaunchUriAsync(new Uri(TutorialVideoUrl));
+        }
+        
+        private void RefreshBundledPlansButton_Click(object sender, RoutedEventArgs e)
+        {
+            LoadBundledPlans();
         }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
@@ -252,6 +321,60 @@ namespace SynToolkit.Views
             }
         }
 
+        private async void ImportBundledPlanButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isBusy)
+            {
+                return;
+            }
+
+            if (sender is not Button button || button.Tag is not BundledPowerPlan plan)
+            {
+                return;
+            }
+
+            int lifetimeVersion = _lifetimeVersion;
+            CancellationToken cancellationToken = _lifetimeCancellation.Token;
+            SetBusy(true);
+            OperationInfoBar.IsOpen = false;
+            try
+            {
+                PowerPlanImportResult importResult = await _powerPlanService.ImportCustomPlanAsync(
+                    plan.FilePath,
+                    cancellationToken);
+                if (IsCurrentLifetime(lifetimeVersion, cancellationToken))
+                {
+                    ShowResult(
+                        "Power plan imported",
+                        $"{plan.DisplayName} was imported and activated. ID: {importResult.SchemeId:D}",
+                        InfoBarSeverity.Success);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Navigating away cancels pre-import work.
+            }
+            catch (Exception exception)
+            {
+                App.logger.Error(exception, "Bundled .pow import failed for {PlanName}.", plan.DisplayName);
+                if (IsCurrentLifetime(lifetimeVersion, cancellationToken))
+                {
+                    ShowResult("Power-plan import failed", exception.Message, InfoBarSeverity.Error);
+                }
+            }
+            finally
+            {
+                if (IsCurrentLifetime(lifetimeVersion, cancellationToken))
+                {
+                    await RefreshStatusAsync(cancellationToken, lifetimeVersion, showErrors: false);
+                    if (IsCurrentLifetime(lifetimeVersion, cancellationToken))
+                    {
+                        SetBusy(false);
+                    }
+                }
+            }
+        }
+
         private async void OpenPowerSettingsButton_Click(object sender, RoutedEventArgs e)
         {
             await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:powersleep"));
@@ -387,6 +510,7 @@ namespace SynToolkit.Views
             bool hasConflict = _snapshot?.HasSynToolkitSchemeConflict == true;
             bool canMutate = !_isBusy && stateReady && _powerPlanService.CanMutatePowerPlans;
             RefreshButton.IsEnabled = !_isBusy;
+            RefreshBundledPlansButton.IsEnabled = !_isBusy;
             ImportBuiltInButton.IsEnabled = canMutate && !hasConflict;
             ImportCustomButton.IsEnabled = canMutate;
             ActivateBuiltInButton.IsEnabled = canMutate && !hasConflict && _snapshot?.IsSynToolkitPlanInstalled == true && _snapshot.IsSynToolkitPlanActive == false;
@@ -394,6 +518,8 @@ namespace SynToolkit.Views
             RestorePreviousButton.IsEnabled = canMutate && _snapshot?.PreviousSchemeId is not null;
             ActivateBalancedButton.IsEnabled = canMutate && _snapshot?.ActiveSchemeId is Guid activeSchemeId && activeSchemeId != PowerPlanService.BalancedSchemeId;
             RestoreDefaultSchemesButton.IsEnabled = canMutate;
+            BundledPlansListView.IsEnabled = canMutate;
+            BundledPlansGridView.IsEnabled = canMutate;
         }
 
         /// <summary>
