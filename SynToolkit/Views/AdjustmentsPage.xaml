@@ -5,17 +5,124 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:SynToolkit.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Loaded="Page_Loaded"
     Unloaded="Page_Unloaded"
     mc:Ignorable="d">
 
     <Page.Resources>
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <local:BoolToVisibilityInverseConverter x:Key="BoolToVisibilityInverseConverter" />
         <Style x:Key="CategoryTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Margin" Value="0,8,0,10" />
         </Style>
+        <Style x:Key="WallpaperSectionHeader" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="WallpaperGridViewItemStyle" TargetType="GridViewItem">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GridViewItem">
+                        <ContentPresenter
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            ContentTransitions="{TemplateBinding ContentTransitions}" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <DataTemplate x:Key="WallpaperTileTemplate">
+            <Grid Width="160" Margin="0,0,12,12">
+                <Border
+                    Visibility="{Binding IsAddTile, Converter={StaticResource BoolToVisibilityInverseConverter}}"
+                    BorderBrush="{Binding BorderBrush}"
+                    BorderThickness="{Binding BorderThickness}"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="90" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" CornerRadius="8,8,0,0">
+                            <Grid>
+                                <Border>
+                                    <Border.Background>
+                                        <ImageBrush
+                                            ImageSource="{Binding ThumbnailPath}"
+                                            Stretch="UniformToFill" />
+                                    </Border.Background>
+                                </Border>
+                                <Button
+                                    Width="28"
+                                    Height="28"
+                                    Margin="6"
+                                    Padding="0"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Click="DeleteCustomWallpaperButton_Click"
+                                    CornerRadius="14"
+                                    ToolTipService.ToolTip="Remove from Your Wallpapers"
+                                    Visibility="{Binding IsDeletable, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <FontIcon FontSize="11" Glyph="&#xE711;" />
+                                </Button>
+                            </Grid>
+                        </Border>
+                        <Border
+                            Grid.Row="1"
+                            Padding="10,8"
+                            Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                            CornerRadius="0,0,8,8">
+                            <TextBlock
+                                FontSize="12"
+                                Text="{Binding DisplayName}"
+                                TextTrimming="CharacterEllipsis"
+                                ToolTipService.ToolTip="{Binding DisplayName}" />
+                        </Border>
+                    </Grid>
+                </Border>
+                <Button
+                    Height="126"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="AddCustomWallpaperButton_Click"
+                    Visibility="{Binding IsAddTile, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid Width="160" Height="126">
+                        <Rectangle
+                            Fill="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            RadiusX="8"
+                            RadiusY="8"
+                            Stroke="{ThemeResource ControlStrokeColorDefaultBrush}"
+                            StrokeDashArray="4,3"
+                            StrokeThickness="1.5" />
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="8">
+                            <FontIcon
+                                FontSize="22"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Glyph="&#xE710;" />
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Add wallpaper" />
+                        </StackPanel>
+                    </Grid>
+                </Button>
+            </Grid>
+        </DataTemplate>
     </Page.Resources>
 
     <ScrollViewer>
@@ -23,7 +130,7 @@
             <TextBlock
                 Margin="0,24,36,8"
                 Style="{StaticResource TitleTextBlockStyle}"
-                Text="Adjustments" />
+                Text="Customizations" />
             <TextBlock
                 Margin="0,0,36,24"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -133,9 +240,10 @@
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                             <Button
-                                x:Name="RestoreDefaultButton"
-                                Click="RestoreDefaultButton_Click"
-                                Content="Restore Default" />
+                                x:Name="RestorePreviousButton"
+                                Click="RestorePreviousButton_Click"
+                                Content="Restore Previous"
+                                ToolTipService.ToolTip="Undo the last wallpaper change" />
                             <Button
                                 x:Name="RefreshWallpapersButton"
                                 Click="RefreshWallpapersButton_Click"
@@ -158,16 +266,29 @@
                                 Grid.Column="0"
                                 Width="200"
                                 Height="112"
-                                CornerRadius="6"
+                                Background="{ThemeResource ControlFillColorDefaultBrush}"
                                 BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
-                                BorderThickness="1">
-                                <Border CornerRadius="5">
-                                    <Border.Background>
-                                        <ImageBrush
-                                            x:Name="CurrentWallpaperPreview"
-                                            Stretch="UniformToFill" />
-                                    </Border.Background>
-                                </Border>
+                                BorderThickness="1"
+                                CornerRadius="6">
+                                <Grid>
+                                    <FontIcon
+                                        x:Name="CurrentWallpaperPlaceholder"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="32"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                        Glyph="&#xE7F4;" />
+                                    <Border
+                                        x:Name="CurrentWallpaperImageHost"
+                                        CornerRadius="5"
+                                        Visibility="Collapsed">
+                                        <Border.Background>
+                                            <ImageBrush
+                                                x:Name="CurrentWallpaperPreview"
+                                                Stretch="UniformToFill" />
+                                        </Border.Background>
+                                    </Border>
+                                </Grid>
                             </Border>
                             <StackPanel
                                 Grid.Column="1"
@@ -205,10 +326,7 @@
 
                     <!-- Available Wallpapers Section -->
                     <TextBlock
-                        Margin="0,0,0,12"
-                        FontSize="13"
-                        FontWeight="SemiBold"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource WallpaperSectionHeader}"
                         Text="AVAILABLE WALLPAPERS" />
 
                     <TextBlock
@@ -223,64 +341,34 @@
                         x:Name="WallpaperGridView"
                         IsItemClickEnabled="True"
                         ItemClick="WallpaperGridView_ItemClick"
+                        ItemContainerStyle="{StaticResource WallpaperGridViewItemStyle}"
+                        ItemTemplate="{StaticResource WallpaperTileTemplate}"
                         SelectionMode="None">
-                        <GridView.ItemContainerStyle>
-                            <Style TargetType="GridViewItem">
-                                <Setter Property="Margin" Value="0" />
-                                <Setter Property="Padding" Value="0" />
-                                <Setter Property="Background" Value="Transparent" />
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="GridViewItem">
-                                            <ContentPresenter
-                                                Content="{TemplateBinding Content}"
-                                                ContentTemplate="{TemplateBinding ContentTemplate}"
-                                                ContentTransitions="{TemplateBinding ContentTransitions}" />
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </GridView.ItemContainerStyle>
                         <GridView.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <ItemsWrapGrid Orientation="Horizontal" />
                             </ItemsPanelTemplate>
                         </GridView.ItemsPanel>
-                        <GridView.ItemTemplate>
-                            <DataTemplate>
-                                <Border
-                                    Width="160"
-                                    Margin="0,0,12,12"
-                                    BorderBrush="{Binding BorderBrush}"
-                                    BorderThickness="{Binding BorderThickness}"
-                                    CornerRadius="8">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="90" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-                                        <Border Grid.Row="0" CornerRadius="8,8,0,0">
-                                            <Border.Background>
-                                                <ImageBrush
-                                                    ImageSource="{Binding ThumbnailPath}"
-                                                    Stretch="UniformToFill" />
-                                            </Border.Background>
-                                        </Border>
-                                        <Border
-                                            Grid.Row="1"
-                                            Padding="10,8"
-                                            Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                                            CornerRadius="0,0,8,8">
-                                            <TextBlock
-                                                FontSize="12"
-                                                Text="{Binding DisplayName}"
-                                                TextTrimming="CharacterEllipsis"
-                                                ToolTipService.ToolTip="{Binding DisplayName}" />
-                                        </Border>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </GridView.ItemTemplate>
+                    </GridView>
+
+                    <!-- User-added custom wallpapers -->
+                    <TextBlock
+                        Margin="8,8,0,12"
+                        Style="{StaticResource WallpaperSectionHeader}"
+                        Text="YOUR WALLPAPERS" />
+
+                    <GridView
+                        x:Name="CustomWallpaperGridView"
+                        IsItemClickEnabled="True"
+                        ItemClick="CustomWallpaperGridView_ItemClick"
+                        ItemContainerStyle="{StaticResource WallpaperGridViewItemStyle}"
+                        ItemTemplate="{StaticResource WallpaperTileTemplate}"
+                        SelectionMode="None">
+                        <GridView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <ItemsWrapGrid Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </GridView.ItemsPanel>
                     </GridView>
                 </StackPanel>
             </Border>

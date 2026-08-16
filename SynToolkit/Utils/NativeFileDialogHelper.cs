@@ -20,12 +20,24 @@ namespace SynToolkit.Utils
             {
                 Filter = filter,
                 CheckFileExists = true,
-                Multiselect = false
+                Multiselect = false,
+                RestoreDirectory = true,
+                AutoUpgradeEnabled = true
             };
 
-            return dialog.ShowDialog(new Win32Window(ownerWindowHandle)) == DialogResult.OK
-                ? dialog.FileName
-                : null;
+            DialogResult result = ownerWindowHandle == IntPtr.Zero
+                ? dialog.ShowDialog()
+                : dialog.ShowDialog(new Win32Window(ownerWindowHandle));
+
+            if (result != DialogResult.OK)
+                return null;
+
+            if (string.IsNullOrWhiteSpace(dialog.FileName))
+            {
+                throw new InvalidOperationException("The file picker closed without returning a file path.");
+            }
+
+            return dialog.FileName;
         }
 
         public static string? ShowSaveFileDialog(IntPtr ownerWindowHandle, string filter, string? defaultFileName = null)
