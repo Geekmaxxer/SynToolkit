@@ -23,6 +23,13 @@ namespace SynToolkit.ViewModels
 
         public string Name => Package.Title ?? "Unknown";
         public string? Description { get; }
+        public string Publisher => string.IsNullOrWhiteSpace(Package.PublisherName)
+            ? "Microsoft Store"
+            : Package.PublisherName;
+
+        public Uri? StorePageUri => string.IsNullOrWhiteSpace(Package.ProductId)
+            ? null
+            : new Uri($"https://apps.microsoft.com/detail/{Uri.EscapeDataString(Package.ProductId)}");
 
         // BitmapIcon.UriSource is typed System.Uri; classic {Binding} does not implicitly
         // convert a bound string to Uri (unlike a literal XAML attribute value), so this
@@ -60,7 +67,7 @@ namespace SynToolkit.ViewModels
                 if (firstLine.Length >= 100)
                 {
                     string firstSentence = package.Description.Split('.').First() + ".";
-                    Description = firstSentence.Length < 100 || firstSentence.Length < lines.Length
+                    Description = firstSentence.Length < 100 || firstSentence.Length < package.Description.Length
                         ? firstSentence.Trim()
                         : firstLine.Trim();
                 }

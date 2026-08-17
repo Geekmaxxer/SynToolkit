@@ -416,6 +416,7 @@ namespace SynToolkit.HostBuilder
         {
             return new AppFetchPageViewModel(
                 serviceProvider.GetRequiredService<AppFetchService>(),
+                serviceProvider.GetRequiredService<WingetInstallerService>(),
                 serviceProvider.GetRequiredKeyedService<IConfigurationService>("XboxServices"));
         }
         private static ConfigurationSubMenuViewModel CreateConfigurationSubMenuViewModel(

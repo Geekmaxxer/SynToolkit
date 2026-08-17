@@ -9,204 +9,570 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodel="using:SynToolkit.ViewModels"
     d:DataContext="{d:DesignInstance Type=viewmodel:AppFetchPageViewModel}"
+    Loaded="Page_Loaded"
     mc:Ignorable="d">
 
     <Page.Resources>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        
-        <Storyboard x:Name="MoveToTopAnimation">
-            <DoubleAnimation
-                Storyboard.TargetName="HeaderTransform"
-                Storyboard.TargetProperty="Y"
-                To="0"
-                Duration="0:0:0.4">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseOut" />
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-            <DoubleAnimation
-                Storyboard.TargetName="LogoScaleTransform"
-                Storyboard.TargetProperty="ScaleX"
-                To="0.5"
-                Duration="0:0:0.4">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseOut" />
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-            <DoubleAnimation
-                Storyboard.TargetName="LogoScaleTransform"
-                Storyboard.TargetProperty="ScaleY"
-                To="0.5"
-                Duration="0:0:0.4">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseOut" />
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-        </Storyboard>
+        <local:ImageSourceConverter x:Key="ImageSourceConverter" />
     </Page.Resources>
 
-    <Grid>
-        <!-- Header Section with Logo and Search - Always on top -->
+    <ScrollViewer
+        x:Name="MainScrollViewer"
+        HorizontalContentAlignment="Stretch"
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled"
+        VerticalScrollBarVisibility="Auto">
         <StackPanel
-            x:Name="HeaderPanel"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top"
-            Margin="0,24,0,0"
-            Canvas.ZIndex="10">
-            <StackPanel.RenderTransform>
-                <TranslateTransform x:Name="HeaderTransform" Y="180" />
-            </StackPanel.RenderTransform>
+            MaxWidth="1180"
+            Margin="36,28,36,56"
+            HorizontalAlignment="Stretch"
+            Spacing="24">
 
-            <!-- Logo -->
-            <Image
-                x:Name="LogoImage"
-                Width="120"
-                Height="120"
-                HorizontalAlignment="Center"
-                Source="ms-appx:///assets/logo/SynToolkit-Icon-256.png"
-                RenderTransformOrigin="0.5,0.5">
-                <Image.RenderTransform>
-                    <ScaleTransform x:Name="LogoScaleTransform" ScaleX="1" ScaleY="1" />
-                </Image.RenderTransform>
-            </Image>
+            <!--  Page heading  -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border
+                    Width="52"
+                    Height="52"
+                    Margin="0,0,16,0"
+                    Background="{ThemeResource SystemAccentColorLight2}"
+                    CornerRadius="12">
+                    <FontIcon
+                        FontSize="24"
+                        Foreground="White"
+                        Glyph="&#xE896;" />
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock
+                        FontSize="30"
+                        FontWeight="SemiBold"
+                        Text="Installers" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Get everyday apps from trusted sources, or search the Microsoft Store catalog."
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
 
-            <!-- Title -->
-            <TextBlock
-                x:Name="TitleText"
-                Margin="0,16,0,0"
-                HorizontalAlignment="Center"
-                FontSize="32"
-                FontWeight="SemiBold"
-                Text="App Fetch" />
+            <InfoBar
+                IsClosable="False"
+                IsOpen="True"
+                Message="Selected apps use Microsoft's WinGet package catalog. Every card also keeps a publisher link for manual downloads."
+                Severity="Success"
+                Title="Official sources" />
 
-            <!-- Description -->
-            <TextBlock
-                x:Name="DescriptionText"
-                Margin="0,8,0,24"
-                HorizontalAlignment="Center"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="Search the Microsoft Store and install or uninstall apps directly."
-                TextAlignment="Center"
-                TextWrapping="Wrap"
-                MaxWidth="400" />
-
-            <!-- Search Box -->
-            <Grid Width="500" Margin="0,0,0,8">
+            <!--  Curated installer controls  -->
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <AutoSuggestBox
-                    x:Name="SearchBox"
-                    QuerySubmitted="SearchBox_QuerySubmitted"
-                    PlaceholderText="Search for an app...">
-                    <AutoSuggestBox.QueryIcon>
-                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///assets/Icons/SearchBar.png" />
-                    </AutoSuggestBox.QueryIcon>
-                </AutoSuggestBox>
-                <Button
-                    Grid.Column="1"
-                    Margin="10,0,0,0"
-                    Click="SearchButton_Click"
-                    Content="Search"
-                    Style="{StaticResource AccentButtonStyle}" />
+                <StackPanel Spacing="4">
+                    <TextBlock
+                        FontSize="20"
+                        FontWeight="SemiBold"
+                        Text="App catalog" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Search the curated library, filter by category, or start with the Essentials preset."
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                        Text="{Binding CatalogResultsSummary, Mode=OneWay}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Bottom" Orientation="Horizontal" Spacing="8">
+                    <ProgressRing
+                        Width="18"
+                        Height="18"
+                        IsActive="{Binding IsRefreshingInstallerStates, Mode=OneWay}"
+                        Visibility="{Binding IsRefreshingInstallerStates, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <Button
+                        Command="{Binding RefreshInstallerStatesCommand}"
+                        Content="Refresh status"
+                        IsEnabled="{Binding CanRefreshInstallerStates, Mode=OneWay}" />
+                </StackPanel>
             </Grid>
 
-            <!-- Hint text -->
-            <TextBlock
-                x:Name="HintText"
-                HorizontalAlignment="Center"
-                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                FontSize="12"
-                Text="Type app name and press Enter or click Search" />
-        </StackPanel>
+            <Border
+                Padding="14"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <Grid ColumnSpacing="14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <AutoSuggestBox
+                        MinWidth="280"
+                        PlaceholderText="Search apps — try browser, Git, music..."
+                        Text="{Binding CatalogSearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <AutoSuggestBox.QueryIcon>
+                            <FontIcon Glyph="&#xE721;" />
+                        </AutoSuggestBox.QueryIcon>
+                    </AutoSuggestBox>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Category" />
+                        <ComboBox
+                            MinWidth="165"
+                            ItemsSource="{Binding Categories, Mode=OneWay}"
+                            SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
 
-        <!-- Results Section - Below header after animation -->
-        <Grid
-            x:Name="ResultsPanel"
-            Margin="55,280,0,0"
-            Visibility="Collapsed">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <!-- Error InfoBar -->
-            <InfoBar
-                x:Name="ErrorInfoBar"
-                Grid.Row="0"
-                Margin="0,0,36,18"
-                IsClosable="True"
-                IsOpen="{Binding HasError, Mode=OneWay}"
-                Message="{Binding ErrorMessage, Mode=OneWay}"
-                Severity="Error"
-                Title="App Fetch" />
-
-            <!-- Xbox Services Warning -->
-            <InfoBar
-                x:Name="XboxInfoBar"
-                Grid.Row="1"
-                Margin="0,0,36,18"
-                IsClosable="False"
-                IsOpen="{Binding IsXboxServicesTweakApplied, Mode=OneWay}"
-                Message="SynToolkit's Xbox-services tweak is currently disabling Xbox background services, which some Xbox/Gaming-related Store apps need to install or run. Revert it here if an app fails."
-                Severity="Warning"
-                Title="Some apps may need Xbox services">
-                <InfoBar.ActionButton>
+            <Border
+                Padding="16"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon
+                                VerticalAlignment="Center"
+                                FontSize="17"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Glyph="&#xE735;" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontWeight="SemiBold"
+                                Text="{Binding SelectedSummary, Mode=OneWay}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button
+                                Command="{Binding SelectEssentialsCommand}"
+                                Content="Add essentials" />
+                            <Button
+                                Command="{Binding ClearInstallerSelectionCommand}"
+                                Content="Clear queue" />
+                        </StackPanel>
+                        <TextBlock
+                            FontSize="12"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="{Binding InstallerStatusSummary, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
                     <Button
-                        Command="{Binding RevertXboxServicesTweakCommand}"
-                        Content="Revert tweak"
-                        IsEnabled="{Binding IsRevertXboxServicesButtonEnabled, Mode=OneWay}" />
-                </InfoBar.ActionButton>
-            </InfoBar>
+                        Grid.Column="1"
+                        MinWidth="156"
+                        VerticalAlignment="Center"
+                        Command="{Binding InstallSelectedCommand}"
+                        Content="{Binding InstallSelectedText, Mode=OneWay}"
+                        IsEnabled="{Binding CanInstallSelected, Mode=OneWay}"
+                        Style="{StaticResource AccentButtonStyle}" />
+                </Grid>
+            </Border>
 
-            <!-- Results List -->
-            <Grid Grid.Row="2">
-                <ProgressRing
-                    Width="32"
-                    Height="32"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    Margin="0,24,0,0"
-                    IsActive="{Binding IsLoading, Mode=OneWay}"
-                    Visibility="{Binding IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <!--  Sequential installation queue  -->
+            <Border
+                Padding="18"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource SystemAccentColorLight2}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Visibility="{Binding IsQueueVisible, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Spacing="14">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="3">
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Text="Installation queue" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{Binding QueueSummary, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <Button
+                                Command="{Binding RetryFailedCommand}"
+                                Content="Retry failed"
+                                IsEnabled="{Binding CanRetryFailed, Mode=OneWay}"
+                                Style="{StaticResource AccentButtonStyle}" />
+                            <Button
+                                Command="{Binding CancelInstallQueueCommand}"
+                                Content="Cancel queue"
+                                IsEnabled="{Binding IsInstallingQueue, Mode=OneWay}" />
+                            <Button
+                                Command="{Binding DismissInstallQueueCommand}"
+                                Content="Close"
+                                IsEnabled="{Binding CanDismissQueue, Mode=OneWay}" />
+                        </StackPanel>
+                    </Grid>
 
-                <ScrollViewer>
-                    <ItemsControl Margin="0,0,36,48" ItemsSource="{Binding Results}">
+                    <ItemsControl ItemsSource="{Binding InstallQueue, Mode=OneWay}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="viewmodel:AppFetchItemViewModel">
-                                <controls:SettingsCard
-                                    Margin="0,0,0,10"
-                                    Description="{Binding Description, Mode=OneWay}"
-                                    Header="{Binding Name, Mode=OneWay}"
-                                    Style="{StaticResource ConfigurationSettingsCardTemplate}">
-                                    <controls:SettingsCard.HeaderIcon>
-                                        <BitmapIcon ShowAsMonochrome="False" UriSource="{Binding IconUri, Mode=OneWay}" />
-                                    </controls:SettingsCard.HeaderIcon>
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <ProgressBar
-                                            Width="70"
-                                            VerticalAlignment="Center"
-                                            Maximum="100"
-                                            Minimum="0"
-                                            Value="{Binding Progress, Mode=OneWay}"
-                                            Visibility="{Binding IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                        <Button
-                                            Command="{Binding CancelCommand}"
-                                            Content="Cancel"
-                                            Visibility="{Binding IsCancelable, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                        <Button
-                                            Command="{Binding InstallOrUninstallCommand}"
-                                            Content="{Binding ButtonText, Mode=OneWay}"
-                                            IsEnabled="{Binding IsButtonEnabled, Mode=OneWay}" />
-                                    </StackPanel>
-                                </controls:SettingsCard>
+                            <DataTemplate>
+                                <Border
+                                    Margin="0,0,0,8"
+                                    Padding="12"
+                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    CornerRadius="6">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border
+                                            Width="34"
+                                            Height="34"
+                                            Padding="6"
+                                            Background="White"
+                                            CornerRadius="7">
+                                            <Image Source="{Binding IconSource, Converter={StaticResource ImageSourceConverter}}" Stretch="Uniform" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock
+                                                FontWeight="SemiBold"
+                                                Text="{Binding Name}" />
+                                            <TextBlock
+                                                FontSize="12"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Text="{Binding Detail}" />
+                                            <ProgressBar
+                                                Height="3"
+                                                Margin="0,5,0,0"
+                                                Maximum="100"
+                                                Minimum="0"
+                                                Value="{Binding Progress}"
+                                                Visibility="{Binding IsInstalling, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        </StackPanel>
+                                        <Grid Grid.Column="2" Width="28" Height="28" VerticalAlignment="Center">
+                                            <FontIcon
+                                                FontSize="16"
+                                                Glyph="{Binding StateGlyph}" />
+                                            <ProgressRing
+                                                Width="24"
+                                                Height="24"
+                                                IsActive="{Binding IsInstalling}"
+                                                Visibility="{Binding IsInstalling, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        </Grid>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                </ScrollViewer>
-            </Grid>
-        </Grid>
-    </Grid>
+                </StackPanel>
+            </Border>
+
+            <ItemsRepeater ItemsSource="{Binding FeaturedInstallers, Mode=OneWay}">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout
+                        ItemsJustification="Start"
+                        ItemsStretch="Fill"
+                        MinColumnSpacing="12"
+                        MinItemHeight="268"
+                        MinItemWidth="270"
+                        MinRowSpacing="12" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            MinHeight="268"
+                            Padding="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border
+                                        Width="48"
+                                        Height="48"
+                                        Margin="0,0,14,0"
+                                        Padding="6"
+                                        Background="White"
+                                        BorderBrush="#18000000"
+                                        BorderThickness="1"
+                                        CornerRadius="10">
+                                        <Image
+                                            Source="{Binding IconSource, Converter={StaticResource ImageSourceConverter}}"
+                                            Stretch="Uniform" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock
+                                            FontSize="15"
+                                            FontWeight="SemiBold"
+                                            MaxLines="2"
+                                            Text="{Binding Name}"
+                                            TextTrimming="WordEllipsis"
+                                            TextWrapping="Wrap" />
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock
+                                                FontSize="12"
+                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                Text="{Binding Category}" />
+                                            <Border
+                                                Padding="5,1"
+                                                Background="{ThemeResource SystemAccentColorLight2}"
+                                                CornerRadius="6"
+                                                Visibility="{Binding IsEssential, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <TextBlock
+                                                    FontSize="10"
+                                                    Foreground="White"
+                                                    Text="Essential" />
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock
+                                    Grid.Row="1"
+                                    MinHeight="40"
+                                    Margin="0,16,0,12"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    MaxLines="2"
+                                    Text="{Binding Description}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="WrapWholeWords" />
+                                <Border
+                                    Grid.Row="2"
+                                    Margin="0,0,0,10"
+                                    Padding="9,6"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    CornerRadius="6">
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Width="18" Height="18" VerticalAlignment="Center">
+                                            <FontIcon
+                                                FontSize="14"
+                                                Glyph="{Binding StatusGlyph, Mode=OneWay}" />
+                                            <ProgressRing
+                                                Width="17"
+                                                Height="17"
+                                                IsActive="{Binding IsCheckingStatus, Mode=OneWay}"
+                                                Visibility="{Binding IsCheckingStatus, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        </Grid>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock
+                                                FontSize="12"
+                                                FontWeight="SemiBold"
+                                                Text="{Binding StatusText, Mode=OneWay}" />
+                                            <TextBlock
+                                                FontSize="11"
+                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                Text="{Binding StatusDetail, Mode=OneWay}"
+                                                TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <Grid Grid.Row="3" ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <HyperlinkButton
+                                        HorizontalAlignment="Left"
+                                        Padding="0"
+                                        NavigateUri="{Binding DownloadUri}"
+                                        VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <TextBlock Text="{Binding PublisherLinkText, Mode=OneWay}" />
+                                            <FontIcon FontSize="11" Glyph="&#xE8A7;" />
+                                        </StackPanel>
+                                    </HyperlinkButton>
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        Spacing="8"
+                                        Visibility="{Binding CanSelect, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <CheckBox
+                                            VerticalAlignment="Center"
+                                            Content="{Binding QueueSelectionText, Mode=OneWay}"
+                                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                            ToolTipService.ToolTip="Add this app to the multi-app queue" />
+                                        <Button
+                                            MinWidth="72"
+                                            Click="InstallerPrimaryAction_Click"
+                                            Content="{Binding PrimaryActionText, Mode=OneWay}"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            ToolTipService.ToolTip="Start this app now" />
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+
+            <Border
+                Padding="32"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Visibility="{Binding HasNoCatalogResults, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        FontSize="28"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE721;" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="No apps found" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Try another name or switch the category to All."
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <!--  Microsoft Store search  -->
+            <Border
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <StackPanel Spacing="14">
+                    <StackPanel Spacing="4">
+                        <TextBlock
+                            FontSize="20"
+                            FontWeight="SemiBold"
+                            Text="Microsoft Store search" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Search by app name, publisher, or product ID."
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <AutoSuggestBox
+                            x:Name="SearchBox"
+                            MinWidth="240"
+                            PlaceholderText="Try Spotify, PowerToys, or WhatsApp"
+                            QuerySubmitted="SearchBox_QuerySubmitted">
+                            <AutoSuggestBox.QueryIcon>
+                                <FontIcon Glyph="&#xE721;" />
+                            </AutoSuggestBox.QueryIcon>
+                        </AutoSuggestBox>
+                        <Button
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            Click="SearchButton_Click"
+                            Content="Search"
+                            Style="{StaticResource AccentButtonStyle}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!--  Search status and results  -->
+            <StackPanel x:Name="ResultsSection" Spacing="14">
+                <InfoBar
+                    IsClosable="True"
+                    IsOpen="{Binding HasError, Mode=OneWay}"
+                    Message="{Binding ErrorMessage, Mode=OneWay}"
+                    Severity="Error"
+                    Title="Installers" />
+
+                <InfoBar
+                    IsClosable="False"
+                    IsOpen="{Binding IsXboxServicesTweakApplied, Mode=OneWay}"
+                    Message="SynToolkit's Xbox-services tweak can prevent some games and Xbox apps from installing or running. Revert it here if an install fails."
+                    Severity="Warning"
+                    Title="Some apps may need Xbox services">
+                    <InfoBar.ActionButton>
+                        <Button
+                            Command="{Binding RevertXboxServicesTweakCommand}"
+                            Content="Revert tweak"
+                            IsEnabled="{Binding IsRevertXboxServicesButtonEnabled, Mode=OneWay}" />
+                    </InfoBar.ActionButton>
+                </InfoBar>
+
+                <ProgressRing
+                    Width="32"
+                    Height="32"
+                    Margin="0,12,0,8"
+                    HorizontalAlignment="Center"
+                    IsActive="{Binding IsLoading, Mode=OneWay}"
+                    Visibility="{Binding IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <ItemsControl ItemsSource="{Binding Results}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <controls:SettingsCard
+                                Margin="0,0,0,10"
+                                Description="{Binding Description, Mode=OneWay}"
+                                Header="{Binding Name, Mode=OneWay}"
+                                Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                                <controls:SettingsCard.HeaderIcon>
+                                    <BitmapIcon
+                                        ShowAsMonochrome="False"
+                                        UriSource="{Binding IconUri, Mode=OneWay}" />
+                                </controls:SettingsCard.HeaderIcon>
+                                <StackPanel MinWidth="190" Spacing="8">
+                                    <TextBlock
+                                        HorizontalAlignment="Right"
+                                        FontSize="12"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                        Text="{Binding Publisher, Mode=OneWay}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <ProgressBar
+                                        Height="4"
+                                        Maximum="100"
+                                        Minimum="0"
+                                        Value="{Binding Progress, Mode=OneWay}"
+                                        Visibility="{Binding IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
+                                        <HyperlinkButton
+                                            Padding="8,4"
+                                            Content="Store page"
+                                            NavigateUri="{Binding StorePageUri, Mode=OneWay}" />
+                                        <Button
+                                            Command="{Binding CancelCommand, Mode=OneWay}"
+                                            Content="Cancel"
+                                            Visibility="{Binding IsCancelable, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <Button
+                                            Command="{Binding InstallOrUninstallCommand, Mode=OneWay}"
+                                            Content="{Binding ButtonText, Mode=OneWay}"
+                                            IsEnabled="{Binding IsButtonEnabled, Mode=OneWay}"
+                                            Style="{StaticResource AccentButtonStyle}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </controls:SettingsCard>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
 </Page>

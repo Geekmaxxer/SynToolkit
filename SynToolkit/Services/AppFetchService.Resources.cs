@@ -44,7 +44,8 @@ namespace SynToolkit.Services
         );
 
         public record InstallerSwitches(
-            [property: JsonPropertyName("Silent")] string? Silent
+            [property: JsonPropertyName("Silent")] string? Silent,
+            [property: JsonPropertyName("SilentWithProgress")] string? SilentWithProgress
         );
 
         public record StoreSearchResponseDto

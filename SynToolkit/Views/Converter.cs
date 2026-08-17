@@ -84,6 +84,11 @@ namespace SynToolkit.Views
                 !string.IsNullOrWhiteSpace(path) &&
                 Uri.TryCreate(path, UriKind.Absolute, out Uri uri))
             {
+                if (path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new Microsoft.UI.Xaml.Media.Imaging.SvgImageSource(uri);
+                }
+
                 return new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(uri);
             }
 

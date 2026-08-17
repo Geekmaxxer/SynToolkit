@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -98,7 +99,9 @@ namespace SynToolkit.Services
 
             client.ProgressChanged += (size, downloaded, percentage) =>
             {
-                double progressValue = Math.Min((((double)Math.Round((downloaded + finishedBytes) / totalSize, 1) * 100) / 2), 50);
+                double progressValue = totalSize > 0
+                    ? Math.Min((Math.Round((downloaded + finishedBytes) / totalSize, 3) * 100) / 2, 50)
+                    : Math.Min(percentage.GetValueOrDefault() / 2, 50);
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
                 if (progressValue != currentProgress)
                 {
@@ -119,6 +122,7 @@ namespace SynToolkit.Services
                         ? Path.Combine(tempFolder, "Dependencies", packages[i].Name + "." + packages[i].FileExtension)
                         : Path.Combine(tempFolder, packages[i].Name + "." + packages[i].FileExtension);
                     await client.StartDownload(packages[i].ResourceUri!, path, cancellationToken: cancellationToken);
+                    await ValidatePackageChecksumAsync(packages[i], path, cancellationToken);
                     finishedBytes += packages[i].Size.GetValueOrDefault();
                 }
 
@@ -135,7 +139,7 @@ namespace SynToolkit.Services
                     c++;
 
                     (int ExitCode, bool HigherVersionInstalled, bool WrongArch, bool EdgeRequired, bool AdvertisingRequired) result =
-                        await InstallPackage(package, tempFolder);
+                        await InstallPackage(package, tempFolder, cancellationToken);
 
                     double progressValue = ((c / (double)installableCount * 100) / 2) + 50;
                     progress.Report(progressValue);
@@ -144,17 +148,18 @@ namespace SynToolkit.Services
                     {
                         foreach (StorePackageDto advertisingPackage in packages.Where(x => x.Name!.Contains("Microsoft.Advertising")))
                         {
-                            await InstallPackage(advertisingPackage, tempFolder);
+                            await InstallPackage(advertisingPackage, tempFolder, cancellationToken);
                         }
 
-                        result = await InstallPackage(package, tempFolder);
+                        result = await InstallPackage(package, tempFolder, cancellationToken);
                     }
 
-                    if (result.ExitCode != 0 && !result.HigherVersionInstalled && !IsDependency(package.Name!) && !result.WrongArch)
+                    bool installerSucceeded = result.ExitCode is 0 or 1641 or 3010;
+                    if (!installerSucceeded && !result.HigherVersionInstalled && !IsDependency(package.Name!) && !result.WrongArch)
                     {
                         throw new Exception(result.EdgeRequired ? "Microsoft Edge is required" : "PowerShell exited with code " + result.ExitCode);
                     }
-                    else if (!IsDependency(package.Name!) && !result.HigherVersionInstalled && !result.WrongArch)
+                    else if (installerSucceeded && !IsDependency(package.Name!) && !result.HigherVersionInstalled && !result.WrongArch)
                     {
                         foundMatch = true;
                     }
@@ -178,7 +183,30 @@ namespace SynToolkit.Services
             }
         }
 
-        private async Task<(int ExitCode, bool HigherVersionInstalled, bool WrongArch, bool EdgeRequired, bool AdvertisingRequired)> InstallPackage(StorePackageDto package, string downloadFolder)
+        private static async Task ValidatePackageChecksumAsync(
+            StorePackageDto package,
+            string filePath,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(package.Checksum) ||
+                package.Checksum.Length != 64 ||
+                !package.Checksum.All(Uri.IsHexDigit))
+            {
+                return;
+            }
+
+            await using FileStream stream = File.OpenRead(filePath);
+            byte[] actualHash = await SHA256.HashDataAsync(stream, cancellationToken);
+            if (!Convert.ToHexString(actualHash).Equals(package.Checksum, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException($"The downloaded installer for {package.Name} failed its SHA-256 integrity check.");
+            }
+        }
+
+        private async Task<(int ExitCode, bool HigherVersionInstalled, bool WrongArch, bool EdgeRequired, bool AdvertisingRequired)> InstallPackage(
+            StorePackageDto package,
+            string downloadFolder,
+            CancellationToken cancellationToken)
         {
             string file = IsDependency(package.Name!)
                 ? Path.Combine(downloadFolder, "Dependencies", package.Name + "." + package.FileExtension)
@@ -244,7 +272,27 @@ namespace SynToolkit.Services
                 process.BeginOutputReadLine();
             }
 
-            await process.WaitForExitAsync();
+            try
+            {
+                await process.WaitForExitAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                        await process.WaitForExitAsync();
+                    }
+                }
+                catch (Exception exception)
+                {
+                    App.logger.Warn(exception, "[AppFetch] Unable to terminate the canceled installer process.");
+                }
+
+                throw;
+            }
 
             return (process.ExitCode, higherVersionInstalled, wrongArch, edgeRequired, advertisingRequired);
         }
@@ -420,7 +468,7 @@ namespace SynToolkit.Services
 
         public async Task<List<StorePackageDto>> SearchInstallerProductsAsync(string productId)
         {
-            string requestUrl = $"{_storeApiUrl}/packageManifests/{productId}?Market=US";
+            string requestUrl = $"{_storeApiUrl}/packageManifests/{Uri.EscapeDataString(productId)}?Market=US";
 
             HttpResponseMessage response = await _httpClient.GetAsync(requestUrl);
 
@@ -442,8 +490,9 @@ namespace SynToolkit.Services
                         continue;
                     }
                     urls.Add(installer.InstallerUrl!);
-                    string extension = installer.InstallerType ?? installer.InstallerUrl!.Substring(installer.InstallerUrl.LastIndexOf('.'));
-                    if (string.IsNullOrWhiteSpace(extension) || extension == "exe" || extension == "msi")
+                    string extension = Path.GetExtension(new Uri(installer.InstallerUrl!).AbsolutePath).TrimStart('.');
+                    if (extension.Equals("exe", StringComparison.OrdinalIgnoreCase) ||
+                        extension.Equals("msi", StringComparison.OrdinalIgnoreCase))
                     {
                         string filename = responseData.Data!.Versions!.First().DefaultLocale!.PackageName + "-" + installer.Architecture;
                         results.Add(new StorePackageDto()
@@ -453,7 +502,8 @@ namespace SynToolkit.Services
                             ResourceUri = installer.InstallerUrl,
                             LastModified = DateTime.Now,
                             PackageId = productId,
-                            CommandLines = installer.InstallerSwitches?.Silent
+                            Checksum = installer.InstallerSha256,
+                            CommandLines = installer.InstallerSwitches?.Silent ?? installer.InstallerSwitches?.SilentWithProgress
                         });
                     }
                 }
