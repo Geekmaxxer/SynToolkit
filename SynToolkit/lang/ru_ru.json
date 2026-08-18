@@ -177,7 +177,7 @@
   "BetaVersion": "Бета-версия",
   "BetaVersionDescription": "Это приложение находится в бета-версии. Если вы нашли ошибки или хотите предложить функцию, оставьте отзыв на Discord. Функции могут изменяться.",
   "Home": "Главная",
-  "AppFetch": "App Fetch",
+  "Installer": "Installer",
   "PowerPlans": "Схемы электропитания",
   "GeneralConfig": "Общие настройки",
   "Interface": "Настройки интерфейса",

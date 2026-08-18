@@ -596,6 +596,12 @@ namespace SynToolkit
                 }
 
                 s_window?.Close();
+                s_window = null;
+
+                if (m_window is MainWindow mainWindow)
+                {
+                    mainWindow.DispatcherQueue.TryEnqueue(mainWindow.ApplyWindowPlacement);
+                }
             }
             catch (Exception exception)
             {

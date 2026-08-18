@@ -177,7 +177,7 @@
   "BetaVersion": "Betaversion",
   "BetaVersionDescription": "Denna applikation är för närvarande i en betaversion. Om du hittar buggar eller vill föreslå en funktion, vänligen ge feedback på Discord. Funktioner kan komma att ändras.",
   "Home": "Hem",
-  "AppFetch": "App Fetch",
+  "Installer": "Installer",
   "PowerPlans": "Energischeman",
   "GeneralConfig": "Allmän konfiguration",
   "Interface": "Gränssnittsjusteringar",

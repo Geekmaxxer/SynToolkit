@@ -27,20 +27,29 @@ namespace SynToolkit
         private bool _isSynchronizingNavigationSelection;
         private bool _isNavigating;
 
+        private const int DefaultWindowWidth = 1250;
+        private const int DefaultWindowHeight = 850;
+        private const int MinimumWindowWidth = 516;
+        private const int MinimumWindowHeight = 491;
+        private const int PersistableMinimumWidth = 800;
+        private const int PersistableMinimumHeight = 600;
+
         public MainWindow()
         {
             this.InitializeComponent();
             BackdropHelper.ApplySafeMicaFallback(this, RootGrid);
 
-            OverlappedPresenter presenter = OverlappedPresenter.Create();
-            presenter.PreferredMinimumWidth = 516;
-            presenter.PreferredMinimumHeight = 491;
-            presenter.IsMaximizable = true;
+            // Configure the existing presenter. Replacing it with OverlappedPresenter.Create()
+            // resets the window to a compact default and is a common WinUI 3 size-loss bug,
+            // especially when a smaller splash window is already visible.
+            if (AppWindow.Presenter is OverlappedPresenter presenter)
+            {
+                presenter.PreferredMinimumWidth = MinimumWindowWidth;
+                presenter.PreferredMinimumHeight = MinimumWindowHeight;
+                presenter.IsMaximizable = true;
+            }
 
-            AppWindow.SetPresenter(presenter);
             AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
-
-            SetWindowPosSize();
             ExtendsContentIntoTitleBar = true;
 
             LoadText();
@@ -80,9 +89,27 @@ namespace SynToolkit
                 typeof(Views.HomePage),
                 new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
             SetTitleBar(AppTitleBar);
+            SetWindowPosSize();
+            Activated += OnMainWindowActivated;
             this.Closed += AppBehaviorHelper.HandleMainWindowClosed;
 
             SubscribeToConfigurationChanges();
+        }
+
+        private void OnMainWindowActivated(object sender, WindowActivatedEventArgs e)
+        {
+            if (e.WindowActivationState == WindowActivationState.Deactivated)
+            {
+                return;
+            }
+
+            Activated -= OnMainWindowActivated;
+            ApplyWindowPlacement();
+        }
+
+        internal void ApplyWindowPlacement()
+        {
+            SetWindowPosSize();
         }
 
         private void SubscribeToConfigurationChanges()
@@ -137,8 +164,7 @@ namespace SynToolkit
 
             // Navigation Items
             Home.Content = App.GetValueFromItemList("Home_HeaderText");
-            AppFetch.Content = App.GetValueFromItemList("AppFetch");
-            Installers.Content = App.GetValueFromItemList("Installers");
+            Installer.Content = App.GetValueFromItemList("Installer");
             PowerPlans.Content = App.GetValueFromItemList("PowerPlans");
             Adjustments.Content = App.GetValueFromItemList("Adjustments");
             Gpu.Content = App.GetValueFromItemList("Gpu");
@@ -230,7 +256,6 @@ namespace SynToolkit
             {
                 "SettingsPage" => typeof(SettingsPage),
                 "SynToolkit.Views.AppFetchPage" => typeof(AppFetchPage),
-                "SynToolkit.Views.InstallersPage" => typeof(InstallersPage),
                 "SynToolkit.Views.PowerPlansPage" => typeof(PowerPlansPage),
                 "SynToolkit.Views.AdjustmentsPage" => typeof(AdjustmentsPage),
                 "SynToolkit.Views.GpuPage" => typeof(GpuPage),
@@ -445,41 +470,44 @@ namespace SynToolkit
             int screenWidth = GetSystemMetrics(SM_CXSCREEN);
             int screenHeight = GetSystemMetrics(SM_CYSCREEN);
             int width, height;
+            bool usingSavedSize;
             try
             {
-                // Get Window size
                 width = int.Parse((string)RegistryHelper.GetValue(@"HKLM\SOFTWARE\SynToolkit", "AppWidth"));
                 height = int.Parse((string)RegistryHelper.GetValue(@"HKLM\SOFTWARE\SynToolkit", "AppHeight"));
-                if (width <= 0 || height <= 0)
+                if (width < PersistableMinimumWidth || height < PersistableMinimumHeight)
                 {
-                    throw new FormatException("Saved window dimensions must be positive.");
+                    throw new FormatException(
+                        $"Saved window dimensions {width}x{height} are below the persistable minimum {PersistableMinimumWidth}x{PersistableMinimumHeight}.");
                 }
+
+                usingSavedSize = true;
             }
             catch (Exception ex)
             {
-                width = 1250;
-                height = 850;
-                // Log the error
+                width = DefaultWindowWidth;
+                height = DefaultWindowHeight;
+                usingSavedSize = false;
                 App.logger.Warn("Window size values were incorrect. Using in-memory defaults for this launch.\n\n" + ex.Message);
             }
 
-            if (width == 1250 && height == 850)
+            if (!usingSavedSize)
             {
-                // Calculate size
                 if (screenWidth != 1920)
                 {
-                    width = (int)Math.Round((screenWidth / 1920d) * 1250);
+                    width = (int)Math.Round((screenWidth / 1920d) * DefaultWindowWidth);
                 }
                 if (screenHeight != 1080)
                 {
-                    height = (int)Math.Round((screenHeight / 1080d) * 850);
+                    height = (int)Math.Round((screenHeight / 1080d) * DefaultWindowHeight);
                 }
             }
 
-            width = Math.Max(1, Math.Min(width, screenWidth));
-            height = Math.Max(1, Math.Min(height, screenHeight));
+            int maxWidth = Math.Max(MinimumWindowWidth, screenWidth);
+            int maxHeight = Math.Max(MinimumWindowHeight, screenHeight);
+            width = Math.Clamp(width, MinimumWindowWidth, maxWidth);
+            height = Math.Clamp(height, MinimumWindowHeight, maxHeight);
 
-            // Calculate position to put on screen
             double centerX = (screenWidth - width) / 2;
             double centerY = (screenHeight - height) / 2;
 
@@ -503,6 +531,9 @@ namespace SynToolkit
             width = AppWindow.Size.Width;
             height = AppWindow.Size.Height;
         }
+
+        internal bool IsPersistableWindowSize(int width, int height) =>
+            width >= PersistableMinimumWidth && height >= PersistableMinimumHeight;
 
         //[DllImport("user32.dll", SetLastError = true)]
         //private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);

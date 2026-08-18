@@ -31,6 +31,11 @@ namespace SynToolkit.Utils
                 }
 
                 mainWindow.GetWindowSize(out int width, out int height);
+                if (!mainWindow.IsPersistableWindowSize(width, height))
+                {
+                    return;
+                }
+
                 RegistryHelper.SetValue(@"HKLM\SOFTWARE\SynToolkit", "AppWidth", width, Microsoft.Win32.RegistryValueKind.String);
                 RegistryHelper.SetValue(@"HKLM\SOFTWARE\SynToolkit", "AppHeight", height, Microsoft.Win32.RegistryValueKind.String);
             }

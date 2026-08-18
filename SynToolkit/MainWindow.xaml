@@ -121,12 +121,7 @@
                         <ImageIcon Source="ms-appx:///assets/Icons/Home.png" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem x:Name="AppFetch" Tag="SynToolkit.Views.AppFetchPage">
-                    <NavigationViewItem.Icon>
-                        <ImageIcon Source="ms-appx:///assets/Icons/Applications.png" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem x:Name="Installers" Tag="SynToolkit.Views.InstallersPage">
+                <NavigationViewItem x:Name="Installer" Tag="SynToolkit.Views.AppFetchPage">
                     <NavigationViewItem.Icon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Installer.png" />
                     </NavigationViewItem.Icon>

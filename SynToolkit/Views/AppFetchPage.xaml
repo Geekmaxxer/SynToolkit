@@ -35,17 +35,12 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border
+                <Image
                     Width="52"
                     Height="52"
                     Margin="0,0,16,0"
-                    Background="{ThemeResource SystemAccentColorLight2}"
-                    CornerRadius="12">
-                    <FontIcon
-                        FontSize="24"
-                        Foreground="White"
-                        Glyph="&#xE896;" />
-                </Border>
+                    Source="ms-appx:///assets/Icons/Installer.png"
+                    Stretch="Uniform" />
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                     <TextBlock
                         FontSize="30"
