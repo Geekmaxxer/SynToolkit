@@ -645,5 +645,29 @@ namespace SynToolkit.Views
             gridView.ItemsSource = null;
             gridView.ItemsSource = updated;
         }
+
+        private void WallpaperBox_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            if (sender is Grid grid)
+            {
+                var deleteBtn = grid.Children.OfType<Button>().FirstOrDefault(b => b.Name == "DeleteCustomWallpaperButton");
+                if (deleteBtn != null)
+                {
+                    deleteBtn.Opacity = 1;
+                }
+            }
+        }
+
+        private void WallpaperBox_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            if (sender is Grid grid)
+            {
+                var deleteBtn = grid.Children.OfType<Button>().FirstOrDefault(b => b.Name == "DeleteCustomWallpaperButton");
+                if (deleteBtn != null)
+                {
+                    deleteBtn.Opacity = 0;
+                }
+            }
+        }
     }
 }
