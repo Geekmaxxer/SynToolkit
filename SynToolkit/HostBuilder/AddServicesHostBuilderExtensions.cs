@@ -19,6 +19,7 @@ namespace SynToolkit.HostBuilder
                 services.AddTransient<IBcdWmiProvider, WmiBcdProvider>();
                 services.AddTransient<IBcdService, BcdService>();
                 services.AddSingleton<ISystemInformationService, SystemInformationService>();
+                services.AddSingleton<IUserAccountInfoService, UserAccountInfoService>();
                 services.AddSingleton<AppFetchService>();
                 services.AddSingleton<WingetInstallerService>();
             });

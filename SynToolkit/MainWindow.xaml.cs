@@ -1,4 +1,5 @@
 using SynToolkit.Enums;
+using SynToolkit.Services;
 using SynToolkit.Utils;
 using SynToolkit.ViewModels;
 using SynToolkit.Views;
@@ -16,6 +17,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using WinUIEx;
 
@@ -90,6 +92,7 @@ namespace SynToolkit
                 new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
             SetTitleBar(AppTitleBar);
             SetWindowPosSize();
+            InitializeAccountHeader();
             Activated += OnMainWindowActivated;
             this.Closed += AppBehaviorHelper.HandleMainWindowClosed;
 
@@ -110,6 +113,35 @@ namespace SynToolkit
         internal void ApplyWindowPlacement()
         {
             SetWindowPosSize();
+        }
+
+        private void InitializeAccountHeader()
+        {
+            try
+            {
+                IUserAccountInfoService accountInfoService =
+                    App._host.Services.GetRequiredService<IUserAccountInfoService>();
+                AccountHeader.SetAccountInfo(accountInfoService.GetPlaceholder());
+                _ = LoadAccountHeaderAsync(accountInfoService);
+            }
+            catch (Exception exception)
+            {
+                App.logger.Warn(exception, "Unable to initialize the navigation account header.");
+            }
+        }
+
+        private async Task LoadAccountHeaderAsync(IUserAccountInfoService accountInfoService)
+        {
+            try
+            {
+                Models.UserAccountInfo accountInfo = await accountInfoService.GetCurrentUserAsync();
+                AccountHeader.SetAccountInfo(accountInfo);
+                App.UpdateDisplayUserName(accountInfo.DisplayName);
+            }
+            catch (Exception exception)
+            {
+                App.logger.Warn(exception, "Unable to load the navigation account header.");
+            }
         }
 
         private void SubscribeToConfigurationChanges()

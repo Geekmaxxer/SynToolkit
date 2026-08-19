@@ -115,6 +115,10 @@
                     TextChanged="AutoSuggestBox_TextChanged" />
             </NavigationView.AutoSuggestBox>-->
 
+            <NavigationView.PaneHeader>
+                <controls:NavigationAccountHeader x:Name="AccountHeader" />
+            </NavigationView.PaneHeader>
+
             <NavigationView.MenuItems>
                 <NavigationViewItem x:Name="Home" Tag="SynToolkit.Views.HomePage">
                     <NavigationViewItem.Icon>

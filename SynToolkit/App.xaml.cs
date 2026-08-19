@@ -11,6 +11,7 @@ using System.Threading;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using SynToolkit.Services;
 using SynToolkit.Utils;
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -18,7 +19,6 @@ using System.Linq;
 using Windows.ApplicationModel.Core;
 using System.Diagnostics;
 using System.Configuration;
-using SynToolkit.Services;
 using WinUIEx;
 
 namespace SynToolkit
@@ -73,14 +73,7 @@ namespace SynToolkit
             const string launchedValueName = "HasLaunched";
 
             string accountName = Environment.UserName ?? string.Empty;
-            string safeAccountName = new string(accountName
-                .Where(character => !char.IsControl(character))
-                .Take(64)
-                .ToArray())
-                .Trim();
-            DisplayUserName = string.IsNullOrWhiteSpace(safeAccountName)
-                ? "there"
-                : safeAccountName;
+            DisplayUserName = UserAccountInfoService.SanitizeDisplayName(accountName);
 
             try
             {
@@ -682,6 +675,16 @@ namespace SynToolkit
             {
                 logger.Warn(ex, $"Failed to load language '{lang}'; using English throughout.");
             }
+        }
+
+        public static void UpdateDisplayUserName(string displayName)
+        {
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                return;
+            }
+
+            DisplayUserName = displayName;
         }
 
         public static string GetValueFromItemList(string key, bool desc = false)
