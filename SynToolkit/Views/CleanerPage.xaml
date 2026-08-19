@@ -114,14 +114,13 @@
                 FontWeight="SemiBold"
                 Text="Junk Files" />
 
-            <controls:SettingsExpander
-                Margin="0,0,36,16"
+            <controls:SettingsCard
+                Margin="0,0,36,2"
                 Description="Scan and clean temporary files, caches, logs, and other junk."
-                Header="Scan &amp; Clean"
-                IsExpanded="True">
-                <controls:SettingsExpander.HeaderIcon>
+                Header="Scan &amp; Clean">
+                <controls:SettingsCard.HeaderIcon>
                     <ImageIcon Source="ms-appx:///assets/Icons/DiskCleanup.png" />
-                </controls:SettingsExpander.HeaderIcon>
+                </controls:SettingsCard.HeaderIcon>
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <Button
                         x:Name="ScanButton"
@@ -146,60 +145,62 @@
                         IsActive="{Binding IsCleaning, Mode=OneWay}"
                         Visibility="{Binding IsCleaning, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
-                <controls:SettingsExpander.Items>
-                    <controls:SettingsCard>
-                        <controls:SettingsCard.Header>
-                            <StackPanel>
-                                <StackPanel
-                                    Margin="0,0,0,12"
-                                    Orientation="Horizontal"
-                                    Spacing="16"
-                                    Visibility="{Binding HasScanned, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <Button x:Name="SelectAllButton" Click="SelectAllButton_Click" Content="Select all" />
-                                    <Button x:Name="SelectNoneButton" Click="SelectNoneButton_Click" Content="Select none" />
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding TotalFoundText, Mode=OneWay}" />
-                                </StackPanel>
-                                <TextBlock
-                                    Margin="0,0,0,8"
-                                    Foreground="{ThemeResource SystemFillColorSuccessBrush}"
-                                    Text="{Binding LastCleanedText, Mode=OneWay}" />
-                                <ItemsControl ItemsSource="{Binding Categories}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="viewmodel:JunkCategoryItemViewModel">
-                                            <Grid Margin="0,4" ColumnSpacing="12">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <CheckBox
-                                                    Grid.Column="0"
-                                                    VerticalAlignment="Center"
-                                                    IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}" />
-                                                    <TextBlock
-                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                        Style="{StaticResource CaptionTextBlockStyle}"
-                                                        Text="{x:Bind FileCountText, Mode=OneWay}" />
-                                                </StackPanel>
-                                                <TextBlock
-                                                    Grid.Column="2"
-                                                    VerticalAlignment="Center"
-                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                    Text="{x:Bind SizeText, Mode=OneWay}" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </controls:SettingsCard.Header>
-                    </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
+            </controls:SettingsCard>
+
+            <controls:SettingsCard
+                Margin="0,0,36,16"
+                Visibility="{Binding HasScanned, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <controls:SettingsCard.Header>
+                    <StackPanel>
+                        <StackPanel
+                            Margin="0,0,0,12"
+                            Orientation="Horizontal"
+                            Spacing="16">
+                            <Button x:Name="SelectAllButton" Click="SelectAllButton_Click" Content="Select all" />
+                            <Button x:Name="SelectNoneButton" Click="SelectNoneButton_Click" Content="Select none" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{Binding TotalFoundText, Mode=OneWay}" />
+                        </StackPanel>
+                        <TextBlock
+                            Margin="0,0,0,8"
+                            Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                            Text="{Binding LastCleanedText, Mode=OneWay}" />
+                        <ItemsControl ItemsSource="{Binding Categories}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodel:JunkCategoryItemViewModel">
+                                    <Grid Margin="0,4" ColumnSpacing="32">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox
+                                            Grid.Column="0"
+                                            MinWidth="0"
+                                            Padding="0"
+                                            VerticalAlignment="Center"
+                                            IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}" />
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{StaticResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind FileCountText, Mode=OneWay}" />
+                                        </StackPanel>
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{x:Bind SizeText, Mode=OneWay}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </controls:SettingsCard.Header>
+            </controls:SettingsCard>
 
         </StackPanel>
     </ScrollViewer>

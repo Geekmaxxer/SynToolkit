@@ -2,21 +2,32 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.Win32;
+using Microsoft.Graphics.Canvas;
 using SynToolkit.Utils;
+using Windows.Storage;
+using Windows.System.UserProfile;
+using Windows.Foundation;
+using Windows.UI;
 
 namespace SynToolkit.Services
 {
     /// <summary>
-    /// Replaces the Windows lock-screen image. Windows caches the lock screen at a
-    /// well-documented fixed path (%WINDIR%\Web\Screen\img100.jpg) and separately caches
-    /// rendered copies under ProgramData\Microsoft\Windows\SystemData that must be cleared for
-    /// a replacement to actually take effect.
+    /// Sets the signed-in user's lock-screen image through the per-user Windows API.
     /// </summary>
     public static class LockscreenImageService
     {
-        public static void SetLockscreenImage(string sourceImagePath, string userSid, bool removeAcrylicBlur)
+        internal static async Task SetLockscreenImageAsync(
+            string sourceImagePath,
+            bool removeAcrylicBlur,
+            WallpaperFitMode fitMode)
         {
+            if (string.IsNullOrWhiteSpace(sourceImagePath) || !File.Exists(sourceImagePath))
+            {
+                throw new FileNotFoundException("The selected lock-screen image could not be found.", sourceImagePath);
+            }
+
             try
             {
                 RegistryHelper.SetValue(
@@ -30,50 +41,120 @@ namespace SynToolkit.Services
                 App.logger.Debug(exception, "[Adjustments] Unable to set the lock-screen acrylic-blur policy.");
             }
 
-            RegistryHelper.SetValue(
-                @"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Creative\" + userSid,
-                "RotatingLockScreenEnabled",
-                0,
-                RegistryValueKind.DWord);
-            RegistryHelper.SetValue(
-                $@"HKU\{userSid}\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager",
-                "RotatingLockScreenEnabled",
-                0,
-                RegistryValueKind.DWord);
+            string renderedDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "SynToolkit",
+                "LockscreenImages");
+            Directory.CreateDirectory(renderedDirectory);
 
-            string targetPath = Environment.ExpandEnvironmentVariables(@"%WINDIR%\Web\Screen\img100.jpg");
-            if (File.Exists(targetPath))
+            string renderedPath = Path.Combine(
+                renderedDirectory,
+                $"Lockscreen-{Guid.NewGuid():N}.png");
+
+            try
             {
-                File.Delete(targetPath);
+                await RenderImageAsync(sourceImagePath, renderedPath, fitMode);
+                StorageFile imageFile = await StorageFile.GetFileFromPathAsync(renderedPath);
+                await LockScreen.SetImageFileAsync(imageFile);
+                RemoveOldRenderedImages(renderedDirectory, renderedPath);
             }
-            File.Copy(sourceImagePath, targetPath);
-
-            string systemDataPath = Environment.ExpandEnvironmentVariables(@"%PROGRAMDATA%\Microsoft\Windows\SystemData");
-            if (!Directory.Exists(systemDataPath))
+            catch
             {
-                return;
+                if (File.Exists(renderedPath))
+                {
+                    File.Delete(renderedPath);
+                }
+
+                throw;
             }
+        }
 
-            foreach (string dataDirectory in Directory.EnumerateDirectories(systemDataPath))
+        private static void RemoveOldRenderedImages(string directory, string activePath)
+        {
+            foreach (string path in Directory.EnumerateFiles(directory, "Lockscreen-*.png"))
             {
-                string readOnlyDirectory = Path.Combine(dataDirectory, "ReadOnly");
-                if (!Directory.Exists(readOnlyDirectory))
+                if (string.Equals(path, activePath, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                foreach (string cachedLockscreenDirectory in Directory.GetDirectories(readOnlyDirectory, "Lockscreen_*"))
+                try
                 {
-                    try
-                    {
-                        Directory.Delete(cachedLockscreenDirectory, true);
-                    }
-                    catch (Exception exception)
-                    {
-                        App.logger.Debug(exception, "[Adjustments] Unable to clear cached lock-screen directory {Directory}.", cachedLockscreenDirectory);
-                    }
+                    File.Delete(path);
+                }
+                catch (IOException exception)
+                {
+                    App.logger.Debug(exception, "[Adjustments] Unable to remove an old rendered lock-screen image.");
                 }
             }
+        }
+
+        private static async Task RenderImageAsync(string sourceImagePath, string outputPath, WallpaperFitMode fitMode)
+        {
+            CanvasDevice device = CanvasDevice.GetSharedDevice();
+            StorageFile sourceFile = await StorageFile.GetFileFromPathAsync(sourceImagePath);
+            CanvasBitmap source = await CanvasBitmap.LoadAsync(device, sourceFile.Path);
+
+            const int outputWidth = 1920;
+            const int outputHeight = 1080;
+            StorageFolder tempFolder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(outputPath)!);
+            StorageFile outputFile = await tempFolder.CreateFileAsync(
+                Path.GetFileName(outputPath),
+                CreationCollisionOption.ReplaceExisting);
+
+            using (CanvasRenderTarget target = new(device, outputWidth, outputHeight, 96))
+            {
+                using (CanvasDrawingSession drawingSession = target.CreateDrawingSession())
+                {
+                    drawingSession.Clear(new Color { A = 255, R = 0, G = 0, B = 0 });
+
+                    float sourceWidth = source.SizeInPixels.Width;
+                    float sourceHeight = source.SizeInPixels.Height;
+                    Rect destination = GetDestinationRect(sourceWidth, sourceHeight, outputWidth, outputHeight, fitMode);
+
+                    if (fitMode == WallpaperFitMode.Tile)
+                    {
+                        for (double y = 0; y < outputHeight; y += sourceHeight)
+                        {
+                            for (double x = 0; x < outputWidth; x += sourceWidth)
+                            {
+                                drawingSession.DrawImage(source, new Rect(x, y, sourceWidth, sourceHeight));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        drawingSession.DrawImage(source, destination);
+                    }
+                }
+
+                await target.SaveAsync(outputFile.Path, CanvasBitmapFileFormat.Png);
+            }
+        }
+
+        private static Rect GetDestinationRect(float sourceWidth, float sourceHeight, int outputWidth, int outputHeight, WallpaperFitMode fitMode)
+        {
+            if (fitMode == WallpaperFitMode.Stretch)
+            {
+                return new Rect(0, 0, outputWidth, outputHeight);
+            }
+
+            double scale = fitMode == WallpaperFitMode.Fit
+                ? Math.Min(outputWidth / sourceWidth, outputHeight / sourceHeight)
+                : Math.Max(outputWidth / sourceWidth, outputHeight / sourceHeight);
+
+            if (fitMode == WallpaperFitMode.Center)
+            {
+                scale = 1;
+            }
+
+            double width = sourceWidth * scale;
+            double height = sourceHeight * scale;
+            return new Rect(
+                (outputWidth - width) / 2,
+                (outputHeight - height) / 2,
+                width,
+                height);
         }
     }
 }

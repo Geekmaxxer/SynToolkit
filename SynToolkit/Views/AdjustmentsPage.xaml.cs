@@ -30,6 +30,8 @@ namespace SynToolkit.Views
 
     public sealed partial class AdjustmentsPage : Page
     {
+        private sealed record WallpaperFitSelection(string Name, WallpaperFitMode FitMode);
+
         private const string ImageFileFilter = "Image files (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp";
 
         private bool _isPageLoaded;
@@ -146,6 +148,12 @@ namespace SynToolkit.Views
                 return;
             }
 
+            WallpaperFitSelection? fitSelection = await ShowWallpaperFitDialogAsync(filePath, includeName: false, isLockscreen: true);
+            if (fitSelection is null)
+            {
+                return;
+            }
+
             ContentDialog blurDialog = new()
             {
                 XamlRoot = XamlRoot,
@@ -165,15 +173,9 @@ namespace SynToolkit.Views
             bool removeBlur = blurResult == ContentDialogResult.Primary;
 
             await RunActionAsync(
-                () =>
+                async () =>
                 {
-                    string? sid = WindowsIdentity.GetCurrent().User?.Value;
-                    if (string.IsNullOrEmpty(sid))
-                    {
-                        throw new InvalidOperationException("Unable to resolve the signed-in user's SID.");
-                    }
-
-                    LockscreenImageService.SetLockscreenImage(filePath, sid, removeBlur);
+                    await LockscreenImageService.SetLockscreenImageAsync(filePath, removeBlur, fitSelection.FitMode);
                 },
                 "Lock screen image changed.");
         }
@@ -282,6 +284,79 @@ namespace SynToolkit.Views
             }
 
             return inputs.Select(control => control is PasswordBox passwordBox ? passwordBox.Password : ((TextBox)control).Text).ToArray();
+        }
+
+        private async Task<WallpaperFitSelection?> ShowWallpaperFitDialogAsync(string wallpaperPath, bool includeName = true, bool isLockscreen = false)
+        {
+            bool isCustomWallpaper = WindowsWallpaperService.IsCustomWallpaperPath(wallpaperPath);
+            TextBox? nameBox = includeName
+                ? new TextBox
+            {
+                Text = GetWallpaperDialogName(wallpaperPath),
+                IsReadOnly = !isCustomWallpaper,
+                HorizontalAlignment = HorizontalAlignment.Stretch
+            }
+                : null;
+
+            ComboBox fitPicker = new()
+            {
+                ItemsSource = Enum.GetNames<WallpaperFitMode>(),
+                SelectedIndex = (int)WindowsWallpaperService.GetCurrentFitMode(),
+                HorizontalAlignment = HorizontalAlignment.Stretch
+            };
+
+            StackPanel panel = new() { Spacing = 10 };
+            if (nameBox is not null)
+            {
+                panel.Children.Add(new TextBlock { Text = "Wallpaper Name" });
+                panel.Children.Add(nameBox);
+            }
+            panel.Children.Add(new TextBlock
+            {
+                Text = $"Choose a fit for your {(isLockscreen ? "lock screen" : "desktop")} image",
+                TextWrapping = TextWrapping.Wrap
+            });
+            panel.Children.Add(fitPicker);
+
+            ContentDialog dialog = new()
+            {
+                XamlRoot = XamlRoot,
+                Style = Microsoft.UI.Xaml.Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+                Title = isLockscreen ? "Lock screen image fit" : "Desktop image fit",
+                Content = panel,
+                PrimaryButtonText = "Confirm",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary
+            };
+
+            ContentDialogResult result = await dialog.ShowAsync();
+            return result == ContentDialogResult.Primary &&
+                fitPicker.SelectedIndex >= 0 &&
+                (nameBox is null || !string.IsNullOrWhiteSpace(nameBox.Text))
+                ? new WallpaperFitSelection(nameBox?.Text.Trim() ?? string.Empty, (WallpaperFitMode)fitPicker.SelectedIndex)
+                : null;
+        }
+
+        private static string GetWallpaperDialogName(string wallpaperPath)
+        {
+            if (!WindowsWallpaperService.IsCustomWallpaperPath(wallpaperPath))
+            {
+                return WindowsWallpaperService.GetDisplayName(wallpaperPath);
+            }
+
+            string displayName = WindowsWallpaperService.GetDisplayName(wallpaperPath);
+            if (!string.Equals(displayName, "Custom wallpaper", StringComparison.OrdinalIgnoreCase))
+            {
+                return displayName;
+            }
+
+            IReadOnlyList<string> customWallpapers = WindowsWallpaperService.GetCustomWallpapers();
+            int index = customWallpapers
+                .Select((path, itemIndex) => new { path, itemIndex })
+                .FirstOrDefault(item => string.Equals(item.path, wallpaperPath, StringComparison.OrdinalIgnoreCase))?
+                .itemIndex ?? customWallpapers.Count;
+
+            return $"Custom Wallpaper ({index + 1})";
         }
 
         private async Task RunActionAsync(Action action, string successMessage) =>
@@ -440,7 +515,7 @@ namespace SynToolkit.Views
                 return;
             }
 
-            await ApplyWallpaperAsync(previousPath, "Restored your previous wallpaper.");
+            await ApplyWallpaperAsync(previousPath, "Restored your previous wallpaper.", promptForFit: false);
         }
 
         private async void WallpaperGridView_ItemClick(object sender, ItemClickEventArgs e)
@@ -584,23 +659,57 @@ namespace SynToolkit.Views
             }
         }
 
-        private async Task ApplyWallpaperAsync(string wallpaperPath, string? successMessage = null)
+        private async Task ApplyWallpaperAsync(string wallpaperPath, string? successMessage = null, bool promptForFit = true)
         {
+            WallpaperFitMode fitMode;
+            string pathToApply = wallpaperPath;
+            if (promptForFit)
+            {
+                WallpaperFitSelection? selection = await ShowWallpaperFitDialogAsync(wallpaperPath);
+                if (selection is null)
+                {
+                    return;
+                }
+
+                fitMode = selection.FitMode;
+                if (WindowsWallpaperService.IsCustomWallpaperPath(wallpaperPath))
+                {
+                    WallpaperRenameResult renameResult = await Task.Run(() =>
+                        WindowsWallpaperService.RenameCustomWallpaper(wallpaperPath, selection.Name));
+                    if (!renameResult.Success || string.IsNullOrWhiteSpace(renameResult.RenamedPath))
+                    {
+                        ShowResult("Wallpaper name unavailable", renameResult.Message, InfoBarSeverity.Error);
+                        return;
+                    }
+
+                    pathToApply = renameResult.RenamedPath;
+                    RefreshCustomWallpaperGrid();
+                }
+            }
+            else
+            {
+                fitMode = WindowsWallpaperService.GetCurrentFitMode();
+            }
+
             SetActionsEnabled(false);
             RestorePreviousButton.IsEnabled = false;
             OperationInfoBar.IsOpen = false;
 
             try
             {
-                WallpaperApplyResult result = await Task.Run(() => WindowsWallpaperService.Apply(wallpaperPath));
+                WallpaperApplyResult result = await Task.Run(() => WindowsWallpaperService.Apply(pathToApply, fitMode));
 
                 if (result.Success)
                 {
-                    _currentWallpaperPath = wallpaperPath;
+                    _currentWallpaperPath = pathToApply;
                     UpdateCurrentWallpaperPreview();
+                    RefreshCustomWallpaperGrid();
                     UpdateWallpaperActiveStates();
                     UpdateRestorePreviousButtonState();
-                    ShowResult("Done", successMessage ?? result.Message, InfoBarSeverity.Success);
+                    string message = successMessage is not null && WindowsWallpaperService.IsCustomWallpaperPath(pathToApply)
+                        ? $"{WindowsWallpaperService.GetDisplayName(pathToApply)} added and applied as your wallpaper."
+                        : successMessage ?? result.Message;
+                    ShowResult("Done", message, InfoBarSeverity.Success);
                 }
                 else
                 {
@@ -644,6 +753,30 @@ namespace SynToolkit.Views
 
             gridView.ItemsSource = null;
             gridView.ItemsSource = updated;
+        }
+
+        private void WallpaperBox_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            if (sender is Grid grid)
+            {
+                var deleteBtn = grid.Children.OfType<Button>().FirstOrDefault(b => b.Name == "DeleteCustomWallpaperButton");
+                if (deleteBtn != null)
+                {
+                    deleteBtn.Opacity = 1;
+                }
+            }
+        }
+
+        private void WallpaperBox_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            if (sender is Grid grid)
+            {
+                var deleteBtn = grid.Children.OfType<Button>().FirstOrDefault(b => b.Name == "DeleteCustomWallpaperButton");
+                if (deleteBtn != null)
+                {
+                    deleteBtn.Opacity = 0;
+                }
+            }
         }
     }
 }

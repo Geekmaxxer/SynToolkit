@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Microsoft.Win32;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -13,6 +14,18 @@ namespace SynToolkit.Services;
 internal sealed record WallpaperApplyResult(bool Success, string Message);
 
 internal sealed record WallpaperImportResult(bool Success, string Message, string? ImportedPath);
+
+internal sealed record WallpaperRenameResult(bool Success, string Message, string? RenamedPath);
+
+internal enum WallpaperFitMode
+{
+    Fill,
+    Fit,
+    Stretch,
+    Tile,
+    Center,
+    Span
+}
 
 internal static class WindowsWallpaperService
 {
@@ -111,7 +124,7 @@ internal static class WindowsWallpaperService
     public static bool IsCustomWallpaperPath(string filePath) =>
         IsPathInside(filePath, CustomWallpapersDirectory);
 
-    public static WallpaperApplyResult Apply(string filePath)
+    public static WallpaperApplyResult Apply(string filePath, WallpaperFitMode fitMode = WallpaperFitMode.Fill)
     {
         try
         {
@@ -122,6 +135,7 @@ internal static class WindowsWallpaperService
             }
 
             string? currentWallpaper = GetCurrentWallpaper();
+            ApplyWallpaperFitMode(fitMode);
 
             var applied = SystemParametersInfo(
                 SpiSetDesktopWallpaper,
@@ -145,6 +159,99 @@ internal static class WindowsWallpaperService
         {
             return new WallpaperApplyResult(false, ex.Message);
         }
+    }
+
+    public static WallpaperRenameResult RenameCustomWallpaper(string filePath, string displayName)
+    {
+        try
+        {
+            string fullPath = Path.GetFullPath(filePath);
+            if (!IsPathInside(fullPath, CustomWallpapersDirectory) ||
+                !File.Exists(fullPath) ||
+                !SupportedExtensions.Contains(Path.GetExtension(fullPath)))
+            {
+                return new WallpaperRenameResult(false, "That wallpaper is not in Your Wallpapers.", null);
+            }
+
+            string sanitizedName = SanitizeCustomWallpaperName(displayName);
+            if (string.IsNullOrWhiteSpace(sanitizedName))
+            {
+                return new WallpaperRenameResult(false, "Enter a name for the wallpaper.", null);
+            }
+
+            string extension = Path.GetExtension(fullPath);
+            string currentName = Path.GetFileNameWithoutExtension(fullPath);
+            string destinationPath = Path.Combine(CustomWallpapersDirectory, sanitizedName + extension);
+            if (string.Equals(currentName, sanitizedName, StringComparison.OrdinalIgnoreCase))
+            {
+                return new WallpaperRenameResult(true, GetDisplayName(fullPath), fullPath);
+            }
+
+            if (File.Exists(destinationPath))
+            {
+                string stem = sanitizedName;
+                for (int i = 2; i < 10_000; i++)
+                {
+                    destinationPath = Path.Combine(CustomWallpapersDirectory, $"{stem} ({i}){extension}");
+                    if (!File.Exists(destinationPath))
+                        break;
+                }
+            }
+
+            File.Move(fullPath, destinationPath);
+            return new WallpaperRenameResult(true, GetDisplayName(destinationPath), destinationPath);
+        }
+        catch (Exception ex)
+        {
+            return new WallpaperRenameResult(false, ex.Message, null);
+        }
+    }
+
+    public static WallpaperFitMode GetCurrentFitMode()
+    {
+        try
+        {
+            using RegistryKey? desktopKey = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop");
+            string wallpaperStyle = desktopKey?.GetValue("WallpaperStyle")?.ToString() ?? "10";
+            string tileWallpaper = desktopKey?.GetValue("TileWallpaper")?.ToString() ?? "0";
+
+            if (string.Equals(wallpaperStyle, "22", StringComparison.Ordinal))
+                return WallpaperFitMode.Span;
+
+            if (string.Equals(wallpaperStyle, "6", StringComparison.Ordinal))
+                return WallpaperFitMode.Fit;
+
+            if (string.Equals(wallpaperStyle, "2", StringComparison.Ordinal))
+                return WallpaperFitMode.Stretch;
+
+            if (string.Equals(wallpaperStyle, "0", StringComparison.Ordinal))
+                return string.Equals(tileWallpaper, "1", StringComparison.Ordinal)
+                    ? WallpaperFitMode.Tile
+                    : WallpaperFitMode.Center;
+        }
+        catch (Exception exception)
+        {
+            App.logger.Warn(exception, "Unable to read the current desktop wallpaper fit mode.");
+        }
+
+        return WallpaperFitMode.Fill;
+    }
+
+    internal static void ApplyWallpaperFitMode(WallpaperFitMode fitMode)
+    {
+        (string wallpaperStyle, string tileWallpaper) = fitMode switch
+        {
+            WallpaperFitMode.Fit => ("6", "0"),
+            WallpaperFitMode.Stretch => ("2", "0"),
+            WallpaperFitMode.Tile => ("0", "1"),
+            WallpaperFitMode.Center => ("0", "0"),
+            WallpaperFitMode.Span => ("22", "0"),
+            _ => ("10", "0")
+        };
+
+        using RegistryKey? desktopKey = Registry.CurrentUser.CreateSubKey(@"Control Panel\Desktop");
+        desktopKey?.SetValue("WallpaperStyle", wallpaperStyle, RegistryValueKind.String);
+        desktopKey?.SetValue("TileWallpaper", tileWallpaper, RegistryValueKind.String);
     }
 
     public static string? GetPreviousWallpaperPath()
@@ -313,6 +420,16 @@ internal static class WindowsWallpaperService
         return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(name.ToLowerInvariant());
     }
 
+    private static string SanitizeCustomWallpaperName(string displayName)
+    {
+        string name = displayName.Trim();
+        foreach (char invalidCharacter in Path.GetInvalidFileNameChars())
+            name = name.Replace(invalidCharacter, '_');
+
+        name = name.TrimEnd('.', ' ');
+        return name.Length > 120 ? name[..120].TrimEnd('.', ' ') : name;
+    }
+
     public static string GetCurrentWallpaperTitle(string? currentPath)
     {
         if (string.IsNullOrWhiteSpace(currentPath))
@@ -358,6 +475,11 @@ internal static class WindowsWallpaperService
             .Trim();
 
         if (string.IsNullOrWhiteSpace(name) || !name.Any(char.IsLetter))
+            return "Custom wallpaper";
+
+        int digitCount = name.Count(char.IsDigit);
+        int letterCount = name.Count(char.IsLetter);
+        if (name.Length > 24 && digitCount >= 12 && digitCount > letterCount * 4)
             return "Custom wallpaper";
 
         return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(name.ToLowerInvariant());

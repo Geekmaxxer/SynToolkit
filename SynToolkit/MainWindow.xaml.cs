@@ -196,9 +196,9 @@ namespace SynToolkit
 
             // Navigation Items
             Home.Content = App.GetValueFromItemList("Home_HeaderText");
-            Installer.Content = App.GetValueFromItemList("Installer");
-            PowerPlans.Content = App.GetValueFromItemList("PowerPlans");
-            Adjustments.Content = App.GetValueFromItemList("Adjustments");
+            InstallerText.Text = App.GetValueFromItemList("Installer");
+            PowerPlansText.Text = App.GetValueFromItemList("PowerPlans");
+            AdjustmentsText.Text = App.GetValueFromItemList("Adjustments");
             Gpu.Content = App.GetValueFromItemList("Gpu");
             Specs.Content = App.GetValueFromItemList("Specs");
             DiskCleanup.Content = App.GetValueFromItemList("Cleaner");
@@ -215,6 +215,33 @@ namespace SynToolkit
 
             // Initialize navigation badges
             UpdateNavigationBadges();
+            UpdateNewBadges();
+        }
+
+        /// <summary>
+        /// Shows or hides persisted NEW badges for flagged navigation tabs.
+        /// </summary>
+        public void UpdateNewBadges()
+        {
+            SetNewBadgeVisibility(InstallerNewBadgeBorder, "Installer");
+            SetNewBadgeVisibility(PowerPlansNewBadgeBorder, "PowerPlans");
+            SetNewBadgeVisibility(AdjustmentsNewBadgeBorder, "Customizations");
+            SetNewBadgeVisibility(AdvancedNewBadgeBorder, "AdvancedConfigurations");
+        }
+
+        private static void SetNewBadgeVisibility(Border border, string tabId)
+        {
+            border.Visibility = NavigationNewBadgeService.ShouldShowNewBadge(tabId)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private void MarkCurrentTabNewBadgeSeenIfNeeded()
+        {
+            if (NavigationNewBadgeService.MarkTabSeenForNavigationTag(App.CurrentCategory))
+            {
+                UpdateNewBadges();
+            }
         }
 
         /// <summary>
@@ -361,7 +388,31 @@ namespace SynToolkit
                 App.CurrentCategory = category;
             }
 
+            App.UpdateDiscordPresence(GetDiscordPresenceState(App.CurrentCategory));
+            MarkCurrentTabNewBadgeSeenIfNeeded();
             NavigateTo();
+        }
+
+        private static string GetDiscordPresenceState(string category)
+        {
+            return category switch
+            {
+                "SynToolkit.Views.HomePage" => "Home",
+                "SynToolkit.Views.AppFetchPage" => "Installer",
+                "SynToolkit.Views.PowerPlansPage" => "Power Plans",
+                "SynToolkit.Views.AdjustmentsPage" => "Adjustments",
+                "SynToolkit.Views.GpuPage" => "GPU",
+                "SynToolkit.Views.SpecsPage" => "Specs",
+                "SynToolkit.Views.CleanerPage" => "Disk Cleanup",
+                "General" => "General Configuration",
+                "Interface" => "Interface Tweaks",
+                "Windows" => "Windows Settings",
+                "Advanced" => "Advanced Configuration",
+                "Security" => "Security",
+                "Troubleshooting" => "Restoration",
+                "SettingsPage" => "Settings",
+                _ => "Configuring Windows"
+            };
         }
 
         private void ContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e)
