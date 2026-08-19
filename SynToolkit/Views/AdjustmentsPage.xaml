@@ -287,7 +287,7 @@
                                         <Border.Background>
                                             <ImageBrush
                                                 x:Name="CurrentWallpaperPreview"
-                                                Stretch="UniformToFill" />
+                                                 Stretch="Uniform" />
                                         </Border.Background>
                                     </Border>
                                 </Grid>
