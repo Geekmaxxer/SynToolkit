@@ -93,6 +93,8 @@
   "CPUZDescription": "Launch CPU-Z portable (processor information)",
   "GPUZ": "Launch GPU-Z",
   "GPUZDescription": "Launch GPU-Z portable (graphics information)",
+  "CrystalDiskMark": "Launch CDM",
+  "CrystalDiskMarkDescription": "Launch CrystalDiskMark portable (storage benchmark)",
   "FileExplorerSubMenu": "File Explorer customization",
   "FileExplorerSubMenuDescription": "Everything related to customizing the Windows File Explorer",
   "DriverConfigurationSubMenu": "Driver configuration",
