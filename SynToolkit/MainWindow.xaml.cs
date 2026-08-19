@@ -361,7 +361,30 @@ namespace SynToolkit
                 App.CurrentCategory = category;
             }
 
+            App.UpdateDiscordPresence(GetDiscordPresenceState(App.CurrentCategory));
             NavigateTo();
+        }
+
+        private static string GetDiscordPresenceState(string category)
+        {
+            return category switch
+            {
+                "SynToolkit.Views.HomePage" => "Home",
+                "SynToolkit.Views.AppFetchPage" => "Installer",
+                "SynToolkit.Views.PowerPlansPage" => "Power Plans",
+                "SynToolkit.Views.AdjustmentsPage" => "Adjustments",
+                "SynToolkit.Views.GpuPage" => "GPU",
+                "SynToolkit.Views.SpecsPage" => "Specs",
+                "SynToolkit.Views.CleanerPage" => "Disk Cleanup",
+                "General" => "General Configuration",
+                "Interface" => "Interface Tweaks",
+                "Windows" => "Windows Settings",
+                "Advanced" => "Advanced Configuration",
+                "Security" => "Security",
+                "Troubleshooting" => "Restoration",
+                "SettingsPage" => "Settings",
+                _ => "Configuring Windows"
+            };
         }
 
         private void ContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e)

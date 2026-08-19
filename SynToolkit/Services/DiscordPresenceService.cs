@@ -12,6 +12,7 @@ namespace SynToolkit.Services
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private DiscordRpcClient _client;
+        private RichPresence _presence;
 
         public bool TryStart(string applicationId, string largeImageKey)
         {
@@ -47,7 +48,7 @@ namespace SynToolkit.Services
                     };
                 }
 
-                _client.SetPresence(new RichPresence
+                _presence = new RichPresence
                 {
                     Details = "Using SynToolkit",
                     State = "Configuring Windows",
@@ -61,7 +62,8 @@ namespace SynToolkit.Services
                             Url = "https://github.com/kwanteks/synergyos"
                         }
                     }
-                });
+                };
+                _client.SetPresence(_presence);
 
                 Logger.Info("Discord Rich Presence initialized.");
                 return true;
@@ -71,6 +73,23 @@ namespace SynToolkit.Services
                 Logger.Debug(exception, "Discord Rich Presence is unavailable.");
                 Dispose();
                 return false;
+            }
+        }
+
+        public void UpdateState(string state)
+        {
+            if (_client is null || _presence is null || string.IsNullOrWhiteSpace(state))
+            {
+                return;
+            }
+            try
+            {
+                _presence.State = state;
+                _client.SetPresence(_presence);
+            }
+            catch (Exception exception)
+            {
+                Logger.Debug(exception, "Discord Rich Presence state update failed.");
             }
         }
 
@@ -87,6 +106,7 @@ namespace SynToolkit.Services
             finally
             {
                 _client = null;
+                _presence = null;
             }
         }
     }

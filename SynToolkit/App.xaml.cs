@@ -289,6 +289,14 @@ namespace SynToolkit
             _discordPresenceService.TryStart(applicationId, largeImageKey);
         }
 
+        internal static void UpdateDiscordPresence(string state)
+        {
+            if (Current is App app)
+            {
+                app._discordPresenceService?.UpdateState(state);
+            }
+        }
+
         private void OnProcessExit(object sender, EventArgs eventArgs)
         {
             DisposeResources();
