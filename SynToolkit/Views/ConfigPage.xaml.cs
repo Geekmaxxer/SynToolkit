@@ -193,6 +193,17 @@ public sealed partial class ConfigPage : Page
         }
     }
 
+    private void ConfigurationButtonCard_Click(object sender, RoutedEventArgs e)
+    {
+        if (e.OriginalSource is Button) return;
+        if (sender is not SettingsCard settingsCard) return;
+        if (settingsCard.DataContext is not ConfigurationButtonViewModel item) return;
+        if (item.ExecuteCommandCommand == null) return;
+        if (!item.ExecuteCommandCommand.CanExecute(null)) return;
+
+        item.ExecuteCommandCommand.Execute(null);
+    }
+
     private void OnCardClicked(object sender, RoutedEventArgs e)
     {
         if (sender is not SettingsCard settingCard) return;
