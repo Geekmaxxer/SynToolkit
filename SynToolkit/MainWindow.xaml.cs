@@ -196,9 +196,9 @@ namespace SynToolkit
 
             // Navigation Items
             Home.Content = App.GetValueFromItemList("Home_HeaderText");
-            Installer.Content = App.GetValueFromItemList("Installer");
-            PowerPlans.Content = App.GetValueFromItemList("PowerPlans");
-            Adjustments.Content = App.GetValueFromItemList("Adjustments");
+            InstallerText.Text = App.GetValueFromItemList("Installer");
+            PowerPlansText.Text = App.GetValueFromItemList("PowerPlans");
+            AdjustmentsText.Text = App.GetValueFromItemList("Adjustments");
             Gpu.Content = App.GetValueFromItemList("Gpu");
             Specs.Content = App.GetValueFromItemList("Specs");
             DiskCleanup.Content = App.GetValueFromItemList("Cleaner");
@@ -215,6 +215,33 @@ namespace SynToolkit
 
             // Initialize navigation badges
             UpdateNavigationBadges();
+            UpdateNewBadges();
+        }
+
+        /// <summary>
+        /// Shows or hides persisted NEW badges for flagged navigation tabs.
+        /// </summary>
+        public void UpdateNewBadges()
+        {
+            SetNewBadgeVisibility(InstallerNewBadgeBorder, "Installer");
+            SetNewBadgeVisibility(PowerPlansNewBadgeBorder, "PowerPlans");
+            SetNewBadgeVisibility(AdjustmentsNewBadgeBorder, "Customizations");
+            SetNewBadgeVisibility(AdvancedNewBadgeBorder, "AdvancedConfigurations");
+        }
+
+        private static void SetNewBadgeVisibility(Border border, string tabId)
+        {
+            border.Visibility = NavigationNewBadgeService.ShouldShowNewBadge(tabId)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private void MarkCurrentTabNewBadgeSeenIfNeeded()
+        {
+            if (NavigationNewBadgeService.MarkTabSeenForNavigationTag(App.CurrentCategory))
+            {
+                UpdateNewBadges();
+            }
         }
 
         /// <summary>
@@ -362,6 +389,7 @@ namespace SynToolkit
             }
 
             App.UpdateDiscordPresence(GetDiscordPresenceState(App.CurrentCategory));
+            MarkCurrentTabNewBadgeSeenIfNeeded();
             NavigateTo();
         }
 

@@ -129,16 +129,64 @@
                     <NavigationViewItem.Icon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Installer.png" />
                     </NavigationViewItem.Icon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="InstallerText" VerticalAlignment="Center" />
+                        <Border
+                            x:Name="InstallerNewBadgeBorder"
+                            Padding="6,2"
+                            VerticalAlignment="Center"
+                            Background="{ThemeResource SystemAccentColorLight2}"
+                            CornerRadius="10"
+                            Visibility="Collapsed">
+                            <TextBlock
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Foreground="White"
+                                Text="NEW" />
+                        </Border>
+                    </StackPanel>
                 </NavigationViewItem>
                 <NavigationViewItem x:Name="PowerPlans" Tag="SynToolkit.Views.PowerPlansPage">
                     <NavigationViewItem.Icon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Power.png" />
                     </NavigationViewItem.Icon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="PowerPlansText" VerticalAlignment="Center" />
+                        <Border
+                            x:Name="PowerPlansNewBadgeBorder"
+                            Padding="6,2"
+                            VerticalAlignment="Center"
+                            Background="{ThemeResource SystemAccentColorLight2}"
+                            CornerRadius="10"
+                            Visibility="Collapsed">
+                            <TextBlock
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Foreground="White"
+                                Text="NEW" />
+                        </Border>
+                    </StackPanel>
                 </NavigationViewItem>
                 <NavigationViewItem x:Name="Adjustments" Tag="SynToolkit.Views.AdjustmentsPage">
                     <NavigationViewItem.Icon>
                         <ImageIcon Source="ms-appx:///assets/Icons/UserAccountAdjustment.png" />
                     </NavigationViewItem.Icon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="AdjustmentsText" VerticalAlignment="Center" />
+                        <Border
+                            x:Name="AdjustmentsNewBadgeBorder"
+                            Padding="6,2"
+                            VerticalAlignment="Center"
+                            Background="{ThemeResource SystemAccentColorLight2}"
+                            CornerRadius="10"
+                            Visibility="Collapsed">
+                            <TextBlock
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Foreground="White"
+                                Text="NEW" />
+                        </Border>
+                    </StackPanel>
                 </NavigationViewItem>
                 <NavigationViewItem x:Name="Gpu" Tag="SynToolkit.Views.GpuPage">
                     <NavigationViewItem.Icon>
@@ -195,6 +243,19 @@
                     </NavigationViewItem.Icon>
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock x:Name="AdvancedText" VerticalAlignment="Center" />
+                        <Border
+                            x:Name="AdvancedNewBadgeBorder"
+                            Padding="6,2"
+                            VerticalAlignment="Center"
+                            Background="{ThemeResource SystemAccentColorLight2}"
+                            CornerRadius="10"
+                            Visibility="Collapsed">
+                            <TextBlock
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Foreground="White"
+                                Text="NEW" />
+                        </Border>
                         <Border x:Name="AdvancedBadgeBorder" Background="{ThemeResource SystemAccentColorLight2}" CornerRadius="10" Padding="6,2" VerticalAlignment="Center">
                             <TextBlock x:Name="AdvancedBadge" FontSize="11" Foreground="White" />
                         </Border>
