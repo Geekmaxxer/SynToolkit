@@ -15,6 +15,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using SynToolkit.ViewModels;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
+using SynToolkit.Commands.ConfigurationButtonsCommand;
 
 namespace SynToolkit.Views
 {
@@ -99,6 +100,14 @@ namespace SynToolkit.Views
             return $"{sizeGiB:N2} GB";
         }
 
+        private void LaunchWinDirStatButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            var launchCommand = new LaunchPortableToolCommand("WinDirStat.exe");
+            if (launchCommand.CanExecute(null))
+            {
+                launchCommand.Execute(null);
+            }
+        }
         private async void RunDiskCleanupButton_Click(object sender, RoutedEventArgs e)
         {
             if (_isRunningDiskCleanup) return;

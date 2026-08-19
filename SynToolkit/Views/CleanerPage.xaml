@@ -202,6 +202,21 @@
                 </controls:SettingsCard.Header>
             </controls:SettingsCard>
 
+            <controls:SettingsCard
+                Margin="0,0,36,2"
+                Description="Launch WinDirStat portable (disk usage information)"
+                Header="WinDirStat">
+                <controls:SettingsCard.HeaderIcon>
+                    <ImageIcon Source="ms-appx:///assets/Icons/SSD.png" />
+                </controls:SettingsCard.HeaderIcon>
+
+                <Button
+                    x:Name="LaunchWinDirStatButton"
+                    Click="LaunchWinDirStatButton_Click"
+                    Content="Launch WinDirStat"
+                    Style="{StaticResource AccentButtonStyle}" />
+            </controls:SettingsCard>
+
         </StackPanel>
     </ScrollViewer>
 </Page>
