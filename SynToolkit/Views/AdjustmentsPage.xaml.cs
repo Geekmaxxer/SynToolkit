@@ -344,6 +344,12 @@ namespace SynToolkit.Views
                 return WindowsWallpaperService.GetDisplayName(wallpaperPath);
             }
 
+            string displayName = WindowsWallpaperService.GetDisplayName(wallpaperPath);
+            if (!string.Equals(displayName, "Custom wallpaper", StringComparison.OrdinalIgnoreCase))
+            {
+                return displayName;
+            }
+
             IReadOnlyList<string> customWallpapers = WindowsWallpaperService.GetCustomWallpapers();
             int index = customWallpapers
                 .Select((path, itemIndex) => new { path, itemIndex })
