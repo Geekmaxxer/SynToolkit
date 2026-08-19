@@ -225,6 +225,7 @@
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="8">
                 <StackPanel>
+                    <!-- Header with title and action buttons -->
                     <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -251,7 +252,8 @@
                                 Content="Refresh" />
                         </StackPanel>
                     </Grid>
-
+                    
+                    <!-- Currently Applied Preview -->
                     <Border
                         Margin="0,0,0,16"
                         Padding="12"
@@ -323,7 +325,8 @@
                             </StackPanel>
                         </Grid>
                     </Border>
-
+                    
+                    <!-- Available Wallpapers Section -->
                     <TextBlock
                         Style="{StaticResource WallpaperSectionHeader}"
                         Text="AVAILABLE WALLPAPERS" />
