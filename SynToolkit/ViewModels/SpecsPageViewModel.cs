@@ -148,7 +148,7 @@ namespace SynToolkit.ViewModels
                     StorageDrives.Add(new StorageDriveDisplay(drive.Model, FormatBytes(drive.SizeBytes), typeText));
                 }
 
-                MemoryDescriptionText = $"{TotalMemoryText} · Loading timing details...";
+                MemoryDescriptionText = $"{TotalMemoryText} · Loading CAS Latency timings...";
                 _ = LoadMemoryTimingDetailsAsync(snapshot.MemoryModules);
             }
             catch (Exception exception)
