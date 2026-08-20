@@ -99,6 +99,8 @@ namespace SynToolkit.ViewModels
                 OnPropertyChanged(nameof(StatusGlyph));
                 OnPropertyChanged(nameof(IsCheckingStatus));
                 OnPropertyChanged(nameof(CanSelect));
+                OnPropertyChanged(nameof(CanUninstall));
+                OnPropertyChanged(nameof(IsUninstallButtonEnabled));
                 OnPropertyChanged(nameof(PrimaryActionText));
             }
         }
@@ -179,6 +181,28 @@ namespace SynToolkit.ViewModels
 
         public bool CanSelect => AvailabilityState is
             InstallerAvailabilityState.NotInstalled or InstallerAvailabilityState.UpdateAvailable;
+
+        public bool CanUninstall => AvailabilityState is
+            InstallerAvailabilityState.Installed or InstallerAvailabilityState.UpdateAvailable;
+
+        private bool _isUninstalling;
+
+        public bool IsUninstalling
+        {
+            get => _isUninstalling;
+            set
+            {
+                if (SetProperty(ref _isUninstalling, value))
+                {
+                    OnPropertyChanged(nameof(IsUninstallButtonEnabled));
+                    OnPropertyChanged(nameof(UninstallActionText));
+                }
+            }
+        }
+
+        public bool IsUninstallButtonEnabled => CanUninstall && !IsUninstalling;
+
+        public string UninstallActionText => IsUninstalling ? "Uninstalling..." : "Uninstall";
 
         public string PrimaryActionText => AvailabilityState == InstallerAvailabilityState.UpdateAvailable
             ? "Update"

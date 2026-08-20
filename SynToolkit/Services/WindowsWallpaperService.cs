@@ -707,7 +707,9 @@ internal static class WindowsWallpaperService
                 return false;
 
             // Identify by content, not extension. Several shipped wallpapers are
-            // JPEG or WebP files that were saved with a .png extension.
+            // JPEG files that were saved with a .png extension. WebP is deliberately
+            // excluded because Windows' desktop-wallpaper API can accept the path but
+            // render only a blurred/ghosted cache image.
             if (header[0] == 0xFF && header[1] == 0xD8)
                 return true;
 
@@ -725,13 +727,6 @@ internal static class WindowsWallpaperService
             if (read >= 8 &&
                 header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47 &&
                 header[4] == 0x0D && header[5] == 0x0A && header[6] == 0x1A && header[7] == 0x0A)
-            {
-                return true;
-            }
-
-            if (read >= 12 &&
-                header[0] == (byte)'R' && header[1] == (byte)'I' && header[2] == (byte)'F' && header[3] == (byte)'F' &&
-                header[8] == (byte)'W' && header[9] == (byte)'E' && header[10] == (byte)'B' && header[11] == (byte)'P')
             {
                 return true;
             }
