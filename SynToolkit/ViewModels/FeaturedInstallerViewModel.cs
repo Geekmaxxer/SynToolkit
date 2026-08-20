@@ -72,7 +72,7 @@ namespace SynToolkit.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(QueueSelectionText))]
-        private bool _isSelected;
+        public partial bool IsSelected { get; set; }
 
         private InstallerAvailabilityState _availabilityState = InstallerAvailabilityState.Checking;
         private string? _installedVersion;

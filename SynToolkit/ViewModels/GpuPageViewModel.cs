@@ -41,38 +41,38 @@ namespace SynToolkit.ViewModels
     public partial class GpuPageViewModel : ObservableObject
     {
         [ObservableProperty]
-        private string _installerFilePath = string.Empty;
+        public partial string InstallerFilePath { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _extractionFolderPath = string.Empty;
+        public partial string ExtractionFolderPath { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private GpuWizardStep _currentStep = GpuWizardStep.SelectInstaller;
+        public partial GpuWizardStep CurrentStep { get; set; } = GpuWizardStep.SelectInstaller;
 
         [ObservableProperty]
-        private GpuVendorSelection _selectedVendor = GpuVendorSelection.None;
+        public partial GpuVendorSelection SelectedVendor { get; set; } = GpuVendorSelection.None;
 
         [ObservableProperty]
-        private bool _isBusy;
+        public partial bool IsBusy { get; set; }
 
         [ObservableProperty]
-        private bool _hasError;
+        public partial bool HasError { get; set; }
 
         [ObservableProperty]
-        private string _statusMessage = string.Empty;
+        public partial string StatusMessage { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _optimizationResultMessage = string.Empty;
+        public partial string OptimizationResultMessage { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private bool _optimizationResultIsWarning;
+        public partial bool OptimizationResultIsWarning { get; set; }
 
         public bool HasOptimizationResult => !string.IsNullOrEmpty(OptimizationResultMessage);
 
         partial void OnOptimizationResultMessageChanged(string value) => OnPropertyChanged(nameof(HasOptimizationResult));
 
         [ObservableProperty]
-        private string _resetSuccessMessage = string.Empty;
+        public partial string ResetSuccessMessage { get; set; } = string.Empty;
 
         public bool HasResetSuccessMessage => !string.IsNullOrEmpty(ResetSuccessMessage);
 
@@ -81,10 +81,10 @@ namespace SynToolkit.ViewModels
         public void ClearResetSuccessMessage() => ResetSuccessMessage = string.Empty;
 
         [ObservableProperty]
-        private bool _hasAmdGpu;
+        public partial bool HasAmdGpu { get; set; }
 
         [ObservableProperty]
-        private bool _hasNvidiaGpu;
+        public partial bool HasNvidiaGpu { get; set; }
 
         public bool NoAmdGpuDetected => !HasAmdGpu;
         public bool NoNvidiaGpuDetected => !HasNvidiaGpu;
@@ -95,26 +95,26 @@ namespace SynToolkit.ViewModels
         partial void OnCurrentStepChanged(GpuWizardStep value) => OnPropertyChanged(nameof(CanOptimize));
 
         [ObservableProperty]
-        private string _detectedGpuSummary = "Detecting installed GPUs...";
+        public partial string DetectedGpuSummary { get; set; } = "Detecting installed GPUs...";
 
         [ObservableProperty]
-        private string _nipFilePath = string.Empty;
+        public partial string NipFilePath { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private bool _isApplyingNvidiaProfiles;
+        public partial bool IsApplyingNvidiaProfiles { get; set; }
 
         [ObservableProperty]
-        private string _nvidiaApplyResultSummary = string.Empty;
+        public partial string NvidiaApplyResultSummary { get; set; } = string.Empty;
 
         public bool HasNvidiaApplyResult => !string.IsNullOrEmpty(NvidiaApplyResultSummary);
 
         partial void OnNvidiaApplyResultSummaryChanged(string value) => OnPropertyChanged(nameof(HasNvidiaApplyResult));
 
         [ObservableProperty]
-        private string _newProfileName = string.Empty;
+        public partial string NewProfileName { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _newProfileExecutablesText = string.Empty;
+        public partial string NewProfileExecutablesText { get; set; } = string.Empty;
 
         public ObservableCollection<RadeonPackage> Packages { get; } = new();
         public ObservableCollection<RadeonScheduledTask> ScheduledTasks { get; } = new();

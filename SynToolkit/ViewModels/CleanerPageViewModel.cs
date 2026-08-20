@@ -19,25 +19,25 @@ namespace SynToolkit.ViewModels
     public partial class CleanerPageViewModel : ObservableObject
     {
         [ObservableProperty]
-        private bool _isScanning;
+        public partial bool IsScanning { get; set; }
 
         [ObservableProperty]
-        private bool _isCleaning;
+        public partial bool IsCleaning { get; set; }
 
         [ObservableProperty]
-        private bool _hasScanned;
+        public partial bool HasScanned { get; set; }
 
         [ObservableProperty]
-        private bool _hasError;
+        public partial bool HasError { get; set; }
 
         [ObservableProperty]
-        private string _statusMessage = string.Empty;
+        public partial string StatusMessage { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _totalFoundText = string.Empty;
+        public partial string TotalFoundText { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _lastCleanedText = string.Empty;
+        public partial string LastCleanedText { get; set; } = string.Empty;
 
         public ObservableCollection<JunkCategoryItemViewModel> Categories { get; } = new();
 

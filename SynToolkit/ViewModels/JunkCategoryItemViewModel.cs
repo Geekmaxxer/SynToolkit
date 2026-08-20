@@ -15,7 +15,7 @@ namespace SynToolkit.ViewModels
         public string FileCountText { get; }
 
         [ObservableProperty]
-        private bool _isSelected = true;
+        public partial bool IsSelected { get; set; } = true;
 
         public JunkCategoryItemViewModel(JunkCategoryScanResult scanResult)
         {

@@ -549,12 +549,12 @@
                             <DataTemplate x:DataType="nvidia:NvidiaProfile">
                                 <controls:SettingsExpander
                                     Margin="0,0,0,6"
-                                    Description="{x:Bind ExecutablesSummary, Mode=OneWay}"
-                                    Header="{x:Bind ProfileName, Mode=OneWay}">
+                                    Description="{x:Bind ExecutablesSummary, Mode=OneTime}"
+                                    Header="{x:Bind ProfileName, Mode=OneTime}">
                                     <controls:SettingsExpander.HeaderIcon>
                                         <ImageIcon Source="ms-appx:///assets/Icons/Games.png" />
                                     </controls:SettingsExpander.HeaderIcon>
-                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind Settings.Count, Mode=OneWay}" />
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind Settings.Count, Mode=OneTime}" />
                                     <controls:SettingsExpander.Items>
                                         <controls:SettingsCard ContentAlignment="Left">
                                             <ItemsControl ItemsSource="{x:Bind Settings}">
@@ -565,12 +565,12 @@
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="Auto" />
                                                             </Grid.ColumnDefinitions>
-                                                            <TextBlock Text="{x:Bind SettingNameInfo, Mode=OneWay}" TextWrapping="Wrap" />
+                                                            <TextBlock Text="{x:Bind SettingNameInfo, Mode=OneTime}" TextWrapping="Wrap" />
                                                             <TextBlock
                                                                 Grid.Column="1"
                                                                 Margin="10,0,0,0"
                                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                                Text="{x:Bind SettingValue, Mode=OneWay}" />
+                                                                Text="{x:Bind SettingValue, Mode=OneTime}" />
                                                         </Grid>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
