@@ -11,11 +11,13 @@ License: https://creativecommons.org/publicdomain/zero/1.0/
 
 ## Product logo assets
 
-The full-color Google Chrome and Mozilla Firefox marks in the installer catalog are used only to identify their respective publisher downloads. Google Chrome, Mozilla, Firefox, and their logos are trademarks of their respective owners; their inclusion does not imply endorsement.
+The full-color Google Chrome, Mozilla Firefox, and Helium marks in the installer catalog are used only to identify their respective publisher downloads. Google Chrome, Mozilla, Firefox, Helium, and their logos are trademarks of their respective owners; their inclusion does not imply endorsement.
 
 Chrome asset source: https://commons.wikimedia.org/wiki/File:Google_Chrome_icon_(February_2022).svg
 
 Firefox asset source: https://github.com/mozilla-firefox/firefox/blob/main/browser/branding/official/content/about-logo.svg
+
+Helium asset source: https://github.com/imputnet/helium/blob/main/resources/branding/product_logo.svg
 
 Mozilla trademark policy: https://www.mozilla.org/foundation/trademarks/policy/
 

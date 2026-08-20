@@ -40,6 +40,7 @@ namespace SynToolkit.Services
     public sealed class WingetInstallerService
     {
         private static readonly TimeSpan InstallTimeout = TimeSpan.FromMinutes(15);
+        private static readonly TimeSpan UninstallTimeout = TimeSpan.FromMinutes(15);
         private static readonly HttpClient ManifestClient = CreateManifestClient();
         private static readonly HttpClient ManifestCatalogClient = CreateManifestCatalogClient();
         private static readonly SemaphoreSlim ManifestLookupSemaphore = new(4, 4);
@@ -103,6 +104,67 @@ namespace SynToolkit.Services
             }
 
             return await InstallFromPackageManifestAsync(packageIdentifier, silentArgumentsOverride, progress, cancellationToken);
+        }
+
+        public async Task<WingetInstallResult> UninstallAsync(
+            string packageIdentifier,
+            IReadOnlyList<string> installedDisplayNamePrefixes,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(packageIdentifier);
+            ArgumentNullException.ThrowIfNull(installedDisplayNamePrefixes);
+
+            WingetInstallResult? wingetResult = null;
+            if (await IsAvailableAsync(cancellationToken))
+            {
+                wingetResult = await RunWingetAsync(
+                    [
+                        "uninstall",
+                        "--exact",
+                        "--id",
+                        packageIdentifier,
+                        "--source",
+                        "winget",
+                        "--silent",
+                        "--accept-source-agreements",
+                        "--disable-interactivity"
+                    ],
+                    UninstallTimeout,
+                    cancellationToken);
+
+                if (wingetResult.Succeeded)
+                {
+                    return wingetResult;
+                }
+
+                // A canceled uninstall must stay canceled. Other failures may mean
+                // WinGet cannot correlate a registry-installed copy with its package ID.
+                if (unchecked((uint)wingetResult.ExitCode) == 0x8A15010C)
+                {
+                    return wingetResult;
+                }
+            }
+
+            InstalledDesktopApplication? installedApplication = await Task.Run(
+                () => FindInstalledApplication(installedDisplayNamePrefixes),
+                cancellationToken);
+            if (installedApplication == null)
+            {
+                return new WingetInstallResult(true, 0, "The app is no longer detected on this PC.");
+            }
+
+            string? uninstallCommand = !string.IsNullOrWhiteSpace(installedApplication.QuietUninstallString)
+                ? installedApplication.QuietUninstallString
+                : installedApplication.UninstallString;
+            if (string.IsNullOrWhiteSpace(uninstallCommand))
+            {
+                return wingetResult ?? new WingetInstallResult(
+                    false,
+                    -1,
+                    "Windows did not provide an uninstall command for this app.");
+            }
+
+            return await RunRegisteredUninstallerAsync(uninstallCommand, cancellationToken);
         }
 
         public async Task<IReadOnlyList<CuratedPackageStatus>> DetectPackageStatusesAsync(
@@ -329,6 +391,14 @@ namespace SynToolkit.Services
             return applications;
         }
 
+        private static InstalledDesktopApplication? FindInstalledApplication(
+            IReadOnlyList<string> installedDisplayNamePrefixes) =>
+            ReadInstalledDesktopApplications()
+                .Where(application => installedDisplayNamePrefixes.Any(prefix =>
+                    MatchesInstalledDisplayName(application.DisplayName, prefix)))
+                .OrderByDescending(application => ParseLooseVersion(application.DisplayVersion))
+                .FirstOrDefault();
+
         private static bool ReadUninstallRegistryView(
             ICollection<InstalledDesktopApplication> applications,
             RegistryHive hive,
@@ -357,7 +427,9 @@ namespace SynToolkit.Services
 
                         applications.Add(new InstalledDesktopApplication(
                             displayName.Trim(),
-                            (applicationKey?.GetValue("DisplayVersion") as string)?.Trim()));
+                            (applicationKey?.GetValue("DisplayVersion") as string)?.Trim(),
+                            (applicationKey?.GetValue("UninstallString") as string)?.Trim(),
+                            (applicationKey?.GetValue("QuietUninstallString") as string)?.Trim()));
                     }
                     catch (Exception exception) when (exception is UnauthorizedAccessException or IOException or SecurityException)
                     {
@@ -383,6 +455,114 @@ namespace SynToolkit.Services
             displayName.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase) ||
             displayName.StartsWith(prefix + " (", StringComparison.OrdinalIgnoreCase) ||
             displayName.StartsWith(prefix + ".", StringComparison.OrdinalIgnoreCase);
+
+        private static async Task<WingetInstallResult> RunRegisteredUninstallerAsync(
+            string commandLine,
+            CancellationToken cancellationToken)
+        {
+            if (!TryCreateUninstallStartInfo(commandLine, out ProcessStartInfo startInfo))
+            {
+                return new WingetInstallResult(false, -1, "Windows provided an invalid uninstall command.");
+            }
+
+            using Process process = new() { StartInfo = startInfo };
+            try
+            {
+                if (!process.Start())
+                {
+                    return new WingetInstallResult(false, -1, "Unable to start the app's uninstaller.");
+                }
+
+                using CancellationTokenSource timeoutSource =
+                    CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutSource.CancelAfter(UninstallTimeout);
+                try
+                {
+                    await process.WaitForExitAsync(timeoutSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    TryKillProcessTree(process);
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+
+                    return new WingetInstallResult(
+                        false,
+                        -1,
+                        $"Uninstallation timed out after {UninstallTimeout.TotalMinutes:0} minutes.");
+                }
+
+                bool succeeded = process.ExitCode is 0 or 1641 or 3010;
+                return new WingetInstallResult(
+                    succeeded,
+                    process.ExitCode,
+                    succeeded
+                        ? "The app's registered uninstaller completed."
+                        : $"The app's registered uninstaller exited with code {process.ExitCode}.");
+            }
+            catch (Win32Exception exception)
+            {
+                App.logger.Warn(exception, "[Installers] Unable to start a registered app uninstaller.");
+                return new WingetInstallResult(false, exception.NativeErrorCode, exception.Message);
+            }
+        }
+
+        private static bool TryCreateUninstallStartInfo(
+            string commandLine,
+            out ProcessStartInfo startInfo)
+        {
+            startInfo = null!;
+            string expandedCommand = Environment.ExpandEnvironmentVariables(commandLine).Trim();
+            if (expandedCommand.Length == 0)
+            {
+                return false;
+            }
+
+            string executable;
+            string arguments;
+            Match quotedExecutable = Regex.Match(
+                expandedCommand,
+                @"^\s*""(?<executable>[^""]+\.exe)""\s*(?<arguments>.*)$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            if (quotedExecutable.Success)
+            {
+                executable = quotedExecutable.Groups["executable"].Value;
+                arguments = quotedExecutable.Groups["arguments"].Value;
+            }
+            else
+            {
+                Match executableMatch = Regex.Match(
+                    expandedCommand,
+                    @"^\s*(?<executable>.+?\.exe)\s*(?<arguments>.*)$",
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                if (!executableMatch.Success)
+                {
+                    return false;
+                }
+
+                executable = executableMatch.Groups["executable"].Value.Trim().Trim('"');
+                arguments = executableMatch.Groups["arguments"].Value.Trim();
+            }
+
+            if (Path.GetFileName(executable).Equals("msiexec.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                arguments = Regex.Replace(
+                    arguments,
+                    @"(^|\s)/I(?=\s*\{)",
+                    "$1/X",
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            }
+
+            startInfo = new ProcessStartInfo(executable)
+            {
+                Arguments = arguments,
+                UseShellExecute = true,
+                WindowStyle = ProcessWindowStyle.Normal
+            };
+            return true;
+        }
 
         private static Version ParseLooseVersion(string? value) =>
             TryParseLooseVersion(value, out Version version) ? version : new Version(0, 0);
@@ -544,7 +724,7 @@ namespace SynToolkit.Services
                     throw;
                 }
 
-                return new WingetInstallResult(false, -1, $"Installation timed out after {timeout.TotalMinutes:0} minutes.");
+                return new WingetInstallResult(false, -1, $"The package operation timed out after {timeout.TotalMinutes:0} minutes.");
             }
 
             string standardOutput = await standardOutputTask;
@@ -608,6 +788,10 @@ namespace SynToolkit.Services
             public string? SilentWithProgress { get; set; }
         }
 
-        private sealed record InstalledDesktopApplication(string DisplayName, string? DisplayVersion);
+        private sealed record InstalledDesktopApplication(
+            string DisplayName,
+            string? DisplayVersion,
+            string? UninstallString,
+            string? QuietUninstallString);
     }
 }

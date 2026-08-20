@@ -398,22 +398,32 @@
                                             <FontIcon FontSize="11" Glyph="&#xE8A7;" />
                                         </StackPanel>
                                     </HyperlinkButton>
-                                    <StackPanel
-                                        Grid.Column="1"
-                                        Orientation="Horizontal"
-                                        Spacing="8"
-                                        Visibility="{Binding CanSelect, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <CheckBox
-                                            VerticalAlignment="Center"
-                                            Content="{Binding QueueSelectionText, Mode=OneWay}"
-                                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                            ToolTipService.ToolTip="Add this app to the multi-app queue" />
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="6">
+                                        <StackPanel
+                                            HorizontalAlignment="Right"
+                                            Orientation="Horizontal"
+                                            Spacing="8"
+                                            Visibility="{Binding CanSelect, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <CheckBox
+                                                VerticalAlignment="Center"
+                                                Content="{Binding QueueSelectionText, Mode=OneWay}"
+                                                IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                ToolTipService.ToolTip="Add this app to the multi-app queue" />
+                                            <Button
+                                                MinWidth="72"
+                                                Click="InstallerPrimaryAction_Click"
+                                                Content="{Binding PrimaryActionText, Mode=OneWay}"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                ToolTipService.ToolTip="Install or update this app now" />
+                                        </StackPanel>
                                         <Button
-                                            MinWidth="72"
-                                            Click="InstallerPrimaryAction_Click"
-                                            Content="{Binding PrimaryActionText, Mode=OneWay}"
-                                            Style="{StaticResource AccentButtonStyle}"
-                                            ToolTipService.ToolTip="Start this app now" />
+                                            HorizontalAlignment="Right"
+                                            MinWidth="86"
+                                            Click="InstallerUninstall_Click"
+                                            Content="{Binding UninstallActionText, Mode=OneWay}"
+                                            IsEnabled="{Binding IsUninstallButtonEnabled, Mode=OneWay}"
+                                            ToolTipService.ToolTip="Uninstall this app"
+                                            Visibility="{Binding CanUninstall, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     </StackPanel>
                                 </Grid>
                             </Grid>

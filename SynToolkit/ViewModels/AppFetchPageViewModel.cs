@@ -123,6 +123,7 @@ namespace SynToolkit.ViewModels
                 new("Opera", "Browser", "Feature-rich browser with workspaces and sidebar tools.", "ms-appx:///assets/Icons/Installers/opera.svg", "https://www.opera.com/download", "Opera.Opera", ["Opera Stable"]),
                 new("Vivaldi", "Browser", "Highly customizable browser for power users.", "ms-appx:///assets/Icons/Installers/vivaldi.svg", "https://vivaldi.com/download/", "Vivaldi.Vivaldi", ["Vivaldi"]),
                 new("Thorium", "Browser", "Performance-focused Chromium browser with extra optimizations.", "ms-appx:///assets/Icons/Installers/thorium.svg", "https://thorium.rocks/", "Alex313031.Thorium", ["Thorium"]),
+                new("Helium", "Browser", "Private, lightweight Chromium browsing without distractions.", "ms-appx:///assets/Icons/Installers/helium.svg", "https://helium.computer/", "ImputNet.Helium", ["Helium"]),
 
                 // Communication
                 new("Discord", "Communication", "Voice, video, and chat for communities.", "ms-appx:///assets/Icons/Installers/discord.svg", "https://discord.com/download", "Discord.Discord", ["Discord"], isEssential: true, silentArgumentsOverride: "-s"),
@@ -397,6 +398,45 @@ namespace SynToolkit.ViewModels
 
             installer.IsSelected = true;
             await InstallInstallersAsync([installer]);
+        }
+
+        public async Task<WingetInstallResult> UninstallSingleAsync(FeaturedInstallerViewModel installer)
+        {
+            ArgumentNullException.ThrowIfNull(installer);
+            if (IsInstallingQueue || !installer.CanUninstall || installer.IsUninstalling)
+            {
+                return new WingetInstallResult(false, -1, "This app cannot be uninstalled while another package operation is running.");
+            }
+
+            installer.IsUninstalling = true;
+            HasError = false;
+            try
+            {
+                WingetInstallResult result = await _wingetInstallerService.UninstallAsync(
+                    installer.PackageIdentifier,
+                    installer.InstalledDisplayNamePrefixes);
+                if (!result.Succeeded)
+                {
+                    ErrorMessage = string.IsNullOrWhiteSpace(result.Output)
+                        ? $"{installer.Name} could not be uninstalled."
+                        : result.Output;
+                    HasError = true;
+                }
+
+                return result;
+            }
+            catch (Exception exception)
+            {
+                App.logger.Error(exception, "[Installers] Unable to uninstall {AppName}.", installer.Name);
+                ErrorMessage = $"{installer.Name} could not be uninstalled: {exception.Message}";
+                HasError = true;
+                return new WingetInstallResult(false, -1, exception.Message);
+            }
+            finally
+            {
+                installer.IsUninstalling = false;
+                await RefreshInstallerStatesAsync();
+            }
         }
 
         private async Task InstallInstallersAsync(IReadOnlyList<FeaturedInstallerViewModel> installers)
