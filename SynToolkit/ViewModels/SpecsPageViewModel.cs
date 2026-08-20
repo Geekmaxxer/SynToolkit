@@ -125,7 +125,7 @@ namespace SynToolkit.ViewModels
                         details.Add(adapter.ConnectionName!);
                     }
 
-                    if (adapter.SpeedBitsPerSecond.HasValue)
+                    if (adapter.IsConnected && adapter.SpeedBitsPerSecond.HasValue)
                     {
                         details.Add(FormatNetworkSpeed(adapter.SpeedBitsPerSecond.Value));
                     }

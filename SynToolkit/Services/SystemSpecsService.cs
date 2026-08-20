@@ -266,9 +266,9 @@ namespace SynToolkit.Services
                             (item["Manufacturer"] as string)?.Trim(),
                             (item["NetConnectionID"] as string)?.Trim(),
                             (item["MACAddress"] as string)?.Trim(),
-                            ReadPositiveUInt64(item["Speed"]),
+                            ReadNetworkAdapterSpeed(item["Speed"]),
                             GetNetworkConnectionStatus(connectionStatus),
-                            connectionStatus is 1 or 2 or 8 or 9));
+                            connectionStatus == 2));
                     }
                 }
             }
@@ -366,6 +366,11 @@ namespace SynToolkit.Services
 
             ulong parsed = Convert.ToUInt64(value);
             return parsed == 0 ? null : parsed;
+        }
+        private static ulong? ReadNetworkAdapterSpeed(object? value)
+        {
+            ulong? speed = ReadPositiveUInt64(value);
+            return speed is null or >= (ulong)long.MaxValue ? null : speed;
         }
         private static MotherboardSpec? GetMotherboard()
         {
