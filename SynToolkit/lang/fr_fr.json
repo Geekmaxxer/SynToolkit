@@ -95,6 +95,8 @@
   "GPUZDescription": "Lance GPU-Z portable (informations graphiques ; cliquez sur Non)",
   "CrystalDiskMark": "Lancer CDM",
   "CrystalDiskMarkDescription": "Lance CrystalDiskMark portable (benchmark de stockage)",
+  "EmptyStandbyList": "Effacer la RAM en attente",
+  "EmptyStandbyListDescription": "Utilisez EmptyStandbyList pour libérer la RAM en cache/en attente allouée par Windows",
   "FileExplorerSubMenu": "Personnalisation de l'Explorateur de fichiers",
   "FileExplorerSubMenuDescription": "Tout ce qui concerne la personnalisation de l'Explorateur de fichiers Windows",
   "DriverConfigurationSubMenu": "Configuration des pilotes",

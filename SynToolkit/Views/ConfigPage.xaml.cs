@@ -61,6 +61,8 @@ public sealed partial class ConfigPage : Page
 
     private async void ConfigPage_Loaded(object sender, RoutedEventArgs e)
     {
+        App.ConfigurationActionSucceeded += ConfigurationActionSucceeded;
+
         if (_lifetimeCancellation.IsCancellationRequested)
         {
             _lifetimeCancellation.Dispose();
@@ -91,9 +93,23 @@ public sealed partial class ConfigPage : Page
 
     private void ConfigPage_Unloaded(object sender, RoutedEventArgs e)
     {
+        App.ConfigurationActionSucceeded -= ConfigurationActionSucceeded;
         _lifetimeCancellation.Cancel();
         _highlightTimer?.Stop();
         _highlightTimer = null;
+    }
+
+    private void ConfigurationActionSucceeded(string message)
+    {
+        if (!IsLoaded)
+        {
+            return;
+        }
+
+        OperationInfoBar.Title = "Done";
+        OperationInfoBar.Message = message;
+        OperationInfoBar.Severity = InfoBarSeverity.Success;
+        OperationInfoBar.IsOpen = true;
     }
 
     private void ScrollToAndHighlightItem(string itemKey)

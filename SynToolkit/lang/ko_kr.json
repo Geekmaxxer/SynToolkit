@@ -95,6 +95,8 @@
   "GPUZDescription": "GPU-Z 포터블 실행(그래픽 정보; '아니요' 클릭)",
   "CrystalDiskMark": "CDM 실행",
   "CrystalDiskMarkDescription": "CrystalDiskMark 포터블 실행(저장소 벤치마크)",
+  "EmptyStandbyList": "대기 RAM 지우기",
+  "EmptyStandbyListDescription": "EmptyStandbyList을 사용하여 Windows에서 할당한 캐시/대기 RAM을 해제합니다",
   "FileExplorerSubMenu": "파일 탐색기 사용자 지정",
   "FileExplorerSubMenuDescription": "Windows 파일 탐색기 사용자 지정과 관련된 모든 항목",
   "DriverConfigurationSubMenu": "드라이버 구성",

@@ -95,6 +95,8 @@
   "GPUZDescription": "Starta portabel GPU-Z (grafikinformation; klicka på Nej)",
   "CrystalDiskMark": "Starta CDM",
   "CrystalDiskMarkDescription": "Starta portabel CrystalDiskMark (lagringsbenchmark)",
+  "EmptyStandbyList": "Rensa standby-RAM",
+  "EmptyStandbyListDescription": "Använd EmptyStandbyList för att frigöra cachad/standby-RAM som allokerats av Windows",
   "FileExplorerSubMenu": "Anpassning av Utforskaren",
   "FileExplorerSubMenuDescription": "Allt som rör anpassning av Utforskaren i Windows",
   "DriverConfigurationSubMenu": "Drivrutinskonfiguration",

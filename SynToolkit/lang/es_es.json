@@ -95,6 +95,8 @@
   "GPUZDescription": "Inicia GPU-Z portable (información gráfica; haz clic en No)",
   "CrystalDiskMark": "Iniciar CDM",
   "CrystalDiskMarkDescription": "Inicia CrystalDiskMark portable (prueba de rendimiento de almacenamiento)",
+  "EmptyStandbyList": "Borrar RAM en espera",
+  "EmptyStandbyListDescription": "Usa EmptyStandbyList para liberar la RAM en caché o en espera asignada por Windows",
   "FileExplorerSubMenu": "Personalización del Explorador de archivos",
   "FileExplorerSubMenuDescription": "Todo lo relacionado con la personalización del Explorador de archivos de Windows",
   "DriverConfigurationSubMenu": "Configuración de controladores",

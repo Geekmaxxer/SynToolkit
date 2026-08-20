@@ -95,6 +95,8 @@
   "GPUZDescription": "启动便携版 GPU-Z（显卡信息；请点击“否”）",
   "CrystalDiskMark": "启动 CDM",
   "CrystalDiskMarkDescription": "启动便携版 CrystalDiskMark（存储基准测试）",
+  "EmptyStandbyList": "清除待机RAM",
+  "EmptyStandbyListDescription": "使用 EmptyStandbyList 释放 Windows 分配的缓存/待机 RAM",
   "FileExplorerSubMenu": "文件资源管理器自定义",
   "FileExplorerSubMenuDescription": "与自定义 Windows 文件资源管理器相关的一切",
   "DriverConfigurationSubMenu": "驱动程序配置",

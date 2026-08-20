@@ -95,6 +95,8 @@
   "GPUZDescription": "Запустить портативную версию GPU-Z (информация о видеокарте; нажмите «Нет»)",
   "CrystalDiskMark": "Запустить CDM",
   "CrystalDiskMarkDescription": "Запустить портативную версию CrystalDiskMark (тест накопителя)",
+  "EmptyStandbyList": "Очистить резервную RAM",
+  "EmptyStandbyListDescription": "Используйте EmptyStandbyList для освобождения кэшированной/резервной RAM, выделенной Windows",
   "FileExplorerSubMenu": "Настройка проводника",
   "FileExplorerSubMenuDescription": "Всё, что связано с настройкой проводника Windows",
   "DriverConfigurationSubMenu": "Настройка драйверов",

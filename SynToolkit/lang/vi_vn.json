@@ -95,6 +95,8 @@
   "GPUZDescription": "Khởi chạy GPU-Z portable (thông tin đồ họa; Nhấn Không/No)",
   "CrystalDiskMark": "Khởi chạy CDM",
   "CrystalDiskMarkDescription": "Khởi chạy CrystalDiskMark portable (benchmark ổ đĩa)",
+  "EmptyStandbyList": "Xóa RAM chờ (Standby)",
+  "EmptyStandbyListDescription": "Sử dụng EmptyStandbyList để giải phóng RAM bộ nhớ đệm/chờ do Windows phân bổ",
   "FileExplorerSubMenu": "Tùy chỉnh File Explorer",
   "FileExplorerSubMenuDescription": "Mọi thứ liên quan đến tùy chỉnh File Explorer của Windows",
   "DriverConfigurationSubMenu": "Cấu hình driver",

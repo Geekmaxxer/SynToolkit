@@ -95,6 +95,8 @@
   "GPUZDescription": "GPU-Z Portableを起動します（グラフィック情報。「いいえ」をクリック）",
   "CrystalDiskMark": "CDMを起動",
   "CrystalDiskMarkDescription": "CrystalDiskMark Portableを起動します（ストレージのベンチマーク）",
+  "EmptyStandbyList": "スタンバイRAMをクリア",
+  "EmptyStandbyListDescription": "EmptyStandbyListを使用して、Windowsによって割り当てられたキャッシュ/スタンバイRAMを解放します",
   "FileExplorerSubMenu": "エクスプローラーのカスタマイズ",
   "FileExplorerSubMenuDescription": "Windowsエクスプローラーのカスタマイズに関するすべての設定",
   "DriverConfigurationSubMenu": "ドライバー構成",
