@@ -100,9 +100,9 @@ namespace SynToolkit.Views
             return $"{sizeGiB:N2} GB";
         }
 
-        private void LaunchWinDirStatButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        private void LaunchWizTreeButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
-            var launchCommand = new LaunchPortableToolCommand("WinDirStat.exe");
+            var launchCommand = new LaunchPortableToolCommand("WizTree64.exe");
             if (launchCommand.CanExecute(null))
             {
                 launchCommand.Execute(null);

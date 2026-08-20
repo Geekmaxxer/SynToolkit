@@ -204,16 +204,16 @@
 
             <controls:SettingsCard
                 Margin="0,0,36,2"
-                Description="Launch WinDirStat portable (disk usage information)"
-                Header="WinDirStat">
+                Description="Launch WizTree portable (detailed disk usage information)"
+                Header="WizTree">
                 <controls:SettingsCard.HeaderIcon>
                     <ImageIcon Source="ms-appx:///assets/Icons/DiskCleanup.png" />
                 </controls:SettingsCard.HeaderIcon>
 
                 <Button
-                    x:Name="LaunchWinDirStatButton"
-                    Click="LaunchWinDirStatButton_Click"
-                    Content="Launch WinDirStat"
+                    x:Name="LaunchWizTreeButton"
+                    Click="LaunchWizTreeButton_Click"
+                    Content="Launch WizTree"
                     Style="{StaticResource AccentButtonStyle}" />
             </controls:SettingsCard>
 
