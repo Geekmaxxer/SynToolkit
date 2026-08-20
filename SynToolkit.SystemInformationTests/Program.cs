@@ -50,6 +50,8 @@ internal static class Program
         Run("Async commands prevent concurrent execution", AsyncCommandPreventsConcurrentExecution);
         Run("Async command failures are contained and logged", AsyncCommandFailureIsContained);
         Run("Batch file paths with spaces execute correctly", BatchFilePathsWithSpacesExecuteCorrectly);
+        Run("Display-name command safely carries user input", DisplayNameCommandSafelyCarriesUserInput);
+        Run("Display-name input is validated", DisplayNameInputIsValidated);
         Run("Radeon bulk selections notify the UI", RadeonBulkSelectionsNotifyTheUi);
         Run("Legacy profile registration match is exact", LegacyRegistrationMatchIsExact);
         Run("Valid legacy profile JSON is accepted", ValidLegacyProfileIsAccepted);
@@ -68,6 +70,36 @@ internal static class Program
             @"SOFTWARE\AME\Playbooks\Applied",
             WindowsAmePlaybookMetadataSource.AppliedRegistryPath,
             "The detector must follow AME Wizard's official applied-Playbook hierarchy.");
+
+    private static void DisplayNameCommandSafelyCarriesUserInput()
+    {
+        const string sid = "S-1-5-21-1-2-3-1001";
+        const string input = "  O'Brien; $(throw 'boom') — テスト  ";
+        const string normalized = "O'Brien; $(throw 'boom') — テスト";
+
+        string encodedCommand = LocalUserDisplayNameCommand.CreateEncodedPowerShellCommand(sid, input);
+        string script = Encoding.Unicode.GetString(Convert.FromBase64String(encodedCommand));
+        string encodedDisplayName = Convert.ToBase64String(Encoding.Unicode.GetBytes(normalized));
+
+        True(script.Contains("Set-LocalUser", StringComparison.Ordinal), "The command must use Set-LocalUser.");
+        True(script.Contains($"-SID '{sid}'", StringComparison.Ordinal), "The command must target the current SID.");
+        True(script.Contains(encodedDisplayName, StringComparison.Ordinal), "The command must preserve the Unicode display name as data.");
+        True(!script.Contains(normalized, StringComparison.Ordinal), "The display name must never be interpolated as PowerShell syntax.");
+    }
+
+    private static void DisplayNameInputIsValidated()
+    {
+        Equal("Jane Doe", LocalUserDisplayNameCommand.Normalize("  Jane Doe  "), "Outer whitespace should be trimmed.");
+        Throws<ArgumentException>(
+            () => LocalUserDisplayNameCommand.Normalize("   "),
+            "A blank display name must be rejected before Windows is called.");
+        Throws<ArgumentException>(
+            () => LocalUserDisplayNameCommand.Normalize("Jane\nDoe"),
+            "Control characters must not enter the PowerShell command.");
+        Throws<ArgumentException>(
+            () => LocalUserDisplayNameCommand.Normalize(new string('x', LocalUserDisplayNameCommand.MaximumDisplayNameLength + 1)),
+            "An overlong display name must be rejected before Windows is called.");
+    }
 
     private static void BiosVersionIsNotCustomWindows()
     {
