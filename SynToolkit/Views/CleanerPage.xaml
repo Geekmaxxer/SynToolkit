@@ -207,7 +207,7 @@
                 Description="Launch WinDirStat portable (disk usage information)"
                 Header="WinDirStat">
                 <controls:SettingsCard.HeaderIcon>
-                    <ImageIcon Source="ms-appx:///assets/Icons/SSD.png" />
+                    <ImageIcon Source="ms-appx:///assets/Icons/DiskCleanup.png" />
                 </controls:SettingsCard.HeaderIcon>
 
                 <Button
