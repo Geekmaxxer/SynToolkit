@@ -37,19 +37,19 @@ namespace SynToolkit.ViewModels
         public Uri? IconUri => Uri.TryCreate(Package.IconUrl, UriKind.Absolute, out Uri? uri) ? uri : null;
 
         [ObservableProperty]
-        private string _buttonText = "Install";
+        public partial string ButtonText { get; set; } = "Install";
 
         [ObservableProperty]
-        private bool _isBusy;
+        public partial bool IsBusy { get; set; }
 
         [ObservableProperty]
-        private bool _isButtonEnabled = true;
+        public partial bool IsButtonEnabled { get; set; } = true;
 
         [ObservableProperty]
-        private double _progress;
+        public partial double Progress { get; set; }
 
         [ObservableProperty]
-        private bool _isCancelable;
+        public partial bool IsCancelable { get; set; }
 
         private CancellationTokenSource? _cancellationTokenSource;
 

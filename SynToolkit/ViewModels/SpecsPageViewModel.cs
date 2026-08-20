@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,9 +14,11 @@ namespace SynToolkit.ViewModels
 {
     public sealed record GpuSpecDisplay(string Name, string VramText, string DriverVersionText, string IconPath);
 
-    public sealed record MemoryModuleDisplay(string ManufacturerText, string CapacityText, string SpeedText);
+    public sealed record MemoryModuleDisplay(string ManufacturerText, string CapacityText);
 
     public sealed record StorageDriveDisplay(string Model, string SizeText, string TypeText);
+
+    public sealed record NetworkAdapterDisplay(string Name, string ManufacturerText, string StatusText, string DetailsText);
 
     /// <summary>
     /// Drives the Specs tab: a read-only snapshot of CPU, GPU, memory, storage, motherboard,
@@ -26,35 +29,44 @@ namespace SynToolkit.ViewModels
         private readonly ISystemInformationService _systemInformationService;
 
         [ObservableProperty]
-        private bool _isLoading = true;
+        public partial bool IsLoading { get; set; } = true;
 
         [ObservableProperty]
-        private bool _hasError;
+        public partial bool HasError { get; set; }
 
         [ObservableProperty]
-        private string _errorMessage = string.Empty;
+        public partial string ErrorMessage { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _cpuName = string.Empty;
+        public partial string CpuName { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _cpuDetailsText = string.Empty;
+        public partial string CpuDetailsText { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _motherboardText = string.Empty;
+        public partial string MotherboardText { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _totalMemoryText = string.Empty;
+        public partial string TotalMemoryText { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _windowsText = string.Empty;
+        public partial string WindowsText { get; set; } = string.Empty;
+
+        private string _networkSummaryText = string.Empty;
+
+        public string NetworkSummaryText
+        {
+            get => _networkSummaryText;
+            private set => SetProperty(ref _networkSummaryText, value);
+        }
 
         [ObservableProperty]
-        private string _graphicsHeaderIcon = GpuDetectionService.DefaultGpuIconPath;
+        public partial string GraphicsHeaderIcon { get; set; } = GpuDetectionService.DefaultGpuIconPath;
 
         public ObservableCollection<GpuSpecDisplay> Gpus { get; } = new();
         public ObservableCollection<MemoryModuleDisplay> MemoryModules { get; } = new();
         public ObservableCollection<StorageDriveDisplay> StorageDrives { get; } = new();
+        public ObservableCollection<NetworkAdapterDisplay> NetworkAdapters { get; } = new();
 
         public SpecsPageViewModel(ISystemInformationService systemInformationService)
         {
@@ -98,10 +110,42 @@ namespace SynToolkit.ViewModels
                 {
                     MemoryModules.Add(new MemoryModuleDisplay(
                         string.IsNullOrWhiteSpace(module.Manufacturer) ? "Unknown manufacturer" : module.Manufacturer!,
-                        FormatBytes(module.CapacityBytes),
-                        module.SpeedMHz.HasValue ? $"{module.SpeedMHz} MHz" : "Unknown speed"));
+                        module.SpeedMHz.HasValue
+                            ? $"{FormatBytes(module.CapacityBytes)} · {module.SpeedMHz.Value:N0} MHz"
+                            : FormatBytes(module.CapacityBytes)));
                 }
 
+
+                NetworkAdapters.Clear();
+                foreach (NetworkAdapterSpec adapter in snapshot.NetworkAdapters)
+                {
+                    List<string> details = new();
+                    if (!string.IsNullOrWhiteSpace(adapter.ConnectionName))
+                    {
+                        details.Add(adapter.ConnectionName!);
+                    }
+
+                    if (adapter.IsConnected && adapter.SpeedBitsPerSecond.HasValue)
+                    {
+                        details.Add(FormatNetworkSpeed(adapter.SpeedBitsPerSecond.Value));
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(adapter.MacAddress))
+                    {
+                        details.Add($"MAC {adapter.MacAddress}");
+                    }
+
+                    NetworkAdapters.Add(new NetworkAdapterDisplay(
+                        adapter.Name,
+                        string.IsNullOrWhiteSpace(adapter.Manufacturer) ? "Unknown manufacturer" : adapter.Manufacturer!,
+                        adapter.ConnectionStatus,
+                        details.Count == 0 ? "Physical network adapter" : string.Join(" · ", details)));
+                }
+
+                int activeAdapterCount = snapshot.NetworkAdapters.Count(adapter => adapter.IsConnected);
+                NetworkSummaryText = snapshot.NetworkAdapters.Count == 0
+                    ? "No physical network adapters detected"
+                    : $"{snapshot.NetworkAdapters.Count} adapter(s), {activeAdapterCount} active";
                 StorageDrives.Clear();
                 foreach (StorageDriveSpec drive in snapshot.StorageDrives)
                 {
@@ -121,6 +165,15 @@ namespace SynToolkit.ViewModels
             }
         }
 
+
+        private static string FormatNetworkSpeed(ulong bitsPerSecond)
+        {
+            const double gigabit = 1_000_000_000d;
+            const double megabit = 1_000_000d;
+            return bitsPerSecond >= (ulong)gigabit
+                ? (bitsPerSecond / gigabit).ToString("0.##", CultureInfo.InvariantCulture) + " Gbps"
+                : (bitsPerSecond / megabit).ToString("0.##", CultureInfo.InvariantCulture) + " Mbps";
+        }
         private static string FormatBytes(ulong bytes)
         {
             if (bytes == 0)

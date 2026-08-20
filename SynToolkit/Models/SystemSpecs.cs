@@ -10,6 +10,15 @@ namespace SynToolkit.Models
 
     public sealed record StorageDriveSpec(string Model, ulong SizeBytes, string? MediaType, string? InterfaceType);
 
+    public sealed record NetworkAdapterSpec(
+        string Name,
+        string? Manufacturer,
+        string? ConnectionName,
+        string? MacAddress,
+        ulong? SpeedBitsPerSecond,
+        string ConnectionStatus,
+        bool IsConnected);
+
     public sealed record MotherboardSpec(string? Manufacturer, string? Product);
 
     public sealed record SystemSpecsSnapshot(
@@ -18,6 +27,7 @@ namespace SynToolkit.Models
         ulong TotalMemoryBytes,
         System.Collections.Generic.IReadOnlyList<MemoryModuleSpec> MemoryModules,
         System.Collections.Generic.IReadOnlyList<StorageDriveSpec> StorageDrives,
+        System.Collections.Generic.IReadOnlyList<NetworkAdapterSpec> NetworkAdapters,
         MotherboardSpec? Motherboard,
         string WindowsProductName,
         string WindowsDisplayVersion,

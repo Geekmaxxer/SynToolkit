@@ -95,6 +95,8 @@
   "GPUZDescription": "Launch GPU-Z portable (graphics information; Click No)",
   "CrystalDiskMark": "Launch CDM",
   "CrystalDiskMarkDescription": "Launch CrystalDiskMark portable (storage benchmark)",
+  "EmptyStandbyList": "Clear Standby RAM",
+  "EmptyStandbyListDescription": "Use EmptyStandbyList to free cached/standby RAM allocated by Windows",
   "FileExplorerSubMenu": "File Explorer customization",
   "FileExplorerSubMenuDescription": "Everything related to customizing the Windows File Explorer",
   "DriverConfigurationSubMenu": "Driver configuration",

@@ -76,21 +76,21 @@ namespace SynToolkit.ViewModels
         public bool CanRefreshInstallerStates => !IsRefreshingInstallerStates && !IsInstallingQueue;
 
         [ObservableProperty]
-        private string _selectedCategory = "All";
+        public partial string SelectedCategory { get; set; } = "All";
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CanInstallSelected))]
         [NotifyPropertyChangedFor(nameof(CanDismissQueue))]
         [NotifyPropertyChangedFor(nameof(CanRetryFailed))]
         [NotifyPropertyChangedFor(nameof(CanRefreshInstallerStates))]
-        private bool _isInstallingQueue;
+        public partial bool IsInstallingQueue { get; set; }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CanDismissQueue))]
-        private bool _isQueueVisible;
+        public partial bool IsQueueVisible { get; set; }
 
         [ObservableProperty]
-        private string _queueSummary = string.Empty;
+        public partial string QueueSummary { get; set; } = string.Empty;
 
         private bool _isRefreshingInstallerStates;
         private string _installerStatusSummary = "Checking installed apps...";
@@ -190,13 +190,13 @@ namespace SynToolkit.ViewModels
             };
 
         [ObservableProperty]
-        private bool _isLoading;
+        public partial bool IsLoading { get; set; }
 
         [ObservableProperty]
-        private bool _hasError;
+        public partial bool HasError { get; set; }
 
         [ObservableProperty]
-        private string _errorMessage = string.Empty;
+        public partial string ErrorMessage { get; set; } = string.Empty;
 
         /// <summary>
         /// True when SynToolkit's Xbox-services debloat tweak is currently applied,
@@ -204,10 +204,10 @@ namespace SynToolkit.ViewModels
         /// Drives visibility of the disclosure banner and its revert button.
         /// </summary>
         [ObservableProperty]
-        private bool _isXboxServicesTweakApplied;
+        public partial bool IsXboxServicesTweakApplied { get; set; }
 
         [ObservableProperty]
-        private bool _isRevertingXboxServicesTweak;
+        public partial bool IsRevertingXboxServicesTweak { get; set; }
 
         public bool IsRevertXboxServicesButtonEnabled => !IsRevertingXboxServicesTweak;
 

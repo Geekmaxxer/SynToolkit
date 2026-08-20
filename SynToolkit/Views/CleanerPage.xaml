@@ -202,6 +202,21 @@
                 </controls:SettingsCard.Header>
             </controls:SettingsCard>
 
+            <controls:SettingsCard
+                Margin="0,0,36,2"
+                Description="Launch WizTree portable (detailed disk usage information)"
+                Header="WizTree">
+                <controls:SettingsCard.HeaderIcon>
+                    <ImageIcon Source="ms-appx:///assets/Icons/DiskCleanup.png" />
+                </controls:SettingsCard.HeaderIcon>
+
+                <Button
+                    x:Name="LaunchWizTreeButton"
+                    Click="LaunchWizTreeButton_Click"
+                    Content="Launch WizTree"
+                    Style="{StaticResource AccentButtonStyle}" />
+            </controls:SettingsCard>
+
         </StackPanel>
     </ScrollViewer>
 </Page>

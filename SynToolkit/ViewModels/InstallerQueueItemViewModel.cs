@@ -35,13 +35,13 @@ namespace SynToolkit.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsInstalling))]
         [NotifyPropertyChangedFor(nameof(StateGlyph))]
-        private InstallerQueueState _state;
+        public partial InstallerQueueState State { get; set; }
 
         [ObservableProperty]
-        private string _detail = "Waiting";
+        public partial string Detail { get; set; } = "Waiting";
 
         [ObservableProperty]
-        private double _progress;
+        public partial double Progress { get; set; }
 
         public bool IsInstalling => State == InstallerQueueState.Installing;
 

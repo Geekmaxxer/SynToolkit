@@ -34,6 +34,7 @@ namespace SynToolkit
         public static XamlRoot XamlRoot { get; set; }
         public static string CurrentCategory { get; set; }
         public static string SearchHighlightItemKey { get; set; }
+        public static event Action<string> ConfigurationActionSucceeded;
         internal const string DefaultLanguageKey = "en_us";
         private static Dictionary<string, string> StringList = new Dictionary<string, string>();
         private static Dictionary<string, string> EnglishStringList = new Dictionary<string, string>();
@@ -628,6 +629,20 @@ namespace SynToolkit
         {
             var mainWindow = m_window as MainWindow;
             mainWindow.ContentDialogContoller(type);
+        }
+
+        /// <summary>
+        /// Notifies the active configuration page that a one-off action completed.
+        /// </summary>
+        /// <param name="message">The localized confirmation message to display.</param>
+        public static void ReportConfigurationActionSuccess(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return;
+            }
+
+            ConfigurationActionSucceeded?.Invoke(message);
         }
 
         public static void LoadLangString()

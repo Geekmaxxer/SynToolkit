@@ -583,7 +583,7 @@ internal static class WindowsWallpaperService
     {
         try
         {
-            string directory = Path.GetDirectoryName(PreviousWallpaperStatePath);
+            string? directory = Path.GetDirectoryName(PreviousWallpaperStatePath);
             if (!string.IsNullOrEmpty(directory))
                 Directory.CreateDirectory(directory);
 
