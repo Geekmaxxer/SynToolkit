@@ -58,11 +58,64 @@ internal static class Program
         Run("Malformed legacy profiles are rejected", MalformedLegacyProfilesAreRejected);
         Run("Oversized legacy profiles are rejected", OversizedLegacyProfileIsRejected);
         Run("NVIDIA profile export preserves imported settings", NvidiaProfileExportRoundTrips);
+        Run("Fragmented onboard memory chips are labeled", FragmentedOnboardMemoryChipsAreLabeled);
+        Run("Identified desktop DIMMs stay separate", IdentifiedDesktopDimmsStaySeparate);
+        Run("CPU-Z memory timings are parsed", CpuZMemoryTimingsAreParsed);
 
         Console.WriteLine(_failures == 0
             ? "All SynToolkit service tests passed."
             : $"{_failures} SynToolkit service test(s) failed.");
         return _failures == 0 ? 0 : 1;
+    }
+
+    private static void FragmentedOnboardMemoryChipsAreLabeled()
+    {
+        MemoryModuleSpec[] firmwareEntries = Enumerable.Range(0, 8)
+            .Select(_ => new MemoryModuleSpec(null, 2UL * 1024 * 1024 * 1024, 4800))
+            .ToArray();
+
+        IReadOnlyList<MemoryModuleSpec> normalized = MemoryModuleInventoryNormalizer.Normalize(
+            firmwareEntries,
+            16UL * 1024 * 1024 * 1024 - 320UL * 1024 * 1024);
+
+        Equal(8, normalized.Count, "Individual onboard chips should remain separate rows.");
+        True(
+            normalized.All(module => module.Manufacturer == "Onboard Memory Chip"),
+            "Each unidentified onboard chip should receive the onboard-memory label.");
+        True(
+            normalized.All(module => module.CapacityBytes == 2UL * 1024 * 1024 * 1024 && module.SpeedMHz == 4800),
+            "Each onboard chip must retain its own capacity and reported speed.");
+    }
+
+    private static void IdentifiedDesktopDimmsStaySeparate()
+    {
+        MemoryModuleSpec[] desktopDimms =
+        {
+            new("Gold Key Technology Co Ltd", 8UL * 1024 * 1024 * 1024, 3200, IsMemoryStick: true),
+            new("Gold Key Technology Co Ltd", 8UL * 1024 * 1024 * 1024, 3200, IsMemoryStick: true)
+        };
+
+        IReadOnlyList<MemoryModuleSpec> normalized = MemoryModuleInventoryNormalizer.Normalize(
+            desktopDimms,
+            16UL * 1024 * 1024 * 1024);
+
+        Equal(2, normalized.Count, "Normal identified DIMMs must remain separate rows.");
+        Equal("Slot 1", normalized[0].SlotLabel, "The first stick must receive Slot 1.");
+        Equal("Slot 2", normalized[1].SlotLabel, "The second stick must receive Slot 2.");
+    }
+
+    private static void CpuZMemoryTimingsAreParsed()
+    {
+        const string report = "Memory Type          DDR5\r\n" +
+                              "CAS# latency (CL)   40.0\r\n" +
+                              "RAS# to CAS# delay (tRCD) 40\r\n" +
+                              "RAS# Precharge (tRP) 40\r\n" +
+                              "Cycle Time (tRAS)   77\r\n";
+
+        CpuZMemoryTimings? timings = CpuZMemoryTimingParser.TryParse(report);
+
+        Equal("DDR5", timings?.MemoryType, "CPU-Z's memory type should be retained.");
+        Equal("CL40 40-40-40-77", timings?.TimingText, "CPU-Z's live primary timings should be formatted consistently.");
     }
 
     private static void OfficialRegistryPath() =>

@@ -50,6 +50,9 @@ namespace SynToolkit.ViewModels
         public partial string TotalMemoryText { get; set; } = string.Empty;
 
         [ObservableProperty]
+        public partial string MemoryDescriptionText { get; set; } = string.Empty;
+
+        [ObservableProperty]
         public partial string WindowsText { get; set; } = string.Empty;
 
         private string _networkSummaryText = string.Empty;
@@ -91,6 +94,7 @@ namespace SynToolkit.ViewModels
                     : string.Join(" ", new[] { snapshot.Motherboard.Manufacturer, snapshot.Motherboard.Product }.Where(part => !string.IsNullOrWhiteSpace(part)));
 
                 TotalMemoryText = FormatBytes(snapshot.TotalMemoryBytes);
+                MemoryDescriptionText = TotalMemoryText;
                 WindowsText = $"{snapshot.WindowsProductName} ({snapshot.WindowsDisplayVersion}, Build {snapshot.WindowsBuild}, {snapshot.Architecture})";
 
                 Gpus.Clear();
@@ -105,16 +109,7 @@ namespace SynToolkit.ViewModels
 
                 GraphicsHeaderIcon = GpuDetectionService.GetPrimaryIconPath(snapshot.Gpus);
 
-                MemoryModules.Clear();
-                foreach (MemoryModuleSpec module in snapshot.MemoryModules)
-                {
-                    MemoryModules.Add(new MemoryModuleDisplay(
-                        string.IsNullOrWhiteSpace(module.Manufacturer) ? "Unknown manufacturer" : module.Manufacturer!,
-                        module.SpeedMHz.HasValue
-                            ? $"{FormatBytes(module.CapacityBytes)} · {module.SpeedMHz.Value:N0} MHz"
-                            : FormatBytes(module.CapacityBytes)));
-                }
-
+                DisplayMemoryModules(snapshot.MemoryModules);
 
                 NetworkAdapters.Clear();
                 foreach (NetworkAdapterSpec adapter in snapshot.NetworkAdapters)
@@ -152,6 +147,9 @@ namespace SynToolkit.ViewModels
                     string typeText = string.Join(" / ", new[] { drive.MediaType, drive.InterfaceType }.Where(part => !string.IsNullOrWhiteSpace(part)));
                     StorageDrives.Add(new StorageDriveDisplay(drive.Model, FormatBytes(drive.SizeBytes), typeText));
                 }
+
+                MemoryDescriptionText = $"{TotalMemoryText} · Loading timing details...";
+                _ = LoadMemoryTimingDetailsAsync(snapshot.MemoryModules);
             }
             catch (Exception exception)
             {
@@ -166,6 +164,49 @@ namespace SynToolkit.ViewModels
         }
 
 
+        private async Task LoadMemoryTimingDetailsAsync(IReadOnlyList<MemoryModuleSpec> modules)
+        {
+            try
+            {
+                IReadOnlyList<MemoryModuleSpec> modulesWithTimings = await Task.Run(
+                    () => SystemSpecsService.AddCurrentMemoryTimingDetails(modules));
+                DisplayMemoryModules(modulesWithTimings);
+            }
+            catch (Exception exception)
+            {
+                App.logger.Debug(exception, "[Specs] CPU-Z memory timing report was unavailable.");
+            }
+            finally
+            {
+                MemoryDescriptionText = TotalMemoryText;
+            }
+        }
+
+        private void DisplayMemoryModules(IReadOnlyList<MemoryModuleSpec> modules)
+        {
+            MemoryModules.Clear();
+            foreach (MemoryModuleSpec module in modules)
+            {
+                string manufacturer = string.IsNullOrWhiteSpace(module.Manufacturer) ? "Unknown manufacturer" : module.Manufacturer!;
+                string header = string.IsNullOrWhiteSpace(module.SlotLabel)
+                    ? manufacturer
+                    : $"{module.SlotLabel} · {manufacturer}";
+                List<string> details = new() { FormatBytes(module.CapacityBytes) };
+                if (!string.IsNullOrWhiteSpace(module.MemoryType))
+                {
+                    details.Add(module.MemoryType!);
+                }
+                if (module.SpeedMHz.HasValue)
+                {
+                    details.Add($"{module.SpeedMHz.Value:N0} MT/s");
+                }
+                if (!string.IsNullOrWhiteSpace(module.TimingText))
+                {
+                    details.Add(module.TimingText!);
+                }
+                MemoryModules.Add(new MemoryModuleDisplay(header, string.Join(" · ", details)));
+            }
+        }
         private static string FormatNetworkSpeed(ulong bitsPerSecond)
         {
             const double gigabit = 1_000_000_000d;

@@ -25,11 +25,13 @@ namespace SynToolkit.Services
         {
             SystemInformationSnapshot windowsInfo = systemInformationService.Detect();
 
+            ulong totalMemoryBytes = GetTotalMemoryBytes();
+
             return new SystemSpecsSnapshot(
                 GetCpu(),
                 GetGpus(),
-                GetTotalMemoryBytes(),
-                GetMemoryModules(),
+                totalMemoryBytes,
+                GetMemoryModules(totalMemoryBytes),
                 GetStorageDrives(),
                 GetNetworkAdapters(),
                 GetMotherboard(),
@@ -192,12 +194,12 @@ namespace SynToolkit.Services
             return 0;
         }
 
-        private static IReadOnlyList<MemoryModuleSpec> GetMemoryModules()
+        private static IReadOnlyList<MemoryModuleSpec> GetMemoryModules(ulong totalMemoryBytes)
         {
             List<MemoryModuleSpec> modules = new();
             try
             {
-                using ManagementObjectSearcher searcher = new("SELECT Manufacturer, Capacity, Speed, ConfiguredClockSpeed FROM Win32_PhysicalMemory");
+                using ManagementObjectSearcher searcher = new("SELECT Manufacturer, Capacity, Speed, ConfiguredClockSpeed, SMBIOSMemoryType, FormFactor FROM Win32_PhysicalMemory");
                 foreach (ManagementBaseObject item in searcher.Get())
                 {
                     using (item)
@@ -206,7 +208,16 @@ namespace SynToolkit.Services
                         ulong capacity = Convert.ToUInt64(item["Capacity"] ?? 0UL);
                         uint? configuredClockSpeed = ReadPositiveUInt32(item["ConfiguredClockSpeed"]);
                         uint? reportedSpeed = ReadPositiveUInt32(item["Speed"]);
-                        modules.Add(new MemoryModuleSpec(manufacturer, capacity, configuredClockSpeed ?? reportedSpeed));
+                        uint? smbiosMemoryType = ReadUInt32(item["SMBIOSMemoryType"]);
+                        ushort? formFactor = ReadUInt16(item["FormFactor"]);
+                        modules.Add(new MemoryModuleSpec(
+                            manufacturer,
+                            capacity,
+                            configuredClockSpeed ?? reportedSpeed,
+                            GetMemoryTechnology(smbiosMemoryType),
+                            null,
+                            null,
+                            IsMemoryStick(formFactor)));
                     }
                 }
             }
@@ -215,7 +226,25 @@ namespace SynToolkit.Services
                 App.logger.Warn(exception, "[Specs] Unable to read memory module information via WMI.");
             }
 
-            return modules;
+            return MemoryModuleInventoryNormalizer.Normalize(modules, totalMemoryBytes);
+        }
+
+        /// <summary>
+        /// Adds optional live timing data after the WMI snapshot has already been shown.
+        /// CPU-Z can take several seconds to generate its report, so it must not delay the
+        /// rest of the Specs tab.
+        /// </summary>
+        public static IReadOnlyList<MemoryModuleSpec> AddCurrentMemoryTimingDetails(
+            IReadOnlyList<MemoryModuleSpec> modules)
+        {
+            CpuZMemoryTimings? cpuZTimings = CpuZMemoryReportService.GetCurrentTimings();
+            return modules
+                .Select(module => module with
+                {
+                    MemoryType = module.MemoryType ?? cpuZTimings?.MemoryType,
+                    TimingText = cpuZTimings?.TimingText
+                })
+                .ToList();
         }
 
         private static IReadOnlyList<StorageDriveSpec> GetStorageDrives()
@@ -340,6 +369,20 @@ namespace SynToolkit.Services
             _ => "Inactive"
         };
 
+        private static string? GetMemoryTechnology(uint? smbiosMemoryType) => smbiosMemoryType switch
+        {
+            18 => "DDR1",
+            19 => "DDR2",
+            20 => "DDR2 FB-DIMM",
+            24 => "DDR3",
+            26 => "DDR4",
+            34 => "DDR5",
+            35 => "LPDDR5",
+            36 => "LPDDR5X",
+            _ => null // CPU-Z provides a fallback for future values, including DDR6.
+        };
+
+        private static bool IsMemoryStick(ushort? formFactor) => formFactor is 7 or 8 or 11 or 12 or 13 or 15;
         private static uint? ReadPositiveUInt32(object? value)
         {
             if (value is null)
