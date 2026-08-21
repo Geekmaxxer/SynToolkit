@@ -80,7 +80,6 @@ namespace SynToolkit.Services
                         string name = item["Name"] as string ?? "Unknown GPU";
                         string pnpDeviceId = item["PNPDeviceID"] as string ?? string.Empty;
                         string? driverVersion = item["DriverVersion"] as string;
-
                         ulong? adapterRam = item["AdapterRAM"] is object rawAdapterRam
                             ? Convert.ToUInt64(rawAdapterRam)
                             : null;

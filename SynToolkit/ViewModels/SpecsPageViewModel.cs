@@ -12,13 +12,8 @@ using SynToolkit.Services;
 
 namespace SynToolkit.ViewModels
 {
-    public sealed record GpuDetailDisplay(string Label, string Value);
-
     public sealed class GpuSpecDisplay
     {
-        internal bool AreDetailsLoaded { get; set; }
-        internal bool AreDetailsLoading { get; set; }
-
         public GpuSpecDisplay(string name, string vramText, string driverVersionText, string iconPath)
         {
             Name = name;
@@ -31,7 +26,6 @@ namespace SynToolkit.ViewModels
         public string VramText { get; }
         public string DriverVersionText { get; }
         public string IconPath { get; }
-        public ObservableCollection<GpuDetailDisplay> Details { get; } = new();
     }
 
     public sealed record MemoryModuleDisplay(string ManufacturerText, string CapacityText);
@@ -242,43 +236,6 @@ namespace SynToolkit.ViewModels
             {
                 _areMotherboardDetailsLoading = false;
                 _areMotherboardDetailsLoaded = true;
-            }
-        }
-        public async Task LoadGpuDetailsAsync(GpuSpecDisplay gpu)
-        {
-            if (gpu.AreDetailsLoaded || gpu.AreDetailsLoading)
-            {
-                return;
-            }
-
-            gpu.AreDetailsLoading = true;
-            gpu.Details.Clear();
-            gpu.Details.Add(new GpuDetailDisplay("GPU-Z details", "Loading..."));
-            try
-            {
-                GpuZCardDetails? details = await Task.Run(() => GpuZReportService.GetDetailsFor(gpu.Name));
-                gpu.Details.Clear();
-                if (details is null || details.Details.Count == 0)
-                {
-                    gpu.Details.Add(new GpuDetailDisplay("GPU-Z details", "Unavailable for this adapter."));
-                    return;
-                }
-
-                foreach (GpuZDetail detail in details.Details)
-                {
-                    gpu.Details.Add(new GpuDetailDisplay(detail.Label, detail.Value));
-                }
-            }
-            catch (Exception exception)
-            {
-                App.logger.Debug(exception, "[Specs] GPU-Z details were unavailable for {0}.", gpu.Name);
-                gpu.Details.Clear();
-                gpu.Details.Add(new GpuDetailDisplay("GPU-Z details", "Unavailable for this adapter."));
-            }
-            finally
-            {
-                gpu.AreDetailsLoading = false;
-                gpu.AreDetailsLoaded = true;
             }
         }
         public void RefreshCpuLiveMetrics()

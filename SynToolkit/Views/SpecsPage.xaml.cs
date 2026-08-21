@@ -44,13 +44,6 @@ namespace SynToolkit.Views
         {
             _ = _viewModel.LoadMotherboardDetailsAsync();
         }
-        private void GpuDetailsExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args)
-        {
-            if (sender.DataContext is GpuSpecDisplay gpu)
-            {
-                _ = _viewModel.LoadGpuDetailsAsync(gpu);
-            }
-        }
         private void SpecsPage_Loaded(object sender, RoutedEventArgs e)
         {
             if (_isCpuDetailsExpanded)

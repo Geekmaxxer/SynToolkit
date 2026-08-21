@@ -63,7 +63,6 @@ internal static class Program
         Run("CPU-Z memory timings are parsed", CpuZMemoryTimingsAreParsed);
         Run("CPU-Z processor details are parsed", CpuZProcessorDetailsAreParsed);
         Run("AMD 3D V-Cache is detected", Amd3dVCacheIsDetected);
-        Run("GPU-Z card details are parsed", GpuZCardDetailsAreParsed);
 
         Console.WriteLine(_failures == 0
             ? "All SynToolkit service tests passed."
@@ -175,29 +174,6 @@ internal static class Program
 
         True(details?.HasAmd3dVCache == true, "An AMD X3D processor must expose its 3D V-Cache designation.");
         Equal("96 MB", details?.L3Cache, "The AMD L3 cache capacity should remain visible.");
-    }
-    private static void GpuZCardDetailsAreParsed()
-    {
-        const string report = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" +
-                              "<gpuz_dump><card>" +
-                              "<cardname>AMD Radeon RX 9060 XT</cardname><gpuname>Navi 44</gpuname>" +
-                              "<vendor>AMD/ATI</vendor><subvendor>Gigabyte</subvendor><processsize>4</processsize>" +
-                              "<businterface>PCIe x16 5.0 @ x16 4.0</businterface><memtype>GDDR6</memtype>" +
-                              "<memvendor>Hynix</memvendor><membuswidth>128</membuswidth><numrops>64</numrops>" +
-                              "<numtmus>128</numtmus><numshadersunified>2048</numshadersunified>" +
-                              "<clockgpudefault>2780</clockgpudefault><clockgpuboost>3320</clockgpuboost>" +
-                              "<resizablebar>Enabled</resizablebar><opencl>1</opencl><dxr>1</dxr><opengl>1</opengl>" +
-                              "</card></gpuz_dump>";
-
-        IReadOnlyList<GpuZCardDetails> cards = GpuZReportParser.Parse(report);
-        GpuZCardDetails card = cards.Single();
-
-        Equal("AMD Radeon RX 9060 XT", card.CardName, "GPU-Z card names should be retained for WMI matching.");
-        True(card.Details.Single(detail => detail.Label == "Bus interface").Value.StartsWith("PCIe x16 5.0 @ x16 4.0", StringComparison.Ordinal), "The current PCIe link should be shown.");
-        Equal("GDDR6 \u00B7 Hynix \u00B7 128-bit", card.Details.Single(detail => detail.Label == "Memory").Value, "Memory type, vendor, and bus width should be combined.");
-        True(card.Details.Count <= 12, "GPU-Z fields should stay condensed into a compact set of rows.");
-        Equal("2048 Shader Units \u00B7 64 ROPs \u00B7 128 TMUs", card.Details.Single(detail => detail.Label == "Compute").Value, "Unified shader counts should be labeled as shader units, not CPU-style cores.");
-        Equal("OpenCL, Ray Tracing, OpenGL", card.Details.Single(detail => detail.Label == "Features").Value, "Enabled GPU-Z features should be shown without unsupported APIs.");
     }
     private static void OfficialRegistryPath() =>
         Equal(
