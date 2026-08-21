@@ -29,12 +29,12 @@
             Grid.Row="0"
             Margin="0,24,36,8"
             Style="{StaticResource TitleTextBlockStyle}"
-            Text="Specs" />
+            Text="Specs" local:LocalizedText.TextKey="SpecsPageTitle" />
         <TextBlock
             Grid.Row="1"
             Margin="0,0,36,18"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Text="A read-only snapshot of this system's hardware and Windows version. Nothing here can be changed."
+            Text="A read-only snapshot of this system's hardware and Windows version. Nothing here can be changed." local:LocalizedText.TextKey="SpecsPageDescription"
             TextWrapping="Wrap" />
 
         <InfoBar
@@ -44,7 +44,7 @@
             IsOpen="{Binding HasError, Mode=OneWay}"
             Message="{Binding ErrorMessage, Mode=OneWay}"
             Severity="Error"
-            Title="Specs" />
+            Title="Specs" local:LocalizedText.TitleKey="SpecsPageErrorTitle" />
 
         <ProgressRing
             Grid.Row="3"
@@ -76,7 +76,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Utilization (live)" />
+                                    <TextBlock Text="Utilization (live)" local:LocalizedText.TextKey="SpecsPageCpuUtilization" />
                                     <TextBlock
                                         Grid.Column="1"
                                         Margin="10,0,0,0"
@@ -88,7 +88,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Current frequency (live)" />
+                                    <TextBlock Text="Current frequency (live)" local:LocalizedText.TextKey="SpecsPageCpuCurrentFrequency" />
                                     <TextBlock
                                         Grid.Column="1"
                                         Margin="10,0,0,0"
@@ -100,7 +100,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Observed frequency (this visit)" />
+                                    <TextBlock Text="Observed frequency (this visit)" local:LocalizedText.TextKey="SpecsPageCpuObservedFrequency" />
                                     <TextBlock
                                         Grid.Column="1"
                                         Margin="10,0,0,0"
@@ -135,7 +135,7 @@
                     Margin="0,0,0,10"
                     Description="{Binding MotherboardText, Mode=OneWay}"
                     Expanded="MotherboardDetailsExpander_Expanded"
-                    Header="Motherboard"
+                    Header="Motherboard" local:LocalizedText.HeaderKey="SpecsPageMotherboard"
                     Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
                     <controls:SettingsExpander.HeaderIcon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Motherboard.png" />
@@ -169,7 +169,7 @@
                 <controls:SettingsExpander
                     Margin="0,0,0,10"
                     Description="{Binding MemoryDescriptionText, Mode=OneWay}"
-                    Header="Memory"
+                    Header="Memory" local:LocalizedText.HeaderKey="SpecsPageMemory"
                     Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
                     <controls:SettingsExpander.HeaderIcon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Ram.png" />
@@ -200,7 +200,7 @@
 
                 <controls:SettingsExpander
                     Margin="0,0,0,10"
-                    Header="Graphics"
+                    Header="Graphics" local:LocalizedText.HeaderKey="SpecsPageGraphics"
                     Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
                     <controls:SettingsExpander.HeaderIcon>
                         <ImageIcon Source="{Binding GraphicsHeaderIcon, Mode=OneWay, Converter={StaticResource ImageSourceConverter}}" />
@@ -243,7 +243,7 @@
                 </controls:SettingsExpander>
                 <controls:SettingsExpander
                     Margin="0,0,0,10"
-                    Header="Storage"
+                    Header="Storage" local:LocalizedText.HeaderKey="SpecsPageStorage"
                     Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
                     <controls:SettingsExpander.HeaderIcon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Storage.png" />
@@ -281,7 +281,7 @@
                 <controls:SettingsExpander
                     Margin="0,0,0,10"
                     Description="{Binding NetworkSummaryText, Mode=OneWay}"
-                    Header="Network"
+                    Header="Network" local:LocalizedText.HeaderKey="SpecsPageNetwork"
                     Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
                     <controls:SettingsExpander.HeaderIcon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Network.png" />
@@ -329,7 +329,7 @@
                 </controls:SettingsExpander>
                 <controls:SettingsCard
                     Margin="0,0,0,10"
-                    Header="Windows"
+                    Header="Windows" local:LocalizedText.HeaderKey="SpecsPageWindows"
                     Style="{StaticResource ConfigurationSettingsCardTemplate}">
                     <controls:SettingsCard.HeaderIcon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Windows.png" />
