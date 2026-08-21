@@ -214,7 +214,7 @@
   "SleepDescription": "スリープモードを有効または無効にします",
 
   "SystemRestore": "システムの復元",
-  "SystemRestoreDescription": "システムの復元を有効または無効にします",
+  "SystemRestoreDescription": "システムの保護を開いて、システムの復元ポイントと保護設定を管理します。",
 
   "UpdateNotifications": "更新通知",
   "UpdateNotificationsDescription": "更新通知を有効または無効にします",

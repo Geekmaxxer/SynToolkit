@@ -214,7 +214,7 @@
   "SleepDescription": "Habilita ou desabilita o modo de suspensão",
 
   "SystemRestore": "Restauração do Sistema",
-  "SystemRestoreDescription": "Habilita ou desabilita a restauração do sistema",
+  "SystemRestoreDescription": "Abra a Proteção do Sistema para gerenciar pontos de restauração e configurações de proteção.",
 
   "UpdateNotifications": "Notificações de atualização",
   "UpdateNotificationsDescription": "Habilita ou desabilita as notificações de atualização",

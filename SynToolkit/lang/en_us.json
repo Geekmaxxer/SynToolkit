@@ -214,7 +214,7 @@
   "SleepDescription": "Enable or disable sleep mode",
 
   "SystemRestore": "System Restore",
-  "SystemRestoreDescription": "Enable or disable system restore",
+  "SystemRestoreDescription": "Open System Protection to manage System Restore points and protection settings.",
 
   "UpdateNotifications": "Update Notifications",
   "UpdateNotificationsDescription": "Enable or disable update notifications",

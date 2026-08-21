@@ -214,7 +214,7 @@
   "SleepDescription": "Включить или отключить режим сна",
 
   "SystemRestore": "Восстановление системы",
-  "SystemRestoreDescription": "Включить или отключить восстановление системы",
+  "SystemRestoreDescription": "Откройте «Защиту системы», чтобы управлять точками восстановления и параметрами защиты.",
 
   "UpdateNotifications": "Уведомления об обновлениях",
   "UpdateNotificationsDescription": "Включить или отключить уведомления об обновлениях",

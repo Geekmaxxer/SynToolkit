@@ -214,7 +214,7 @@
   "SleepDescription": "启用或禁用睡眠模式",
 
   "SystemRestore": "系统还原",
-  "SystemRestoreDescription": "启用或禁用系统还原",
+  "SystemRestoreDescription": "打开系统保护以管理系统还原点和保护设置。",
 
   "UpdateNotifications": "更新通知",
   "UpdateNotificationsDescription": "启用或禁用更新通知",

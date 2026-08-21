@@ -214,7 +214,7 @@
   "SleepDescription": "Active ou désactive le mode veille",
 
   "SystemRestore": "Restauration du système",
-  "SystemRestoreDescription": "Active ou désactive la restauration du système",
+  "SystemRestoreDescription": "Ouvrez la Protection du système pour gérer les points de restauration et les paramètres de protection.",
 
   "UpdateNotifications": "Notifications de mise à jour",
   "UpdateNotificationsDescription": "Active ou désactive les notifications de mise à jour",

@@ -214,7 +214,7 @@
   "SleepDescription": "Aktivera eller inaktivera vänteläge",
 
   "SystemRestore": "Systemåterställning",
-  "SystemRestoreDescription": "Aktivera eller inaktivera systemåterställning",
+  "SystemRestoreDescription": "Öppna Systemskydd för att hantera systemåterställningspunkter och skyddsinställningar.",
 
   "UpdateNotifications": "Uppdateringsaviseringar",
   "UpdateNotificationsDescription": "Aktivera eller inaktivera uppdateringsaviseringar",

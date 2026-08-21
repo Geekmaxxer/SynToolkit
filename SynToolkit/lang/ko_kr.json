@@ -214,7 +214,7 @@
   "SleepDescription": "절전 모드를 사용하거나 사용하지 않도록 설정합니다",
 
   "SystemRestore": "시스템 복원",
-  "SystemRestoreDescription": "시스템 복원을 사용하거나 사용하지 않도록 설정합니다",
+  "SystemRestoreDescription": "시스템 보호를 열어 시스템 복원 지점 및 보호 설정을 관리합니다.",
 
   "UpdateNotifications": "업데이트 알림",
   "UpdateNotificationsDescription": "업데이트 알림을 사용하거나 사용하지 않도록 설정합니다",
