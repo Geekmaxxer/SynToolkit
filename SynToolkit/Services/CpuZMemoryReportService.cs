@@ -6,10 +6,10 @@ using System.IO;
 
 namespace SynToolkit.Services
 {
-    internal sealed record CpuZHardwareReport(CpuZMemoryTimings? MemoryTimings, CpuZProcessorDetails? ProcessorDetails);
+    internal sealed record CpuZHardwareReport(CpuZMemoryTimings? MemoryTimings, CpuZProcessorDetails? ProcessorDetails, CpuZMainboardDetails? MainboardDetails);
 
     /// <summary>
-    /// Reads one hidden CPU-Z report per app session. Memory and CPU details share that report,
+    /// Reads one hidden CPU-Z report per app session. Memory, processor, and motherboard details share that report,
     /// which prevents a second CPU-Z process and keeps the initial Specs snapshot responsive.
     /// </summary>
     internal static class CpuZMemoryReportService
@@ -20,6 +20,8 @@ namespace SynToolkit.Services
         internal static CpuZMemoryTimings? GetCurrentTimings() => CurrentReport.Value?.MemoryTimings;
 
         internal static CpuZProcessorDetails? GetCurrentProcessorDetails() => CurrentReport.Value?.ProcessorDetails;
+
+        internal static CpuZMainboardDetails? GetCurrentMainboardDetails() => CurrentReport.Value?.MainboardDetails;
 
         private static CpuZHardwareReport? ReadCurrentReport()
         {
@@ -58,7 +60,8 @@ namespace SynToolkit.Services
                 string report = File.ReadAllText(reportPath);
                 return new CpuZHardwareReport(
                     CpuZMemoryTimingParser.TryParse(report),
-                    CpuZProcessorDetailsParser.TryParse(report));
+                    CpuZProcessorDetailsParser.TryParse(report),
+                    CpuZMainboardDetailsParser.TryParse(report));
             }
             catch (Exception exception)
             {

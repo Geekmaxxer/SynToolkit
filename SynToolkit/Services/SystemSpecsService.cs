@@ -423,9 +423,11 @@ namespace SynToolkit.Services
         public static IReadOnlyList<MotherboardDetail> GetMotherboardDetails()
         {
             List<MotherboardDetail> details = new();
-            AddBaseboardDetails(details);
+            CpuZMainboardDetails? cpuZMainboard = CpuZMemoryReportService.GetCurrentMainboardDetails();
+            AddBaseboardDetails(details, cpuZMainboard);
+            AddCpuZMainboardDetails(details, cpuZMainboard);
             AddFirmwareDetails(details);
-            AddProcessorSocketDetails(details);
+            AddProcessorSocketDetails(details, CpuZMemoryReportService.GetCurrentProcessorDetails()?.Socket);
             AddMemorySlotDetails(details);
             AddExpansionSlotDetails(details);
             AddNvmeDeviceDetails(details);
@@ -433,7 +435,7 @@ namespace SynToolkit.Services
             return details;
         }
 
-        private static void AddBaseboardDetails(ICollection<MotherboardDetail> details)
+        private static void AddBaseboardDetails(ICollection<MotherboardDetail> details, CpuZMainboardDetails? cpuZMainboard)
         {
             try
             {
@@ -444,7 +446,7 @@ namespace SynToolkit.Services
                     using (item)
                     {
                         AddDetail(details, "Board manufacturer", ReadText(item, "Manufacturer"));
-                        AddDetail(details, "Board model", ReadText(item, "Product"));
+                        AddDetail(details, "Board model", cpuZMainboard?.Model ?? ReadText(item, "Product"));
                         AddDetail(details, "Board revision", ReadText(item, "Version"));
                         AddDetail(details, "Board serial number", ReadText(item, "SerialNumber"));
                         AddDetail(details, "Board asset tag", ReadText(item, "Tag"));
@@ -458,6 +460,23 @@ namespace SynToolkit.Services
             }
         }
 
+        private static void AddCpuZMainboardDetails(ICollection<MotherboardDetail> details, CpuZMainboardDetails? cpuZMainboard)
+        {
+            if (cpuZMainboard is null)
+            {
+                return;
+            }
+
+            AddDetail(details, "Northbridge", cpuZMainboard.Northbridge);
+            AddDetail(details, "Southbridge", cpuZMainboard.Southbridge);
+            AddDetail(details, "Mainboard bus", cpuZMainboard.BusSpecification);
+            AddDetail(details, "Graphics interface", cpuZMainboard.GraphicsInterface);
+            AddDetail(
+                details,
+                "LPCIO",
+                string.Join(" \u00B7 ", new[] { cpuZMainboard.LpcioVendor, cpuZMainboard.LpcioModel }
+                    .Where(value => !string.IsNullOrWhiteSpace(value))));
+        }
         private static void AddFirmwareDetails(ICollection<MotherboardDetail> details)
         {
             try
@@ -499,8 +518,14 @@ namespace SynToolkit.Services
             AddDetail(details, "Firmware mode", GetFirmwareMode());
         }
 
-        private static void AddProcessorSocketDetails(ICollection<MotherboardDetail> details)
+        private static void AddProcessorSocketDetails(ICollection<MotherboardDetail> details, string? preferredSocket)
         {
+            if (!string.IsNullOrWhiteSpace(preferredSocket))
+            {
+                AddDetail(details, "CPU socket", preferredSocket);
+                return;
+            }
+
             try
             {
                 using ManagementObjectSearcher searcher = new("SELECT SocketDesignation FROM Win32_Processor");

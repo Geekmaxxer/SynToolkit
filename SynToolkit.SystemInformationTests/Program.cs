@@ -62,6 +62,7 @@ internal static class Program
         Run("Identified desktop DIMMs stay separate", IdentifiedDesktopDimmsStaySeparate);
         Run("CPU-Z memory timings are parsed", CpuZMemoryTimingsAreParsed);
         Run("CPU-Z processor details are parsed", CpuZProcessorDetailsAreParsed);
+        Run("CPU-Z motherboard details are parsed", CpuZMainboardDetailsAreParsed);
         Run("AMD 3D V-Cache is detected", Amd3dVCacheIsDetected);
 
         Console.WriteLine(_failures == 0
@@ -161,6 +162,26 @@ internal static class Program
         Equal(399.2m, details?.MinimumFrequencyMHz, "Minimum operating frequency should use its ratio.");
         Equal("6 × 48 KB + 8 × 32 KB", details?.L1DataCache, "Cache associativity should be omitted while preserving the hybrid cache layout.");
         Equal("100 \u00B0C", details?.TemperatureLimit, "Temperature output must use a valid degree symbol.");
+    }
+    private static void CpuZMainboardDetailsAreParsed()
+    {
+        const string report = "Chipset\r\n" +
+                              "Northbridge\t\tIntel Alder Lake rev. 02\r\n" +
+                              "Southbridge\t\tIntel B660 rev. 11\r\n" +
+                              "Bus Specification\t\tPCI-Express 4.0 (16.0 GT/s)\r\n" +
+                              "Graphic Interface\t\tPCI-Express 5.0\r\n" +
+                              "Mainboard Model\t\tB660M DS3H AX DDR4 (0x00000444 - 0x8461EA80)\r\n" +
+                              "LPCIO Vendor\t\tITE\r\n" +
+                              "LPCIO Model\t\tIT8689\r\n";
+
+        CpuZMainboardDetails? details = CpuZMainboardDetailsParser.TryParse(report);
+
+        Equal("B660M DS3H AX DDR4", details?.Model, "CPU-Z's board model should omit the internal hardware ID.");
+        Equal("Intel Alder Lake rev. 02", details?.Northbridge, "CPU-Z's northbridge should be retained.");
+        Equal("Intel B660 rev. 11", details?.Southbridge, "CPU-Z's southbridge should be retained.");
+        Equal("PCI-Express 4.0 (16.0 GT/s)", details?.BusSpecification, "CPU-Z's mainboard bus should be retained.");
+        Equal("ITE", details?.LpcioVendor, "CPU-Z's LPCIO vendor should be retained.");
+        Equal("IT8689", details?.LpcioModel, "CPU-Z's LPCIO model should be retained.");
     }
     private static void Amd3dVCacheIsDetected()
     {

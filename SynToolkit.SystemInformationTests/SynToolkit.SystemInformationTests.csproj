@@ -24,6 +24,7 @@
     <Compile Include="..\SynToolkit\Services\MemoryModuleInventoryNormalizer.cs" Link="Services\MemoryModuleInventoryNormalizer.cs" />
     <Compile Include="..\SynToolkit\Services\CpuZMemoryTimingParser.cs" Link="Services\CpuZMemoryTimingParser.cs" />
     <Compile Include="..\SynToolkit\Services\CpuZProcessorDetailsParser.cs" Link="Services\CpuZProcessorDetailsParser.cs" />
+    <Compile Include="..\SynToolkit\Services\CpuZMainboardDetailsParser.cs" Link="Services\CpuZMainboardDetailsParser.cs" />
     <Compile Include="..\SynToolkit\Services\NvidiaProfileInspector\NvidiaProfilePreviewService.cs" Link="Services\NvidiaProfileInspector\NvidiaProfilePreviewService.cs" />
     <Compile Include="..\SynToolkit\Services\RadeonSlimmer\RadeonSelectionModels.cs" Link="Services\RadeonSlimmer\RadeonSelectionModels.cs" />
     <Compile Include="..\SynToolkit\Services\SystemInformationService.cs" Link="Services\SystemInformationService.cs" />
