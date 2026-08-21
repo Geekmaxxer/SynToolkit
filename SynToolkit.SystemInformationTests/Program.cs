@@ -61,6 +61,9 @@ internal static class Program
         Run("Fragmented onboard memory chips are labeled", FragmentedOnboardMemoryChipsAreLabeled);
         Run("Identified desktop DIMMs stay separate", IdentifiedDesktopDimmsStaySeparate);
         Run("CPU-Z memory timings are parsed", CpuZMemoryTimingsAreParsed);
+        Run("CPU-Z processor details are parsed", CpuZProcessorDetailsAreParsed);
+        Run("AMD 3D V-Cache is detected", Amd3dVCacheIsDetected);
+        Run("GPU-Z card details are parsed", GpuZCardDetailsAreParsed);
 
         Console.WriteLine(_failures == 0
             ? "All SynToolkit service tests passed."
@@ -118,6 +121,84 @@ internal static class Program
         Equal("CL40 40-40-40-77", timings?.TimingText, "CPU-Z's live primary timings should be formatted consistently.");
     }
 
+    private static void CpuZProcessorDetailsAreParsed()
+    {
+        const string report = "Processors Information\r\n" +
+                              "-------------------------------------------------------------------------\r\n" +
+                              "Socket 1\t\tID = 0\r\n" +
+                              "\tNumber of cores\t\t14 (max 14)\r\n" +
+                              "\tNumber of threads\t20 (max 20)\r\n" +
+                              "\tHybrid\t\tyes, 2 coresets\r\n" +
+                              "\tCore Set 0\t\tP-Cores, 6 cores, 12 threads\r\n" +
+                              "\tCore Set 1\t\tE-Cores, 8 cores, 8 threads\r\n" +
+                              "\tManufacturer\t\tGenuineIntel\r\n" +
+                              "\tName\t\tIntel Core i5 13500\r\n" +
+                              "\tCodename\t\tRaptor Lake\r\n" +
+                              "\tPackage (platform ID)\tSocket 1700 LGA\r\n" +
+                              "\tTechnology\t\t10 nm\r\n" +
+                              "\tCPUID\t\t6.F.2\r\n" +
+                              "\tCore Stepping\t\tC0\r\n" +
+                              "\tInstructions sets\tMMX, SSE, AVX2\r\n" +
+                              "\tTDP Limit\t\t65.0 Watts\r\n" +
+                              "\tTjmax\t\t100.0 °C\r\n" +
+                              "\tBase frequency (cores)\t99.8 MHz\r\n" +
+                              "\tL1 Data cache\t\t6 x 48 KB (12-way) + 8 x 32 KB (8-way)\r\n" +
+                              "\tL1 Instruction cache\t6 x 32 KB (8-way) + 8 x 64 KB (8-way)\r\n" +
+                              "\tL2 cache\t\t6 x 1.25 MB (10-way) + 2 x 2 MB (16-way)\r\n" +
+                              "\tL3 cache\t\t24 MB (12-way)\r\n" +
+                              "\tMax turbo ratio\t\t48x\r\n" +
+                              "\tMin operating ratio\t4x\r\n" +
+                              "\tRatio 1 P-Core\t\t48x\r\n" +
+                              "\tRatio 1 E-Core\t\t35x\r\n" +
+                              "\r\nThread dumps\r\n";
+
+        CpuZProcessorDetails? details = CpuZProcessorDetailsParser.TryParse(report);
+
+        Equal("Raptor Lake", details?.Codename, "CPU-Z's codename should be retained.");
+        Equal(6, details?.PerformanceCores?.Cores, "P-core count should be parsed.");
+        Equal(8, details?.EfficientCores?.Cores, "E-core count should be parsed.");
+        Equal(4790.4m, details?.PerformanceCores?.MaximumFrequencyMHz, "P-core maximum should use the P-core ratio.");
+        Equal(3493m, details?.EfficientCores?.MaximumFrequencyMHz, "E-core maximum should use the E-core ratio.");
+        Equal(399.2m, details?.MinimumFrequencyMHz, "Minimum operating frequency should use its ratio.");
+        Equal("6 × 48 KB + 8 × 32 KB", details?.L1DataCache, "Cache associativity should be omitted while preserving the hybrid cache layout.");
+        Equal("100 \u00B0C", details?.TemperatureLimit, "Temperature output must use a valid degree symbol.");
+    }
+    private static void Amd3dVCacheIsDetected()
+    {
+        const string report = "Processors Information\r\n" +
+                              "\tManufacturer\t\tAuthenticAMD\r\n" +
+                              "\tName\t\tAMD Ryzen 7 7800X3D\r\n" +
+                              "\tL3 cache\t\t96 MB (16-way)\r\n" +
+                              "\r\nThread dumps\r\n";
+
+        CpuZProcessorDetails? details = CpuZProcessorDetailsParser.TryParse(report);
+
+        True(details?.HasAmd3dVCache == true, "An AMD X3D processor must expose its 3D V-Cache designation.");
+        Equal("96 MB", details?.L3Cache, "The AMD L3 cache capacity should remain visible.");
+    }
+    private static void GpuZCardDetailsAreParsed()
+    {
+        const string report = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" +
+                              "<gpuz_dump><card>" +
+                              "<cardname>AMD Radeon RX 9060 XT</cardname><gpuname>Navi 44</gpuname>" +
+                              "<vendor>AMD/ATI</vendor><subvendor>Gigabyte</subvendor><processsize>4</processsize>" +
+                              "<businterface>PCIe x16 5.0 @ x16 4.0</businterface><memtype>GDDR6</memtype>" +
+                              "<memvendor>Hynix</memvendor><membuswidth>128</membuswidth><numrops>64</numrops>" +
+                              "<numtmus>128</numtmus><numshadersunified>2048</numshadersunified>" +
+                              "<clockgpudefault>2780</clockgpudefault><clockgpuboost>3320</clockgpuboost>" +
+                              "<resizablebar>Enabled</resizablebar><opencl>1</opencl><dxr>1</dxr><opengl>1</opengl>" +
+                              "</card></gpuz_dump>";
+
+        IReadOnlyList<GpuZCardDetails> cards = GpuZReportParser.Parse(report);
+        GpuZCardDetails card = cards.Single();
+
+        Equal("AMD Radeon RX 9060 XT", card.CardName, "GPU-Z card names should be retained for WMI matching.");
+        True(card.Details.Single(detail => detail.Label == "Bus interface").Value.StartsWith("PCIe x16 5.0 @ x16 4.0", StringComparison.Ordinal), "The current PCIe link should be shown.");
+        Equal("GDDR6 \u00B7 Hynix \u00B7 128-bit", card.Details.Single(detail => detail.Label == "Memory").Value, "Memory type, vendor, and bus width should be combined.");
+        True(card.Details.Count <= 12, "GPU-Z fields should stay condensed into a compact set of rows.");
+        Equal("2048 Shader Units \u00B7 64 ROPs \u00B7 128 TMUs", card.Details.Single(detail => detail.Label == "Compute").Value, "Unified shader counts should be labeled as shader units, not CPU-style cores.");
+        Equal("OpenCL, Ray Tracing, OpenGL", card.Details.Single(detail => detail.Label == "Features").Value, "Enabled GPU-Z features should be shown without unsupported APIs.");
+    }
     private static void OfficialRegistryPath() =>
         Equal(
             @"SOFTWARE\AME\Playbooks\Applied",

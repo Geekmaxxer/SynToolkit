@@ -28,6 +28,8 @@ namespace SynToolkit.Models
 
     public sealed record MotherboardSpec(string? Manufacturer, string? Product);
 
+    public sealed record MotherboardDetail(string Label, string Value);
+
     public sealed record SystemSpecsSnapshot(
         CpuSpec? Cpu,
         System.Collections.Generic.IReadOnlyList<GpuSpec> Gpus,

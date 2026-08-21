@@ -6,18 +6,22 @@ using System.IO;
 
 namespace SynToolkit.Services
 {
+    internal sealed record CpuZHardwareReport(CpuZMemoryTimings? MemoryTimings, CpuZProcessorDetails? ProcessorDetails);
+
     /// <summary>
-    /// Reads current memory timings from the bundled CPU-Z report once per app session. CPU-Z's
-    /// documented -txt argument runs in ghost mode, so Specs collection does not open its UI.
+    /// Reads one hidden CPU-Z report per app session. Memory and CPU details share that report,
+    /// which prevents a second CPU-Z process and keeps the initial Specs snapshot responsive.
     /// </summary>
     internal static class CpuZMemoryReportService
     {
         private const int ReportTimeoutMilliseconds = 25_000;
-        private static readonly Lazy<CpuZMemoryTimings?> CurrentTimings = new(ReadCurrentTimings);
+        private static readonly Lazy<CpuZHardwareReport?> CurrentReport = new(ReadCurrentReport);
 
-        internal static CpuZMemoryTimings? GetCurrentTimings() => CurrentTimings.Value;
+        internal static CpuZMemoryTimings? GetCurrentTimings() => CurrentReport.Value?.MemoryTimings;
 
-        private static CpuZMemoryTimings? ReadCurrentTimings()
+        internal static CpuZProcessorDetails? GetCurrentProcessorDetails() => CurrentReport.Value?.ProcessorDetails;
+
+        private static CpuZHardwareReport? ReadCurrentReport()
         {
             string executablePath = Path.Combine(AppContext.BaseDirectory, "assets", "Tools", "cpuz_x64.exe");
             if (!File.Exists(executablePath))
@@ -51,11 +55,14 @@ namespace SynToolkit.Services
                     return null;
                 }
 
-                return CpuZMemoryTimingParser.TryParse(File.ReadAllText(reportPath));
+                string report = File.ReadAllText(reportPath);
+                return new CpuZHardwareReport(
+                    CpuZMemoryTimingParser.TryParse(report),
+                    CpuZProcessorDetailsParser.TryParse(report));
             }
             catch (Exception exception)
             {
-                App.logger.Debug(exception, "[Specs] CPU-Z memory timing report was unavailable.");
+                App.logger.Debug(exception, "[Specs] CPU-Z report was unavailable.");
                 return null;
             }
             finally
@@ -69,7 +76,7 @@ namespace SynToolkit.Services
                 }
                 catch (IOException)
                 {
-                    // CPU-Z's report is temporary and harmless if a third-party scanner still holds it.
+                    // The temporary report is harmless if a third-party scanner still holds it.
                 }
             }
         }

@@ -58,26 +58,113 @@
 
         <ScrollViewer Grid.Row="3">
             <StackPanel Margin="0,0,36,48">
-
-                <controls:SettingsCard
+                <controls:SettingsExpander
                     Margin="0,0,0,10"
+                    Collapsed="CpuDetailsExpander_Collapsed"
                     Description="{Binding CpuDetailsText, Mode=OneWay}"
+                    Expanded="CpuDetailsExpander_Expanded"
                     Header="{Binding CpuName, Mode=OneWay}"
-                    Style="{StaticResource ConfigurationSettingsCardTemplate}">
-                    <controls:SettingsCard.HeaderIcon>
+                    Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
+                    <controls:SettingsExpander.HeaderIcon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Cpu.png" />
-                    </controls:SettingsCard.HeaderIcon>
-                </controls:SettingsCard>
+                    </controls:SettingsExpander.HeaderIcon>
+                    <controls:SettingsExpander.Items>
+                        <controls:SettingsCard ContentAlignment="Left">
+                            <StackPanel Spacing="8">
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Utilization (live)" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Margin="10,0,0,0"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="{Binding CpuUtilizationText, Mode=OneWay}" />
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Current frequency (live)" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Margin="10,0,0,0"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="{Binding CpuCurrentFrequencyText, Mode=OneWay}" />
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Observed frequency (this visit)" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Margin="10,0,0,0"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="{Binding CpuObservedFrequencyText, Mode=OneWay}" />
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding CpuDetails}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="viewmodel:CpuDetailDisplay">
+                                            <Grid Margin="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{x:Bind Label, Mode=OneTime}" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Margin="10,0,0,0"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="{x:Bind Value, Mode=OneTime}"
+                                                    TextWrapping="Wrap" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </controls:SettingsCard>
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
 
-                <controls:SettingsCard
+                <controls:SettingsExpander
                     Margin="0,0,0,10"
+                    Description="{Binding MotherboardText, Mode=OneWay}"
+                    Expanded="MotherboardDetailsExpander_Expanded"
                     Header="Motherboard"
-                    Style="{StaticResource ConfigurationSettingsCardTemplate}">
-                    <controls:SettingsCard.HeaderIcon>
+                    Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
+                    <controls:SettingsExpander.HeaderIcon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Motherboard.png" />
-                    </controls:SettingsCard.HeaderIcon>
-                    <TextBlock VerticalAlignment="Center" Text="{Binding MotherboardText, Mode=OneWay}" />
-                </controls:SettingsCard>
+                    </controls:SettingsExpander.HeaderIcon>
+                    <controls:SettingsExpander.Items>
+                        <controls:SettingsCard ContentAlignment="Left">
+                            <ItemsControl ItemsSource="{Binding MotherboardDetails}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="viewmodel:MotherboardDetailDisplay">
+                                        <Grid Margin="0,4,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{x:Bind Label, Mode=OneTime}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Margin="12,0,0,0"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                HorizontalAlignment="Stretch"
+                                                Text="{x:Bind Value, Mode=OneTime}"
+                                                TextWrapping="Wrap" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </controls:SettingsCard>
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
 
                 <controls:SettingsExpander
                     Margin="0,0,0,10"
@@ -123,31 +210,58 @@
                             <ItemsControl ItemsSource="{Binding Gpus}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="viewmodel:GpuSpecDisplay">
-                                        <Grid Margin="0,4,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <Image
-                                                Width="24"
-                                                Height="24"
-                                                Margin="0,0,10,0"
-                                                VerticalAlignment="Top"
-                                                Source="{x:Bind IconPath, Mode=OneTime, Converter={StaticResource ImageSourceConverter}}" />
-                                            <StackPanel Grid.Column="1">
-                                                <TextBlock Text="{x:Bind Name, Mode=OneTime}" TextWrapping="Wrap" />
-                                                <TextBlock
-                                                    FontSize="12"
-                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                    Text="{x:Bind DriverVersionText, Mode=OneTime}" />
-                                            </StackPanel>
-                                            <TextBlock
-                                                Grid.Column="2"
-                                                Margin="10,0,0,0"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Text="{x:Bind VramText, Mode=OneTime}" />
-                                        </Grid>
+                                        <Expander
+                                            Margin="0,2,0,2"
+                                            Expanding="GpuDetailsExpander_Expanding">
+                                            <Expander.Header>
+                                                <Grid Margin="0,4,0,4">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Image
+                                                        Width="24"
+                                                        Height="24"
+                                                        Margin="0,0,10,0"
+                                                        VerticalAlignment="Top"
+                                                        Source="{x:Bind IconPath, Mode=OneTime, Converter={StaticResource ImageSourceConverter}}" />
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{x:Bind Name, Mode=OneTime}" TextWrapping="Wrap" />
+                                                        <TextBlock
+                                                            FontSize="12"
+                                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                            Text="{x:Bind DriverVersionText, Mode=OneTime}" />
+                                                    </StackPanel>
+                                                    <TextBlock
+                                                        Grid.Column="2"
+                                                        Margin="10,0,20,0"
+                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                        Text="{x:Bind VramText, Mode=OneTime}" />
+                                                </Grid>
+                                            </Expander.Header>
+                                            <ItemsControl ItemsSource="{x:Bind Details, Mode=OneWay}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="viewmodel:GpuDetailDisplay">
+                                                        <Grid Margin="16,5,0,0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="120" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="{x:Bind Label, Mode=OneTime}" />
+                                                            <TextBlock
+                                                                Grid.Column="1"
+                                                                Margin="12,0,0,0"
+                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                HorizontalAlignment="Stretch"
+                                                                Text="{x:Bind Value, Mode=OneTime}"
+                                                                TextAlignment="Left"
+                                                                TextWrapping="Wrap" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Expander>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

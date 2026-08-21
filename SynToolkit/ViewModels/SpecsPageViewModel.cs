@@ -12,13 +12,36 @@ using SynToolkit.Services;
 
 namespace SynToolkit.ViewModels
 {
-    public sealed record GpuSpecDisplay(string Name, string VramText, string DriverVersionText, string IconPath);
+    public sealed record GpuDetailDisplay(string Label, string Value);
+
+    public sealed class GpuSpecDisplay
+    {
+        internal bool AreDetailsLoaded { get; set; }
+        internal bool AreDetailsLoading { get; set; }
+
+        public GpuSpecDisplay(string name, string vramText, string driverVersionText, string iconPath)
+        {
+            Name = name;
+            VramText = vramText;
+            DriverVersionText = driverVersionText;
+            IconPath = iconPath;
+        }
+
+        public string Name { get; }
+        public string VramText { get; }
+        public string DriverVersionText { get; }
+        public string IconPath { get; }
+        public ObservableCollection<GpuDetailDisplay> Details { get; } = new();
+    }
 
     public sealed record MemoryModuleDisplay(string ManufacturerText, string CapacityText);
 
     public sealed record StorageDriveDisplay(string Model, string SizeText, string TypeText);
 
     public sealed record NetworkAdapterDisplay(string Name, string ManufacturerText, string StatusText, string DetailsText);
+
+    public sealed record CpuDetailDisplay(string Label, string Value);
+    public sealed record MotherboardDetailDisplay(string Label, string Value);
 
     /// <summary>
     /// Drives the Specs tab: a read-only snapshot of CPU, GPU, memory, storage, motherboard,
@@ -27,6 +50,11 @@ namespace SynToolkit.ViewModels
     public partial class SpecsPageViewModel : ObservableObject
     {
         private readonly ISystemInformationService _systemInformationService;
+        private readonly CpuUsageSampler _cpuUsageSampler = new();
+        private uint? _minimumObservedCpuFrequencyMHz;
+        private uint? _maximumObservedCpuFrequencyMHz;
+        private bool _areMotherboardDetailsLoaded;
+        private bool _areMotherboardDetailsLoading;
 
         [ObservableProperty]
         public partial bool IsLoading { get; set; } = true;
@@ -42,6 +70,15 @@ namespace SynToolkit.ViewModels
 
         [ObservableProperty]
         public partial string CpuDetailsText { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        public partial string CpuUtilizationText { get; set; } = "Calculating...";
+
+        [ObservableProperty]
+        public partial string CpuCurrentFrequencyText { get; set; } = "Detecting...";
+
+        [ObservableProperty]
+        public partial string CpuObservedFrequencyText { get; set; } = "Collecting...";
 
         [ObservableProperty]
         public partial string MotherboardText { get; set; } = string.Empty;
@@ -66,6 +103,8 @@ namespace SynToolkit.ViewModels
         [ObservableProperty]
         public partial string GraphicsHeaderIcon { get; set; } = GpuDetectionService.DefaultGpuIconPath;
 
+        public ObservableCollection<CpuDetailDisplay> CpuDetails { get; } = new();
+        public ObservableCollection<MotherboardDetailDisplay> MotherboardDetails { get; } = new();
         public ObservableCollection<GpuSpecDisplay> Gpus { get; } = new();
         public ObservableCollection<MemoryModuleDisplay> MemoryModules { get; } = new();
         public ObservableCollection<StorageDriveDisplay> StorageDrives { get; } = new();
@@ -85,13 +124,12 @@ namespace SynToolkit.ViewModels
                 SystemSpecsSnapshot snapshot = await Task.Run(() => SystemSpecsService.GetSnapshot(_systemInformationService));
 
                 CpuName = snapshot.Cpu?.Name ?? "Unknown CPU";
-                CpuDetailsText = snapshot.Cpu is null
-                    ? string.Empty
-                    : $"{snapshot.Cpu.Cores} cores, {snapshot.Cpu.LogicalProcessors} logical processors, {snapshot.Cpu.MaxClockSpeedMHz / 1000.0:0.00} GHz";
+                CpuDetailsText = CreateCpuSummary(snapshot.Cpu) + " · Loading detailed CPU information...";
+                DisplayCpuDetails(snapshot.Cpu, null);
 
                 MotherboardText = snapshot.Motherboard is null
                     ? "Unknown"
-                    : string.Join(" ", new[] { snapshot.Motherboard.Manufacturer, snapshot.Motherboard.Product }.Where(part => !string.IsNullOrWhiteSpace(part)));
+                    : string.Join(" \u00B7 ", new[] { snapshot.Motherboard.Manufacturer, snapshot.Motherboard.Product }.Where(part => !string.IsNullOrWhiteSpace(part)));
 
                 TotalMemoryText = FormatBytes(snapshot.TotalMemoryBytes);
                 MemoryDescriptionText = TotalMemoryText;
@@ -148,8 +186,9 @@ namespace SynToolkit.ViewModels
                     StorageDrives.Add(new StorageDriveDisplay(drive.Model, FormatBytes(drive.SizeBytes), typeText));
                 }
 
-                MemoryDescriptionText = $"{TotalMemoryText} · Loading CAS Latency timings...";
+                MemoryDescriptionText = $"{TotalMemoryText} · Loading CAS Latency & timings...";
                 _ = LoadMemoryTimingDetailsAsync(snapshot.MemoryModules);
+                _ = LoadCpuDetailsAsync(snapshot.Cpu);
             }
             catch (Exception exception)
             {
@@ -164,6 +203,238 @@ namespace SynToolkit.ViewModels
         }
 
 
+        public async Task LoadMotherboardDetailsAsync()
+        {
+            if (_areMotherboardDetailsLoaded || _areMotherboardDetailsLoading)
+            {
+                return;
+            }
+
+            _areMotherboardDetailsLoading = true;
+            MotherboardDetails.Clear();
+            MotherboardDetails.Add(new MotherboardDetailDisplay("Motherboard details", "Loading..."));
+            try
+            {
+                IReadOnlyList<MotherboardDetail> details = await Task.Run(SystemSpecsService.GetMotherboardDetails);
+                MotherboardDetails.Clear();
+                if (details.Count == 0)
+                {
+                    MotherboardDetails.Add(new MotherboardDetailDisplay(
+                        "Motherboard details",
+                        "Detailed firmware information is unavailable on this system."));
+                    return;
+                }
+
+                foreach (MotherboardDetail detail in details)
+                {
+                    MotherboardDetails.Add(new MotherboardDetailDisplay(detail.Label, detail.Value));
+                }
+            }
+            catch (Exception exception)
+            {
+                App.logger.Debug(exception, "[Specs] Motherboard details were unavailable.");
+                MotherboardDetails.Clear();
+                MotherboardDetails.Add(new MotherboardDetailDisplay(
+                    "Motherboard details",
+                    "Detailed firmware information is unavailable on this system."));
+            }
+            finally
+            {
+                _areMotherboardDetailsLoading = false;
+                _areMotherboardDetailsLoaded = true;
+            }
+        }
+        public async Task LoadGpuDetailsAsync(GpuSpecDisplay gpu)
+        {
+            if (gpu.AreDetailsLoaded || gpu.AreDetailsLoading)
+            {
+                return;
+            }
+
+            gpu.AreDetailsLoading = true;
+            gpu.Details.Clear();
+            gpu.Details.Add(new GpuDetailDisplay("GPU-Z details", "Loading..."));
+            try
+            {
+                GpuZCardDetails? details = await Task.Run(() => GpuZReportService.GetDetailsFor(gpu.Name));
+                gpu.Details.Clear();
+                if (details is null || details.Details.Count == 0)
+                {
+                    gpu.Details.Add(new GpuDetailDisplay("GPU-Z details", "Unavailable for this adapter."));
+                    return;
+                }
+
+                foreach (GpuZDetail detail in details.Details)
+                {
+                    gpu.Details.Add(new GpuDetailDisplay(detail.Label, detail.Value));
+                }
+            }
+            catch (Exception exception)
+            {
+                App.logger.Debug(exception, "[Specs] GPU-Z details were unavailable for {0}.", gpu.Name);
+                gpu.Details.Clear();
+                gpu.Details.Add(new GpuDetailDisplay("GPU-Z details", "Unavailable for this adapter."));
+            }
+            finally
+            {
+                gpu.AreDetailsLoading = false;
+                gpu.AreDetailsLoaded = true;
+            }
+        }
+        public void RefreshCpuLiveMetrics()
+        {
+            CpuLiveMetrics metrics = _cpuUsageSampler.Sample();
+            if (metrics.UtilizationPercent.HasValue)
+            {
+                CpuUtilizationText = $"{metrics.UtilizationPercent.Value}%";
+            }
+
+            if (!metrics.AverageFrequencyMHz.HasValue)
+            {
+                return;
+            }
+
+            uint frequencyMHz = metrics.AverageFrequencyMHz.Value;
+            CpuCurrentFrequencyText = FormatCpuFrequency(frequencyMHz);
+            _minimumObservedCpuFrequencyMHz = !_minimumObservedCpuFrequencyMHz.HasValue
+                ? frequencyMHz
+                : Math.Min(_minimumObservedCpuFrequencyMHz.Value, frequencyMHz);
+            _maximumObservedCpuFrequencyMHz = !_maximumObservedCpuFrequencyMHz.HasValue
+                ? frequencyMHz
+                : Math.Max(_maximumObservedCpuFrequencyMHz.Value, frequencyMHz);
+            CpuObservedFrequencyText = _minimumObservedCpuFrequencyMHz == _maximumObservedCpuFrequencyMHz
+                ? FormatCpuFrequency(_minimumObservedCpuFrequencyMHz.Value)
+                : $"{FormatCpuFrequency(_minimumObservedCpuFrequencyMHz.Value)} - {FormatCpuFrequency(_maximumObservedCpuFrequencyMHz.Value)}";
+        }
+
+        private async Task LoadCpuDetailsAsync(CpuSpec? cpu)
+        {
+            try
+            {
+                CpuZProcessorDetails? details = await Task.Run(CpuZMemoryReportService.GetCurrentProcessorDetails);
+                if (details is not null)
+                {
+                    DisplayCpuDetails(cpu, details);
+                    CpuDetailsText = CreateCpuSummary(cpu, details);
+                    return;
+                }
+            }
+            catch (Exception exception)
+            {
+                App.logger.Debug(exception, "[Specs] CPU-Z processor report was unavailable.");
+            }
+
+            CpuDetailsText = CreateCpuSummary(cpu);
+        }
+
+        private void DisplayCpuDetails(CpuSpec? cpu, CpuZProcessorDetails? details)
+        {
+            CpuDetails.Clear();
+            if (cpu is null)
+            {
+                return;
+            }
+
+            AddCpuDetail("Cores", cpu.Cores.ToString(CultureInfo.InvariantCulture));
+            AddCpuDetail("Threads", cpu.LogicalProcessors.ToString(CultureInfo.InvariantCulture));
+            if (details is null)
+            {
+                if (cpu.MaxClockSpeedMHz > 0)
+                {
+                    AddCpuDetail("Reported maximum frequency", FormatCpuFrequency(cpu.MaxClockSpeedMHz));
+                }
+
+                AddCpuDetail("CPU details", "Loading from CPU-Z...");
+                return;
+            }
+
+            if (details.MinimumFrequencyMHz.HasValue && details.MaximumFrequencyMHz.HasValue)
+            {
+                AddCpuDetail(
+                    "Minimum - maximum frequency",
+                    $"{FormatCpuFrequency(details.MinimumFrequencyMHz.Value)} - {FormatCpuFrequency(details.MaximumFrequencyMHz.Value)}");
+            }
+            else if (details.MaximumFrequencyMHz.HasValue)
+            {
+                AddCpuDetail("Maximum frequency", FormatCpuFrequency(details.MaximumFrequencyMHz.Value));
+            }
+
+            AddCoreSet(details.PerformanceCores);
+            AddCoreSet(details.EfficientCores);
+            AddCpuDetail("L1 data cache", details.L1DataCache);
+            AddCpuDetail("L1 instruction cache", details.L1InstructionCache);
+            AddCpuDetail("L2 cache", details.L2Cache);
+            AddCpuDetail("L3 cache", details.L3Cache);
+            if (details.HasAmd3dVCache)
+            {
+                AddCpuDetail("AMD 3D V-Cache", "Detected");
+            }
+
+            AddCpuDetail("Manufacturer", details.Manufacturer);
+            AddCpuDetail("Codename", details.Codename);
+            AddCpuDetail("Socket", details.Socket);
+            AddCpuDetail("Process", details.Technology);
+            AddCpuDetail("Thermal design power", details.ThermalDesignPower);
+            AddCpuDetail("Temperature limit", details.TemperatureLimit);
+            AddCpuDetail("CPUID", details.Cpuid);
+            AddCpuDetail("Stepping", details.Stepping);
+            AddCpuDetail("Instruction sets", details.InstructionSets);
+        }
+
+        private void AddCoreSet(CpuZCoreSet? coreSet)
+        {
+            if (coreSet is null)
+            {
+                return;
+            }
+
+            string value = $"{coreSet.Cores} cores, {coreSet.Threads} threads";
+            if (coreSet.MaximumFrequencyMHz.HasValue)
+            {
+                value += $" · up to {FormatCpuFrequency(coreSet.MaximumFrequencyMHz.Value)}";
+            }
+
+            AddCpuDetail(coreSet.Name, value);
+        }
+
+        private void AddCpuDetail(string label, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                CpuDetails.Add(new CpuDetailDisplay(label, value));
+            }
+        }
+
+        private static string CreateCpuSummary(CpuSpec? cpu, CpuZProcessorDetails? details = null)
+        {
+            if (cpu is null)
+            {
+                return string.Empty;
+            }
+
+            List<string> summary = new()
+            {
+                $"{cpu.Cores} cores",
+                $"{cpu.LogicalProcessors} threads"
+            };
+            if (details?.MinimumFrequencyMHz is decimal minimumFrequencyMHz
+                && details.MaximumFrequencyMHz is decimal maximumFrequencyMHz)
+            {
+                summary.Add($"{FormatCpuFrequency(minimumFrequencyMHz)} - {FormatCpuFrequency(maximumFrequencyMHz)}");
+            }
+            else if (cpu.MaxClockSpeedMHz > 0)
+            {
+                summary.Add($"up to {FormatCpuFrequency(cpu.MaxClockSpeedMHz)}");
+            }
+
+            return string.Join(" · ", summary);
+        }
+
+        private static string FormatCpuFrequency(decimal megahertz) => megahertz >= 1000m
+            ? (megahertz / 1000m).ToString("0.##", CultureInfo.InvariantCulture) + " GHz"
+            : megahertz.ToString("0", CultureInfo.InvariantCulture) + " MHz";
+
+        private static string FormatCpuFrequency(uint megahertz) => FormatCpuFrequency((decimal)megahertz);
         private async Task LoadMemoryTimingDetailsAsync(IReadOnlyList<MemoryModuleSpec> modules)
         {
             try
