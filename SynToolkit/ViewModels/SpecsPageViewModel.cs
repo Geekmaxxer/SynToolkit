@@ -45,8 +45,8 @@ namespace SynToolkit.ViewModels
     {
         private readonly ISystemInformationService _systemInformationService;
         private readonly CpuUsageSampler _cpuUsageSampler = new();
-        private uint? _minimumObservedCpuFrequencyMHz;
-        private uint? _maximumObservedCpuFrequencyMHz;
+        private decimal? _minimumObservedCpuFrequencyMHz;
+        private decimal? _maximumObservedCpuFrequencyMHz;
         private bool _areMotherboardDetailsLoaded;
         private bool _areMotherboardDetailsLoading;
 
@@ -251,8 +251,8 @@ namespace SynToolkit.ViewModels
                 return;
             }
 
-            uint frequencyMHz = metrics.AverageFrequencyMHz.Value;
-            CpuCurrentFrequencyText = FormatCpuFrequency(frequencyMHz);
+            decimal frequencyMHz = metrics.AverageFrequencyMHz.Value;
+            CpuCurrentFrequencyText = FormatLiveCpuFrequency(frequencyMHz);
             _minimumObservedCpuFrequencyMHz = !_minimumObservedCpuFrequencyMHz.HasValue
                 ? frequencyMHz
                 : Math.Min(_minimumObservedCpuFrequencyMHz.Value, frequencyMHz);
@@ -260,8 +260,8 @@ namespace SynToolkit.ViewModels
                 ? frequencyMHz
                 : Math.Max(_maximumObservedCpuFrequencyMHz.Value, frequencyMHz);
             CpuObservedFrequencyText = _minimumObservedCpuFrequencyMHz == _maximumObservedCpuFrequencyMHz
-                ? FormatCpuFrequency(_minimumObservedCpuFrequencyMHz.Value)
-                : $"{FormatCpuFrequency(_minimumObservedCpuFrequencyMHz.Value)} - {FormatCpuFrequency(_maximumObservedCpuFrequencyMHz.Value)}";
+                ? FormatLiveCpuFrequency(_minimumObservedCpuFrequencyMHz.Value)
+                : $"{FormatLiveCpuFrequency(_minimumObservedCpuFrequencyMHz.Value)} - {FormatLiveCpuFrequency(_maximumObservedCpuFrequencyMHz.Value)}";
         }
 
         private async Task LoadCpuDetailsAsync(CpuSpec? cpu)
@@ -390,6 +390,9 @@ namespace SynToolkit.ViewModels
         private static string FormatCpuFrequency(decimal megahertz) => megahertz >= 1000m
             ? (megahertz / 1000m).ToString("0.##", CultureInfo.InvariantCulture) + " GHz"
             : megahertz.ToString("0", CultureInfo.InvariantCulture) + " MHz";
+
+        private static string FormatLiveCpuFrequency(decimal megahertz) =>
+            megahertz.ToString("0", CultureInfo.InvariantCulture) + " MHz";
 
         private static string FormatCpuFrequency(uint megahertz) => FormatCpuFrequency((decimal)megahertz);
         private async Task LoadMemoryTimingDetailsAsync(IReadOnlyList<MemoryModuleSpec> modules)

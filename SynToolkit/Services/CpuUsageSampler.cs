@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace SynToolkit.Services
 {
-    internal readonly record struct CpuLiveMetrics(uint? UtilizationPercent, uint? AverageFrequencyMHz);
+    internal readonly record struct CpuLiveMetrics(uint? UtilizationPercent, decimal? AverageFrequencyMHz);
 
     /// <summary>
     /// Samples only Windows' aggregate CPU counters. It does not start a process, issue WMI
@@ -14,11 +14,16 @@ namespace SynToolkit.Services
     internal sealed class CpuUsageSampler
     {
         private const int ProcessorInformation = 11;
+        private const uint PdhFmtDouble = 0x00000200;
+        private IntPtr _performanceQuery;
+        private IntPtr _processorFrequencyCounter;
+        private IntPtr _processorPerformanceCounter;
+        private bool _isPerformanceQueryUnavailable;
         private ulong? _previousIdleTime;
         private ulong? _previousKernelTime;
         private ulong? _previousUserTime;
 
-        internal CpuLiveMetrics Sample() => new(ReadUtilizationPercent(), ReadAverageFrequencyMHz());
+        internal CpuLiveMetrics Sample() => new(ReadUtilizationPercent(), ReadLiveFrequencyMHz());
 
         private uint? ReadUtilizationPercent()
         {
@@ -51,7 +56,70 @@ namespace SynToolkit.Services
             return (uint)Math.Clamp(Math.Round((totalDelta - idleDelta) * 100d / totalDelta), 0, 100);
         }
 
-        private static uint? ReadAverageFrequencyMHz()
+        private decimal? ReadLiveFrequencyMHz()
+        {
+            if (!EnsurePerformanceQuery() ||
+                PdhCollectQueryData(_performanceQuery) != 0 ||
+                !TryReadCounterValue(_processorFrequencyCounter, out double nominalFrequencyMHz) ||
+                !TryReadCounterValue(_processorPerformanceCounter, out double processorPerformancePercent))
+            {
+                return ReadAveragePowerInformationFrequencyMHz();
+            }
+
+            try
+            {
+                return Convert.ToDecimal(nominalFrequencyMHz * processorPerformancePercent / 100d);
+            }
+            catch (OverflowException)
+            {
+                return ReadAveragePowerInformationFrequencyMHz();
+            }
+        }
+
+        private bool EnsurePerformanceQuery()
+        {
+            if (_performanceQuery != IntPtr.Zero)
+            {
+                return true;
+            }
+
+            if (_isPerformanceQueryUnavailable ||
+                PdhOpenQueryW(null, IntPtr.Zero, out IntPtr query) != 0)
+            {
+                _isPerformanceQueryUnavailable = true;
+                return false;
+            }
+
+            if (PdhAddEnglishCounterW(query, @"\Processor Information(_Total)\Processor Frequency", IntPtr.Zero, out IntPtr frequencyCounter) != 0 ||
+                PdhAddEnglishCounterW(query, @"\Processor Information(_Total)\% Processor Performance", IntPtr.Zero, out IntPtr performanceCounter) != 0)
+            {
+                PdhCloseQuery(query);
+                _isPerformanceQueryUnavailable = true;
+                return false;
+            }
+
+            _performanceQuery = query;
+            _processorFrequencyCounter = frequencyCounter;
+            _processorPerformanceCounter = performanceCounter;
+            return true;
+        }
+
+        private static bool TryReadCounterValue(IntPtr counter, out double value)
+        {
+            value = 0;
+            if (PdhGetFormattedCounterValue(counter, PdhFmtDouble, out _, out PdhFormattedCounterValue formattedValue) != 0 ||
+                formattedValue.CStatus != 0 ||
+                double.IsNaN(formattedValue.DoubleValue) ||
+                double.IsInfinity(formattedValue.DoubleValue) ||
+                formattedValue.DoubleValue <= 0)
+            {
+                return false;
+            }
+
+            value = formattedValue.DoubleValue;
+            return true;
+        }
+        private static decimal? ReadAveragePowerInformationFrequencyMHz()
         {
             int processorCount = Math.Max(Environment.ProcessorCount, 1);
             int structureSize = Marshal.SizeOf<ProcessorPowerInformation>();
@@ -78,7 +146,7 @@ namespace SynToolkit.Services
                     validProcessors++;
                 }
 
-                return validProcessors == 0 ? null : (uint)(totalMHz / (uint)validProcessors);
+                return validProcessors == 0 ? null : (decimal)totalMHz / validProcessors;
             }
             finally
             {
@@ -100,6 +168,25 @@ namespace SynToolkit.Services
             IntPtr outputBuffer,
             uint outputBufferLength);
 
+        [DllImport("pdh.dll", CharSet = CharSet.Unicode)]
+        private static extern uint PdhOpenQueryW(string? dataSource, IntPtr userData, out IntPtr query);
+
+        [DllImport("pdh.dll", CharSet = CharSet.Unicode)]
+        private static extern uint PdhAddEnglishCounterW(IntPtr query, string fullCounterPath, IntPtr userData, out IntPtr counter);
+
+        [DllImport("pdh.dll")]
+        private static extern uint PdhCollectQueryData(IntPtr query);
+
+        [DllImport("pdh.dll")]
+        private static extern uint PdhGetFormattedCounterValue(
+            IntPtr counter,
+            uint format,
+            out uint type,
+            out PdhFormattedCounterValue value);
+
+        [DllImport("pdh.dll")]
+        private static extern uint PdhCloseQuery(IntPtr query);
+
         [StructLayout(LayoutKind.Sequential)]
         private struct FileTime
         {
@@ -116,6 +203,16 @@ namespace SynToolkit.Services
             internal uint MhzLimit;
             internal uint MaxIdleState;
             internal uint CurrentIdleState;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct PdhFormattedCounterValue
+        {
+            [FieldOffset(0)]
+            internal uint CStatus;
+
+            [FieldOffset(8)]
+            internal double DoubleValue;
         }
     }
 }
