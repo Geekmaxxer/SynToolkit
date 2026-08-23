@@ -73,7 +73,7 @@
             Grid.Row="0"
             Margin="0,24,36,8"
             Style="{StaticResource TitleTextBlockStyle}"
-            Text="GPU" />
+            Text="Graphics Processing Unit" />
         <StackPanel Grid.Row="1" Margin="0,0,36,18">
             <TextBlock
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -94,7 +94,7 @@
             IsOpen="{Binding HasError, Mode=OneWay}"
             Message="{Binding StatusMessage, Mode=OneWay}"
             Severity="Error"
-            Title="GPU" />
+            Title="Graphics Processing Unit" />
 
         <ScrollViewer Grid.Row="3">
             <StackPanel Margin="0,0,36,48">

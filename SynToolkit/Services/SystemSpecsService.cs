@@ -83,8 +83,9 @@ namespace SynToolkit.Services
                             : null;
 
                         ulong? accurateVram = TryGetAccurateVramBytes(pnpDeviceId);
-                        string iconPath = GpuDetectionService.GetIconPath(name, pnpDeviceId);
-                        gpus.Add(new GpuSpec(name, accurateVram ?? adapterRam, driverVersion, iconPath));
+                        GpuVendor vendor = GpuDetectionService.GetVendor(name, pnpDeviceId);
+                        string iconPath = GpuDetectionService.GetIconPath(vendor);
+                        gpus.Add(new GpuSpec(name, accurateVram ?? adapterRam, driverVersion, iconPath, vendor));
                     }
                 }
             }
