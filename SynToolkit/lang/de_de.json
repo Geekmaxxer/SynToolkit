@@ -8,6 +8,8 @@
   "SystemInfo_NotDetected": "Kein bekanntes Playbook erkannt",
   "SystemInfo_Conflicting": "Mehrere Playbook-Markierungen erkannt",
   "SystemInfo_ReadOnly": "Lokal erkannt ohne Einstellungen zu ändern",
+
+
   "ToBeTranslated": "Konfiguration für 0 Verzögerung wird eingerichtet..",
   "ConfigurationStatus_Applying": "Änderung wird angewendet...",
   "ConfigurationStatus_Unavailable": "Nicht verfügbar",

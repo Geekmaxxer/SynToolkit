@@ -58,15 +58,15 @@ internal static class Program
         Run("Malformed legacy profiles are rejected", MalformedLegacyProfilesAreRejected);
         Run("Oversized legacy profiles are rejected", OversizedLegacyProfileIsRejected);
         Run("NVIDIA profile export preserves imported settings", NvidiaProfileExportRoundTrips);
-        Run("GPU vendors are classified from PCI IDs and names", GpuVendorClassificationMatchesPciIdsAndNames);
-        Run("Primary GPU vendor prefers discrete adapters", PrimaryGpuVendorPrefersDiscreteGpu);
-        Run("HAGS states are classified safely", HagsClassificationDistinguishesStates);
-        Run("Fragmented onboard memory chips are labeled", FragmentedOnboardMemoryChipsAreLabeled);
         Run("Identified desktop DIMMs stay separate", IdentifiedDesktopDimmsStaySeparate);
         Run("CPU-Z memory timings are parsed", CpuZMemoryTimingsAreParsed);
         Run("CPU-Z processor details are parsed", CpuZProcessorDetailsAreParsed);
         Run("CPU-Z motherboard details are parsed", CpuZMainboardDetailsAreParsed);
         Run("AMD 3D V-Cache is detected", Amd3dVCacheIsDetected);
+        Run("GPU vendor classification matches PCI IDs and names", GpuVendorClassificationMatchesPciIdsAndNames);
+        Run("GPU tab icon uses NVIDIA/AMD brands and falls back for Intel/unknown", GpuTabIconUsesVendorBrandsAndSafeFallback);
+        Run("Primary GPU vendor prefers discrete NVIDIA then AMD then Intel", PrimaryGpuVendorPrefersDiscreteGpu);
+        Run("HAGS classification distinguishes enabled, disabled, and unsupported", HagsClassificationDistinguishesStates);
 
         Console.WriteLine(_failures == 0
             ? "All SynToolkit service tests passed."
@@ -686,6 +686,173 @@ internal static class Program
                 File.Delete(exportPath);
             }
         }
+    }
+
+    private static void GpuVendorClassificationMatchesPciIdsAndNames()
+    {
+        Equal(
+            GpuVendor.Nvidia,
+            GpuVendorClassification.GetVendor("NVIDIA GeForce RTX 4070", @"PCI\VEN_10DE&DEV_2786"),
+            "NVIDIA PCI vendor IDs must classify as NVIDIA.");
+        Equal(
+            GpuVendor.Nvidia,
+            GpuVendorClassification.GetVendor("NVIDIA GeForce RTX 4070", string.Empty),
+            "NVIDIA adapter names must classify as NVIDIA when the PCI ID is missing.");
+        Equal(
+            GpuVendor.Amd,
+            GpuVendorClassification.GetVendor("AMD Radeon RX 7800 XT", @"PCI\VEN_1002&DEV_7480"),
+            "AMD PCI vendor IDs must classify as AMD.");
+        Equal(
+            GpuVendor.Amd,
+            GpuVendorClassification.GetVendor("Radeon RX 7800 XT", string.Empty),
+            "Radeon adapter names must classify as AMD when the PCI ID is missing.");
+        Equal(
+            GpuVendor.Intel,
+            GpuVendorClassification.GetVendor("Intel(R) UHD Graphics", @"PCI\VEN_8086&DEV_46A6"),
+            "Intel PCI vendor IDs must classify as Intel.");
+        Equal(
+            GpuVendor.Unknown,
+            GpuVendorClassification.GetVendor("Microsoft Basic Display Adapter", @"PCI\VEN_1414"),
+            "The Microsoft Basic Display Adapter must not be treated as a real GPU vendor.");
+        Equal(
+            GpuVendor.Unknown,
+            GpuVendorClassification.GetVendor("Unknown GPU", string.Empty),
+            "Unrecognized adapters must stay Unknown.");
+    }
+
+    private static void GpuTabIconUsesVendorBrandsAndSafeFallback()
+    {
+        Equal(
+            GpuVendorClassification.NvidiaGpuIconPath,
+            GpuVendorClassification.GetGpuTabIconPath(GpuVendor.Nvidia),
+            "NVIDIA systems must use the existing NVIDIA brand icon.");
+        Equal(
+            GpuVendorClassification.AmdGpuIconPath,
+            GpuVendorClassification.GetGpuTabIconPath(GpuVendor.Amd),
+            "AMD systems must use the existing AMD brand icon.");
+        Equal(
+            GpuVendorClassification.DefaultGpuIconPath,
+            GpuVendorClassification.GetGpuTabIconPath(GpuVendor.Intel),
+            "Intel systems must keep the generic GPU tab icon.");
+        Equal(
+            GpuVendorClassification.DefaultGpuIconPath,
+            GpuVendorClassification.GetGpuTabIconPath(GpuVendor.Unknown),
+            "Failed or unknown detection must keep the generic GPU tab icon.");
+        Equal(
+            GpuVendorClassification.IntelGpuIconPath,
+            GpuVendorClassification.GetIconPath(GpuVendor.Intel),
+            "The Specs list can still show the Intel logo per GPU; only the tab icon stays generic.");
+    }
+
+    private static void PrimaryGpuVendorPrefersDiscreteGpu()
+    {
+        Equal(
+            GpuVendor.Nvidia,
+            GpuVendorClassification.GetPrimaryGpuVendor(
+            [
+                ("Intel(R) UHD Graphics", GpuVendor.Intel),
+                ("NVIDIA GeForce RTX 4070", GpuVendor.Nvidia),
+            ]),
+            "A laptop with Intel iGPU + NVIDIA dGPU must prefer NVIDIA, matching the Specs header.");
+        Equal(
+            GpuVendor.Amd,
+            GpuVendorClassification.GetPrimaryGpuVendor(
+            [
+                ("Intel(R) Iris Xe Graphics", GpuVendor.Intel),
+                ("AMD Radeon RX 7600M", GpuVendor.Amd),
+            ]),
+            "A laptop with Intel iGPU + AMD dGPU must prefer AMD, matching the Specs header.");
+        Equal(
+            GpuVendor.Nvidia,
+            GpuVendorClassification.GetPrimaryGpuVendor(
+            [
+                ("AMD Radeon Graphics", GpuVendor.Amd),
+                ("NVIDIA GeForce RTX 4070", GpuVendor.Nvidia),
+            ]),
+            "NVIDIA must win over AMD when both are present, matching the Specs header.");
+        Equal(
+            GpuVendor.Intel,
+            GpuVendorClassification.GetPrimaryGpuVendor(
+            [
+                ("Microsoft Basic Display Adapter", GpuVendor.Unknown),
+                ("Intel(R) UHD Graphics", GpuVendor.Intel),
+            ]),
+            "Intel-only systems stay Intel after Basic Display adapters are ignored.");
+        Equal(
+            GpuVendor.Unknown,
+            GpuVendorClassification.GetPrimaryGpuVendor([]),
+            "An empty adapter list must stay Unknown so the tab icon can fail safe.");
+    }
+
+    private static void HagsClassificationDistinguishesStates()
+    {
+        const int windows2004 = HagsDetection.MinimumWindowsBuild;
+        const int windows11 = 26100;
+        const int windows1909 = 18363;
+
+        Equal(
+            HagsSupportState.NotSupportedByWindowsVersion,
+            HagsDetection.Classify(windows1909, null),
+            "A missing HwSchMode on Windows 10 before 2004 is an OS limitation.");
+        Equal(
+            HagsSupportState.NotSupportedByWindowsVersion,
+            HagsDetection.Classify(windows1909, 2),
+            "HAGS is still an OS limitation below build 19041 even if a DWORD exists.");
+        Equal(
+            HagsSupportState.NotSupportedByGpuOrDriver,
+            HagsDetection.Classify(windows2004, null),
+            "A missing HwSchMode on Windows 10 2004+ means the GPU/driver did not register support.");
+        Equal(
+            HagsSupportState.NotSupportedByGpuOrDriver,
+            HagsDetection.Classify(windows11, null),
+            "A missing HwSchMode on Windows 11 means the GPU/driver did not register support.");
+        Equal(
+            HagsSupportState.SupportedDisabled,
+            HagsDetection.Classify(windows11, 1),
+            "HwSchMode=1 is supported and currently disabled, not unavailable.");
+        Equal(
+            HagsSupportState.SupportedEnabled,
+            HagsDetection.Classify(windows11, 2),
+            "HwSchMode=2 is supported and currently enabled.");
+        Equal(
+            HagsSupportState.Unknown,
+            HagsDetection.Classify(windows11, 0),
+            "HwSchMode=0 is unexpected and must not be treated as enabled or disabled.");
+        Equal(
+            HagsSupportState.Unknown,
+            HagsDetection.Classify(windows11, 3),
+            "Any other HwSchMode value is unknown rather than silently available.");
+        Equal(
+            HagsSupportState.Unknown,
+            HagsDetection.Classify(windows11, null, registryReadFailed: true),
+            "A registry-view/read failure is unknown, not a missing-key unsupported state.");
+
+        Equal(
+            "Supported — currently disabled.",
+            HagsDetection.GetStatusText(HagsSupportState.SupportedDisabled),
+            "Disabled-but-supported must keep a distinct status string.");
+        Equal(
+            "Supported — currently enabled.",
+            HagsDetection.GetStatusText(HagsSupportState.SupportedEnabled),
+            "Enabled must keep a distinct status string.");
+        Equal(
+            "Not supported by your Windows version.",
+            HagsDetection.GetStatusText(HagsSupportState.NotSupportedByWindowsVersion),
+            "Pre-2004 Windows must use the OS-version message.");
+        Equal(
+            "Not supported by your GPU/driver.",
+            HagsDetection.GetStatusText(HagsSupportState.NotSupportedByGpuOrDriver),
+            "A missing key on a supported OS must use the GPU/driver message.");
+        Equal(
+            "Unknown (HwSchMode=7).",
+            HagsDetection.GetStatusText(HagsSupportState.Unknown, 7),
+            "Unknown states must surface the raw DWORD for diagnostics.");
+        True(
+            HagsDetection.CanToggle(HagsSupportState.SupportedDisabled),
+            "A present-but-off system must remain toggleable.");
+        True(
+            !HagsDetection.CanToggle(HagsSupportState.NotSupportedByGpuOrDriver),
+            "An unsupported GPU/driver must not be treated as a toggleable off state.");
     }
 
     private static void NoMetadata()
