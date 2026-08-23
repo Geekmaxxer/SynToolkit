@@ -62,6 +62,7 @@ public sealed partial class ConfigPage : Page
     private async void ConfigPage_Loaded(object sender, RoutedEventArgs e)
     {
         App.ConfigurationActionSucceeded += ConfigurationActionSucceeded;
+        RefreshVisibleConfigurationStates();
 
         if (_lifetimeCancellation.IsCancellationRequested)
         {
@@ -87,6 +88,18 @@ public sealed partial class ConfigPage : Page
             if (IsLoaded && !_lifetimeCancellation.IsCancellationRequested)
             {
                 ScrollToAndHighlightItem(targetKey);
+            }
+        }
+    }
+
+    private void RefreshVisibleConfigurationStates()
+    {
+        foreach (IConfigurationItem item in _viewModel.ConfigurationItems)
+        {
+            if (item is ConfigurationItemViewModel { Key: "Hags" } hagsItem)
+            {
+                hagsItem.RefreshCurrentSetting();
+                break;
             }
         }
     }

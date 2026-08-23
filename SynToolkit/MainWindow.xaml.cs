@@ -11,6 +11,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
@@ -93,6 +94,7 @@ namespace SynToolkit
             SetTitleBar(AppTitleBar);
             SetWindowPosSize();
             InitializeAccountHeader();
+            InitializeGpuTabIcon();
             Activated += OnMainWindowActivated;
             this.Closed += AppBehaviorHelper.HandleMainWindowClosed;
 
@@ -142,6 +144,55 @@ namespace SynToolkit
             {
                 App.logger.Warn(exception, "Unable to load the navigation account header.");
             }
+        }
+
+        /// <summary>
+        /// GPU sidebar icon resolved from <see cref="GpuDetectionService"/>. Starts as the
+        /// generic GPU glyph and swaps to AMD/NVIDIA once the cached vendor result is ready.
+        /// Intel and unknown/failed detection keep the default icon.
+        /// </summary>
+        public string GpuTabIconSource { get; private set; } = GpuDetectionService.DefaultGpuIconPath;
+
+        private void InitializeGpuTabIcon()
+        {
+            try
+            {
+                ApplyGpuTabIcon(GpuDetectionService.DefaultGpuIconPath);
+                _ = LoadGpuTabIconAsync();
+            }
+            catch (Exception exception)
+            {
+                App.logger.Warn(exception, "Unable to initialize the GPU navigation icon.");
+            }
+        }
+
+        private async Task LoadGpuTabIconAsync()
+        {
+            try
+            {
+                string iconPath = await Task.Run(() => GpuDetectionService.GetGpuTabIconPath());
+                DispatcherQueue.TryEnqueue(() => ApplyGpuTabIcon(iconPath));
+            }
+            catch (Exception exception)
+            {
+                App.logger.Warn(exception, "Unable to resolve the GPU navigation icon.");
+                DispatcherQueue.TryEnqueue(() => ApplyGpuTabIcon(GpuDetectionService.DefaultGpuIconPath));
+            }
+        }
+
+        private void ApplyGpuTabIcon(string iconPath)
+        {
+            string resolvedPath = Uri.TryCreate(iconPath, UriKind.Absolute, out _)
+                ? iconPath
+                : GpuDetectionService.DefaultGpuIconPath;
+
+            GpuTabIconSource = resolvedPath;
+            if (GpuTabIcon is null)
+            {
+                return;
+            }
+
+            GpuTabIcon.Source = new BitmapImage(new Uri(resolvedPath));
         }
 
         private void SubscribeToConfigurationChanges()

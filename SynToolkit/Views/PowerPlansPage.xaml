@@ -4,12 +4,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:SynToolkit.Views"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Loaded="Page_Loaded"
-    Unloaded="Page_Unloaded"
-    mc:Ignorable="d">
+    Unloaded="Page_Unloaded">
 
     <Page.Resources>
         <Style x:Key="CategoryTitle" TargetType="TextBlock">
@@ -21,10 +18,31 @@
 
     <ScrollViewer>
         <StackPanel Margin="55,0,0,48">
-            <TextBlock
-                Margin="0,24,36,8"
-                Style="{StaticResource TitleTextBlockStyle}"
-                Text="Power plans" local:LocalizedText.TextKey="PowerPlansPageText2EC4CBA35614" />
+            <Grid Margin="0,24,36,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    Text="Power plans" local:LocalizedText.TextKey="PowerPlansPageText2EC4CBA35614" />
+                <StackPanel
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                        x:Name="RestorePreviousButton"
+                        Click="RestorePreviousButton_Click"
+                        Content="Restore Previous" local:LocalizedText.ContentKey="PowerPlansPageHeader89FC59E6657A"
+                        ToolTipService.ToolTip="Return to the plan that was active before the last SynToolkit import or activation." />
+                    <Button
+                        x:Name="RefreshButton"
+                        Click="RefreshButton_Click"
+                        Content="Refresh" local:LocalizedText.ContentKey="PowerPlansPageContent7AEA1A0ACF33" />
+                </StackPanel>
+            </Grid>
             <TextBlock
                 Margin="0,0,36,24"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -54,7 +72,15 @@
                 Severity="Informational"
                 Title="Safe, explicit import" local:LocalizedText.TitleKey="PowerPlansPageTitleBC4F98976E4B" />
 
-            <TextBlock Style="{StaticResource CategoryTitle}" Text="Status" local:LocalizedText.TextKey="PowerPlansPageText586894BC9EF1" />
+            <TextBlock
+                Margin="0,0,36,18"
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}">
+                <Run Text="Want to create your own?" />
+                <Hyperlink NavigateUri="https://www.youtube.com/watch?v=GJ3omzm-CYU">Watch the tutorial →</Hyperlink>
+            </TextBlock>
+
+            <TextBlock Style="{StaticResource CategoryTitle}" Text="Currently active" local:LocalizedText.TextKey="PowerPlansPageText586894BC9EF1" />
             <controls:SettingsCard
                 Header="Current power plan" local:LocalizedText.HeaderKey="PowerPlansPageHeader9EF26DE51104"
                 Description="The plan Windows is using right now." local:LocalizedText.DescriptionKey="PowerPlansPageDescription320073B0E4BC"
@@ -72,33 +98,65 @@
                             x:Name="CurrentPlanName"
                             FontWeight="SemiBold"
                             Text="Reading Windows power settings..." local:LocalizedText.TextKey="PowerPlansPageText24F29FA5EA9E"
-                            TextTrimming="CharacterEllipsis" />
+                            TextWrapping="Wrap" />
                         <TextBlock
                             x:Name="CurrentPlanId"
                             FontFamily="Consolas"
                             FontSize="11"
                             Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                            TextTrimming="CharacterEllipsis" />
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            x:Name="PreviousPlanState"
+                            Margin="0,4,0,0"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="No previous plan has been recorded." local:LocalizedText.TextKey="PowerPlansPageText49DC49CF4885"
+                            TextWrapping="Wrap" />
                     </StackPanel>
-                    <StackPanel
+                    <ProgressRing
+                        x:Name="StatusProgressRing"
                         Grid.Column="1"
+                        Width="18"
+                        Height="18"
                         Margin="16,0,0,0"
                         VerticalAlignment="Center"
-                        Orientation="Horizontal"
-                        Spacing="10">
-                        <ProgressRing
-                            x:Name="StatusProgressRing"
-                            Width="18"
-                            Height="18"
-                            IsActive="False"
-                            Visibility="Collapsed" />
-                        <Button
-                            x:Name="RefreshButton"
-                            Click="RefreshButton_Click"
-                            Content="Refresh" local:LocalizedText.ContentKey="PowerPlansPageContent7AEA1A0ACF33" />
-                    </StackPanel>
+                        IsActive="False"
+                        Visibility="Collapsed" />
                 </Grid>
             </controls:SettingsCard>
+
+            <controls:SettingsExpander
+                Header="Recovery" local:LocalizedText.HeaderKey="PowerPlansPageHeader3F93D5248728"
+                Description="Return to the plan you were using before, or select Windows Balanced." local:LocalizedText.DescriptionKey="PowerPlansPageDescriptionCF5ED4E3758A"
+                Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
+                <controls:SettingsExpander.HeaderIcon>
+                    <ImageIcon Source="ms-appx:///assets/Icons/Update.png" />
+                </controls:SettingsExpander.HeaderIcon>
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard
+                        Header="Windows Balanced" local:LocalizedText.HeaderKey="PowerPlansPageHeader9C530FD0F4A6"
+                        Description="Activates the standard Windows Balanced plan." local:LocalizedText.DescriptionKey="PowerPlansPageDescription4F78D5A8D023">
+                        <Button
+                            x:Name="ActivateBalancedButton"
+                            Click="ActivateBalancedButton_Click"
+                            Content="Activate Balanced" local:LocalizedText.ContentKey="PowerPlansPageContent8783830A1560" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard
+                        Header="Windows power settings" local:LocalizedText.HeaderKey="PowerPlansPageHeaderD277261A7D71"
+                        Description="Open the Windows Settings power and sleep page." local:LocalizedText.DescriptionKey="PowerPlansPageDescription044496606394">
+                        <Button
+                            Click="OpenPowerSettingsButton_Click"
+                            Content="Open settings" local:LocalizedText.ContentKey="PowerPlansPageContent2D89BEEF4648" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard
+                        Header="Restore default power plans" local:LocalizedText.HeaderKey="PowerPlansPageHeader812CAC4AAD68"
+                        Description="Resets every Windows power plan to its default configuration, removing SynToolkit's plan and any other custom plans. This cannot be undone." local:LocalizedText.DescriptionKey="PowerPlansPageDescription05CCD93E4D67">
+                        <Button
+                            x:Name="RestoreDefaultSchemesButton"
+                            Click="RestoreDefaultSchemesButton_Click"
+                            Content="Restore defaults" local:LocalizedText.ContentKey="PowerPlansPageContent38E36992B8A4" />
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
 
             <TextBlock Style="{StaticResource CategoryTitle}" Text="Manage plans" local:LocalizedText.TextKey="PowerPlansPageTextC5BE90F1D6A5" />
             <controls:SettingsExpander
@@ -160,7 +218,7 @@
                     Content="Choose .pow file" local:LocalizedText.ContentKey="PowerPlansPageContent3F40A12565D0" />
             </controls:SettingsCard>
 
-            <Grid Margin="0,8,36,16">
+            <Grid Margin="0,8,36,12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -172,44 +230,26 @@
                         Text="Bundled power plans" local:LocalizedText.TextKey="PowerPlansPageText5AEE5ED5062B" />
                     <TextBlock
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="Pre-packaged power plans from the community. Select one to import and activate it." local:LocalizedText.TextKey="PowerPlansPageText8B0EFF361274" />
+                        Text="Pre-packaged power plans from the community. Select one to import and activate it." local:LocalizedText.TextKey="PowerPlansPageText8B0EFF361274"
+                        TextWrapping="Wrap" />
                 </StackPanel>
-                <StackPanel
+                <Button
+                    x:Name="RefreshBundledPlansButton"
                     Grid.Column="1"
-                    Orientation="Horizontal"
-                    Spacing="8">
-                    <Button
-                        x:Name="RefreshBundledPlansButton"
-                        Click="RefreshBundledPlansButton_Click"
-                        Content="Refresh" local:LocalizedText.ContentKey="PowerPlansPageContent7AEA1A0ACF33" />
-                    <Button
-                        x:Name="ListViewButton"
-                        Width="32"
-                        Height="32"
-                        Padding="0"
-                        Click="ListViewButton_Click"
-                        ToolTipService.ToolTip="List view">
-                        <FontIcon FontSize="14" Glyph="&#xE8FD;" />
-                    </Button>
-                    <Button
-                        x:Name="GridViewButton"
-                        Width="32"
-                        Height="32"
-                        Padding="0"
-                        Click="GridViewButton_Click"
-                        ToolTipService.ToolTip="Grid view">
-                        <FontIcon FontSize="14" Glyph="&#xE8A9;" />
-                    </Button>
-                </StackPanel>
+                    VerticalAlignment="Center"
+                    Click="RefreshBundledPlansButton_Click"
+                    Content="Refresh" local:LocalizedText.ContentKey="PowerPlansPageContent7AEA1A0ACF33" />
             </Grid>
 
-            <TextBlock
-                Margin="0,0,36,12"
-                FontSize="12"
-                Foreground="{ThemeResource TextFillColorTertiaryBrush}">
-                <Run Text="Want to create your own?" />
-                <Hyperlink NavigateUri="https://www.youtube.com/watch?v=GJ3omzm-CYU">Watch the tutorial →</Hyperlink>
-            </TextBlock>
+            <AutoSuggestBox
+                x:Name="BundledPlansSearchBox"
+                Margin="0,0,36,16"
+                PlaceholderText="Search power plans"
+                TextChanged="BundledPlansSearchBox_TextChanged">
+                <AutoSuggestBox.QueryIcon>
+                    <FontIcon Glyph="&#xE721;" />
+                </AutoSuggestBox.QueryIcon>
+            </AutoSuggestBox>
 
             <StackPanel
                 x:Name="BundledPlansEmptyState"
@@ -217,11 +257,20 @@
                 Visibility="Collapsed">
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Text="No bundled power plans found. The Assets\PowerPlans folder may be missing." local:LocalizedText.TextKey="PowerPlansPageText0920E57AFDEA"
+                    Text="No power plans available. The Assets\PowerPlans folder may be missing." local:LocalizedText.TextKey="PowerPlansPageText0920E57AFDEA"
                     TextWrapping="Wrap" />
             </StackPanel>
 
-            <!-- List View (default) -->
+            <StackPanel
+                x:Name="BundledPlansNoMatchesState"
+                Margin="0,0,36,18"
+                Visibility="Collapsed">
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Text="No power plans match your search."
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
             <ItemsControl
                 x:Name="BundledPlansListView"
                 Margin="0,0,36,18">
@@ -247,115 +296,6 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-
-            <!-- Grid View -->
-            <ItemsControl
-                x:Name="BundledPlansGridView"
-                Margin="0,0,36,18"
-                Visibility="Collapsed">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <ItemsWrapGrid
-                            ItemWidth="280"
-                            MaximumRowsOrColumns="4"
-                            Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border
-                            Margin="0,0,8,8"
-                            Padding="14"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <ImageIcon
-                                        Width="20"
-                                        Height="20"
-                                        Source="ms-appx:///assets/Icons/Energy.png" />
-                                    <TextBlock
-                                        FontSize="14"
-                                        FontWeight="SemiBold"
-                                        Text="{Binding DisplayName}"
-                                        TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
-                                <TextBlock
-                                    Grid.Row="1"
-                                    Margin="0,6,0,10"
-                                    MaxLines="2"
-                                    FontSize="12"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Text="{Binding Description}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="Wrap"
-                                    ToolTipService.ToolTip="{Binding Description}" />
-                                <Button
-                                    Grid.Row="2"
-                                    HorizontalAlignment="Stretch"
-                                    Click="ImportBundledPlanButton_Click"
-                                    Content="Import and activate" local:LocalizedText.ContentKey="PowerPlansPageContentD405C33784A6"
-                                    Tag="{Binding}" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
-            <controls:SettingsExpander
-                Header="Recovery" local:LocalizedText.HeaderKey="PowerPlansPageHeader3F93D5248728"
-                Description="Return to the plan you were using before, or select Windows Balanced." local:LocalizedText.DescriptionKey="PowerPlansPageDescriptionCF5ED4E3758A"
-                Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
-                <controls:SettingsExpander.HeaderIcon>
-                    <ImageIcon Source="ms-appx:///assets/Icons/Update.png" />
-                </controls:SettingsExpander.HeaderIcon>
-                <TextBlock
-                    x:Name="PreviousPlanState"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="No previous plan has been recorded." local:LocalizedText.TextKey="PowerPlansPageText49DC49CF4885"
-                    TextTrimming="CharacterEllipsis"
-                    TextWrapping="Wrap" />
-                <controls:SettingsExpander.Items>
-                    <controls:SettingsCard
-                        Header="Restore previous plan" local:LocalizedText.HeaderKey="PowerPlansPageHeader89FC59E6657A"
-                        Description="Returns to the plan that was active before the last SynToolkit import or activation." local:LocalizedText.DescriptionKey="PowerPlansPageDescription5C7E9ABF6892">
-                        <Button
-                            x:Name="RestorePreviousButton"
-                            Click="RestorePreviousButton_Click"
-                            Content="Restore" local:LocalizedText.ContentKey="PowerPlansPageContent772D7B9C2CDC" />
-                    </controls:SettingsCard>
-                    <controls:SettingsCard
-                        Header="Windows Balanced" local:LocalizedText.HeaderKey="PowerPlansPageHeader9C530FD0F4A6"
-                        Description="Activates the standard Windows Balanced plan." local:LocalizedText.DescriptionKey="PowerPlansPageDescription4F78D5A8D023">
-                        <Button
-                            x:Name="ActivateBalancedButton"
-                            Click="ActivateBalancedButton_Click"
-                            Content="Activate Balanced" local:LocalizedText.ContentKey="PowerPlansPageContent8783830A1560" />
-                    </controls:SettingsCard>
-                    <controls:SettingsCard
-                        Header="Windows power settings" local:LocalizedText.HeaderKey="PowerPlansPageHeaderD277261A7D71"
-                        Description="Open the Windows Settings power and sleep page." local:LocalizedText.DescriptionKey="PowerPlansPageDescription044496606394">
-                        <Button
-                            Click="OpenPowerSettingsButton_Click"
-                            Content="Open settings" local:LocalizedText.ContentKey="PowerPlansPageContent2D89BEEF4648" />
-                    </controls:SettingsCard>
-                    <controls:SettingsCard
-                        Header="Restore default power plans" local:LocalizedText.HeaderKey="PowerPlansPageHeader812CAC4AAD68"
-                        Description="Resets every Windows power plan to its default configuration, removing SynToolkit's plan and any other custom plans. This cannot be undone." local:LocalizedText.DescriptionKey="PowerPlansPageDescription05CCD93E4D67">
-                        <Button
-                            x:Name="RestoreDefaultSchemesButton"
-                            Click="RestoreDefaultSchemesButton_Click"
-                            Content="Restore defaults" local:LocalizedText.ContentKey="PowerPlansPageContent38E36992B8A4" />
-                    </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
 
         </StackPanel>
     </ScrollViewer>

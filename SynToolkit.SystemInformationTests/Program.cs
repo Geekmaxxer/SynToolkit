@@ -58,6 +58,9 @@ internal static class Program
         Run("Malformed legacy profiles are rejected", MalformedLegacyProfilesAreRejected);
         Run("Oversized legacy profiles are rejected", OversizedLegacyProfileIsRejected);
         Run("NVIDIA profile export preserves imported settings", NvidiaProfileExportRoundTrips);
+        Run("GPU vendors are classified from PCI IDs and names", GpuVendorClassificationMatchesPciIdsAndNames);
+        Run("Primary GPU vendor prefers discrete adapters", PrimaryGpuVendorPrefersDiscreteGpu);
+        Run("HAGS states are classified safely", HagsClassificationDistinguishesStates);
         Run("Fragmented onboard memory chips are labeled", FragmentedOnboardMemoryChipsAreLabeled);
         Run("Identified desktop DIMMs stay separate", IdentifiedDesktopDimmsStaySeparate);
         Run("CPU-Z memory timings are parsed", CpuZMemoryTimingsAreParsed);
@@ -69,6 +72,74 @@ internal static class Program
             ? "All SynToolkit service tests passed."
             : $"{_failures} SynToolkit service test(s) failed.");
         return _failures == 0 ? 0 : 1;
+    }
+
+    private static void GpuVendorClassificationMatchesPciIdsAndNames()
+    {
+        Equal(
+            GpuVendor.Nvidia,
+            GpuVendorClassification.GetVendor("NVIDIA GeForce RTX 4070", @"PCI\VEN_10DE&DEV_2786"),
+            "NVIDIA PCI vendor IDs must classify as NVIDIA.");
+        Equal(
+            GpuVendor.Amd,
+            GpuVendorClassification.GetVendor("Radeon RX 7800 XT", string.Empty),
+            "Radeon adapter names must classify as AMD when the PCI ID is missing.");
+        Equal(
+            GpuVendor.Intel,
+            GpuVendorClassification.GetVendor("Intel(R) UHD Graphics", @"PCI\VEN_8086&DEV_46A6"),
+            "Intel PCI vendor IDs must classify as Intel.");
+        Equal(
+            GpuVendor.Unknown,
+            GpuVendorClassification.GetVendor("Microsoft Basic Display Adapter", @"PCI\VEN_1414"),
+            "The Microsoft Basic Display Adapter must not be treated as a real GPU.");
+        Equal(
+            GpuVendorClassification.DefaultGpuIconPath,
+            GpuVendorClassification.GetGpuTabIconPath(GpuVendor.Intel),
+            "Intel systems must keep the generic GPU navigation icon.");
+    }
+
+    private static void PrimaryGpuVendorPrefersDiscreteGpu()
+    {
+        Equal(
+            GpuVendor.Nvidia,
+            GpuVendorClassification.GetPrimaryGpuVendor(
+            [
+                ("Intel(R) UHD Graphics", GpuVendor.Intel),
+                ("NVIDIA GeForce RTX 4070", GpuVendor.Nvidia),
+            ]),
+            "A laptop with Intel integrated graphics and NVIDIA discrete graphics must prefer NVIDIA.");
+        Equal(
+            GpuVendor.Amd,
+            GpuVendorClassification.GetPrimaryGpuVendor(
+            [
+                ("Intel(R) Iris Xe Graphics", GpuVendor.Intel),
+                ("AMD Radeon RX 7600M", GpuVendor.Amd),
+            ]),
+            "A laptop with Intel integrated graphics and AMD discrete graphics must prefer AMD.");
+    }
+
+    private static void HagsClassificationDistinguishesStates()
+    {
+        Equal(
+            HagsSupportState.NotSupportedByWindowsVersion,
+            HagsDetection.Classify(18363, null),
+            "Windows builds before version 2004 must report HAGS as unsupported by Windows.");
+        Equal(
+            HagsSupportState.NotSupportedByGpuOrDriver,
+            HagsDetection.Classify(HagsDetection.MinimumWindowsBuild, null),
+            "A missing HwSchMode on a supported Windows build means the GPU or driver does not support HAGS.");
+        Equal(
+            HagsSupportState.SupportedDisabled,
+            HagsDetection.Classify(26100, 1),
+            "HwSchMode=1 must be treated as supported but disabled.");
+        Equal(
+            HagsSupportState.SupportedEnabled,
+            HagsDetection.Classify(26100, 2),
+            "HwSchMode=2 must be treated as supported and enabled.");
+        Equal(
+            HagsSupportState.Unknown,
+            HagsDetection.Classify(26100, null, registryReadFailed: true),
+            "Registry read failures must remain unknown rather than being mislabeled as unsupported.");
     }
 
     private static void FragmentedOnboardMemoryChipsAreLabeled()

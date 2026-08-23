@@ -1,10 +1,17 @@
 #nullable enable
 
+using SynToolkit.Services;
+
 namespace SynToolkit.Models
 {
     public sealed record CpuSpec(string Name, int Cores, int LogicalProcessors, uint MaxClockSpeedMHz);
 
-    public sealed record GpuSpec(string Name, ulong? AdapterRamBytes, string? DriverVersion, string IconPath);
+    public sealed record GpuSpec(
+        string Name,
+        ulong? AdapterRamBytes,
+        string? DriverVersion,
+        string IconPath,
+        GpuVendor Vendor);
 
     public sealed record MemoryModuleSpec(
         string? Manufacturer,
