@@ -2,6 +2,7 @@
     "en_us":  "English (United States)",
     "es_es":  "Español (España)",
     "fr_fr":  "Français (France)",
+    "de_de":  "Deutsch (Deutschland)",
     "pt_br":  "Português (Brasil)",
     "pt_pt":  "Português (Portugal)",
     "ru_ru":  "Русский (Россия)",
@@ -9,5 +10,6 @@
     "zh_cn":  "简体中文 (Chinese Simplified)",
     "vi_vn": "Tiếng Việt",
     "ja_jp": "日本語 (Japan)",
-    "ko_kr": "한국어 (Korea)"
+    "ko_kr": "한국어 (Korea)"    
 }
+
