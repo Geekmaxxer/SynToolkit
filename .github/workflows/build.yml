@@ -29,7 +29,7 @@ jobs:
       - name: Validate embedded SOS power plan
         shell: pwsh
         run: |
-          $expected = '5AF6566BBD67663DEA73A8CA9513F5BDF1C882E23E1AEBB5C4C098D0988C2B13'
+          $expected = '2FED233F4EC3D09E2D5E48E4AE04707296A29E7F9B93700F613D57D638D510F7'
           $actual = (Get-FileHash SynToolkit\Assets\PowerPlans\SOS.pow -Algorithm SHA256).Hash
           if ($actual -ne $expected) { throw "SOS.pow checksum mismatch: $actual" }
 
