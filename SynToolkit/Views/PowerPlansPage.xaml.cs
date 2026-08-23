@@ -5,7 +5,9 @@ using Microsoft.UI.Xaml.Controls;
 using SynToolkit.Services;
 using SynToolkit.Utils;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,82 +15,65 @@ namespace SynToolkit.Views
 {
     public sealed partial class PowerPlansPage : Page
     {
-        private const string TutorialVideoUrl = "https://www.youtube.com/watch?v=GJ3omzm-CYU";
-        
         private readonly PowerPlanService _powerPlanService = new();
         private CancellationTokenSource _lifetimeCancellation = new();
         private PowerPlanSnapshot? _snapshot;
         private bool _isBusy = true;
         private bool _isPageLoaded;
         private int _lifetimeVersion;
-        private bool _isGridView;
+        private IReadOnlyList<BundledPowerPlan> _allBundledPlans = Array.Empty<BundledPowerPlan>();
 
         public PowerPlansPage()
         {
             InitializeComponent();
             LoadBundledPlans();
-            UpdateViewModeButtons();
         }
 
         private void LoadBundledPlans()
         {
-            var bundledPlans = _powerPlanService.GetBundledPlans();
-            if (bundledPlans.Count > 0)
+            _allBundledPlans = _powerPlanService.GetBundledPlans();
+            ApplyBundledPlansFilter();
+        }
+
+        private void BundledPlansSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             {
-                BundledPlansListView.ItemsSource = bundledPlans;
-                BundledPlansGridView.ItemsSource = bundledPlans;
-                UpdateViewModeVisibility();
-                BundledPlansEmptyState.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                BundledPlansListView.Visibility = Visibility.Collapsed;
-                BundledPlansGridView.Visibility = Visibility.Collapsed;
-                BundledPlansEmptyState.Visibility = Visibility.Visible;
+                ApplyBundledPlansFilter();
             }
         }
-        
-        private void UpdateViewModeVisibility()
+
+        private void ApplyBundledPlansFilter()
         {
-            BundledPlansListView.Visibility = _isGridView ? Visibility.Collapsed : Visibility.Visible;
-            BundledPlansGridView.Visibility = _isGridView ? Visibility.Visible : Visibility.Collapsed;
+            string query = BundledPlansSearchBox?.Text?.Trim() ?? string.Empty;
+            IReadOnlyList<BundledPowerPlan> matches = FilterBundledPlans(_allBundledPlans, query);
+
+            BundledPlansListView.ItemsSource = matches;
+
+            bool folderEmpty = _allBundledPlans.Count == 0;
+            bool noMatches = !folderEmpty && matches.Count == 0;
+
+            BundledPlansEmptyState.Visibility = folderEmpty ? Visibility.Visible : Visibility.Collapsed;
+            BundledPlansNoMatchesState.Visibility = noMatches ? Visibility.Visible : Visibility.Collapsed;
+            BundledPlansListView.Visibility = matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
-        
-        private void UpdateViewModeButtons()
+
+        internal static IReadOnlyList<BundledPowerPlan> FilterBundledPlans(
+            IReadOnlyList<BundledPowerPlan> plans,
+            string query)
         {
-            ListViewButton.Style = _isGridView 
-                ? null 
-                : Microsoft.UI.Xaml.Application.Current.Resources["AccentButtonStyle"] as Style;
-            GridViewButton.Style = _isGridView 
-                ? Microsoft.UI.Xaml.Application.Current.Resources["AccentButtonStyle"] as Style 
-                : null;
-        }
-        
-        private void ListViewButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (_isGridView)
+            if (string.IsNullOrWhiteSpace(query))
             {
-                _isGridView = false;
-                UpdateViewModeVisibility();
-                UpdateViewModeButtons();
+                return plans;
             }
+
+            return plans
+                .Where(plan =>
+                    plan.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    plan.Description.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
-        
-        private void GridViewButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!_isGridView)
-            {
-                _isGridView = true;
-                UpdateViewModeVisibility();
-                UpdateViewModeButtons();
-            }
-        }
-        
-        private async void WatchTutorialButton_Click(object sender, RoutedEventArgs e)
-        {
-            await Windows.System.Launcher.LaunchUriAsync(new Uri(TutorialVideoUrl));
-        }
-        
+
         private void RefreshBundledPlansButton_Click(object sender, RoutedEventArgs e)
         {
             LoadBundledPlans();
@@ -519,7 +504,6 @@ namespace SynToolkit.Views
             ActivateBalancedButton.IsEnabled = canMutate && _snapshot?.ActiveSchemeId is Guid activeSchemeId && activeSchemeId != PowerPlanService.BalancedSchemeId;
             RestoreDefaultSchemesButton.IsEnabled = canMutate;
             BundledPlansListView.IsEnabled = canMutate;
-            BundledPlansGridView.IsEnabled = canMutate;
         }
 
         /// <summary>

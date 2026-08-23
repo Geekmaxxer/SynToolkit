@@ -190,7 +190,7 @@
                 </NavigationViewItem>
                 <NavigationViewItem x:Name="Gpu" Tag="SynToolkit.Views.GpuPage">
                     <NavigationViewItem.Icon>
-                        <ImageIcon Source="ms-appx:///assets/Icons/Gpu.png" />
+                        <ImageIcon x:Name="GpuTabIcon" Source="ms-appx:///assets/Icons/Gpu.png" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem x:Name="Specs" Tag="SynToolkit.Views.SpecsPage">
