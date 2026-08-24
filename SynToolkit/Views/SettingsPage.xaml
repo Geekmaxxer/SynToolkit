@@ -52,7 +52,16 @@
                             x:Name="ConfigSwitch"
                             Width="200"
                             ItemsSource="{Binding Languages}"
-                            SelectedItem="{Binding CurrentLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                            SelectedItem="{Binding CurrentLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            ScrollViewer.VerticalScrollBarVisibility="Visible"
+                            ScrollViewer.VerticalScrollMode="Enabled">
+                            <ComboBox.Resources>
+                                <!-- Keep the language picker visibly scrollable without changing other app scrollbars. -->
+                                <Style TargetType="ScrollBar" BasedOn="{StaticResource DefaultScrollBarStyle}">
+                                    <Setter Property="Width" Value="6" />
+                                    <Setter Property="MinWidth" Value="6" />
+                                </Style>
+                            </ComboBox.Resources>
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Name}" />

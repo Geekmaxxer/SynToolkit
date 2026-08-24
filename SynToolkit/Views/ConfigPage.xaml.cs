@@ -104,6 +104,18 @@ public sealed partial class ConfigPage : Page
         }
     }
 
+    private void RefreshVisibleConfigurationStates()
+    {
+        foreach (IConfigurationItem item in _viewModel.ConfigurationItems)
+        {
+            if (item is ConfigurationItemViewModel { Key: "Hags" } hagsItem)
+            {
+                hagsItem.RefreshCurrentSetting();
+                break;
+            }
+        }
+    }
+
     private void ConfigPage_Unloaded(object sender, RoutedEventArgs e)
     {
         App.ConfigurationActionSucceeded -= ConfigurationActionSucceeded;
