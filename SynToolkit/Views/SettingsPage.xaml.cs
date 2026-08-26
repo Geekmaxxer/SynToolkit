@@ -219,22 +219,23 @@ namespace SynToolkit.Views
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is not SettingsPageViewModel vm)
-            {
-                App.logger.Error("DataContext is not a SettingsPageViewModel");
-                return;
-            }
-            
             NoUpdatesBar.Visibility = Visibility.Collapsed;
             ProgressRing.Visibility = Visibility.Visible;
+            CheckUpdateButton.IsEnabled = false;
             CancellationToken cancellationToken = _lifetimeCancellation.Token;
 
             try
             {
-                bool update = await Task.Run(() => vm.CheckUpdates(), cancellationToken);
+                SynToolkitUpdateStatus status = await SynToolkitUpdateHelper.CheckUpdatesAsync(
+                    forceRefresh: true,
+                    cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (_isPageLoaded && update)
+                if (_isPageLoaded && status.IsUpdateAvailable)
+                {
+                    App.ContentDialogCaller("newUpdate");
+                }
+                else if (_isPageLoaded)
                 {
                     NoUpdatesBar.Visibility = Visibility.Visible;
                 }
@@ -252,6 +253,7 @@ namespace SynToolkit.Views
                 if (_isPageLoaded && !cancellationToken.IsCancellationRequested)
                 {
                     ProgressRing.Visibility = Visibility.Collapsed;
+                    CheckUpdateButton.IsEnabled = true;
                 }
             }
         }

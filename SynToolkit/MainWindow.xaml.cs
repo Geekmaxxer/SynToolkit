@@ -648,7 +648,7 @@ namespace SynToolkit
                     title = App.GetValueFromItemList("NewUpdate");
                     desc = App.GetValueFromItemList("NewUpdateDesc");
                     primBtnTxt = App.GetValueFromItemList("Yes");
-                    command = new RelayCommand(SynToolkitUpdateHelper.InstallUpdate);
+                    command = new AsyncRelayCommand(SynToolkitUpdateHelper.InstallUpdateAsync);
                     break;
                 case "restartApp":
                     title = App.GetValueFromItemList("RestartApp");

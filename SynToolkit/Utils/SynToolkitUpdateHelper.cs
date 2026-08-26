@@ -99,12 +99,12 @@ namespace SynToolkit.Utils
 
         public static bool CheckUpdates() => CheckUpdatesAsync().GetAwaiter().GetResult().IsUpdateAvailable;
 
-        public static void InstallUpdate()
+        public static async Task<bool> InstallUpdateAsync(CancellationToken cancellationToken = default)
         {
-            SynToolkitUpdateStatus status = CheckUpdatesAsync().GetAwaiter().GetResult();
+            SynToolkitUpdateStatus status = await CheckUpdatesAsync(cancellationToken: cancellationToken);
             if (!status.IsUpdateAvailable || string.IsNullOrWhiteSpace(status.DownloadUrl))
             {
-                return;
+                return false;
             }
 
             try
@@ -113,26 +113,48 @@ namespace SynToolkit.Utils
                 Directory.CreateDirectory(tempDirectory);
                 string installerPath = Path.Combine(tempDirectory, "SynToolkit-Setup.exe");
 
-                using HttpResponseMessage response = Client.GetAsync(
+                using HttpResponseMessage response = await Client.GetAsync(
                     status.DownloadUrl,
-                    HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
+                    HttpCompletionOption.ResponseHeadersRead,
+                    cancellationToken);
                 response.EnsureSuccessStatusCode();
-                using Stream source = response.Content.ReadAsStream();
-                using FileStream destination = File.Create(installerPath);
-                source.CopyTo(destination);
+                await using (Stream source = await response.Content.ReadAsStreamAsync(cancellationToken))
+                await using (FileStream destination = new(
+                    installerPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 81920,
+                    FileOptions.Asynchronous | FileOptions.SequentialScan))
+                {
+                    await source.CopyToAsync(destination, cancellationToken);
+                    await destination.FlushAsync(cancellationToken);
+                }
 
-                Process.Start(new ProcessStartInfo
+                Process? installerProcess = Process.Start(new ProcessStartInfo
                 {
                     FileName = installerPath,
                     Arguments = "/SILENT /NORESTART",
+                    WorkingDirectory = tempDirectory,
                     UseShellExecute = true
                 });
 
+                if (installerProcess is null)
+                {
+                    throw new InvalidOperationException("The downloaded SynToolkit installer could not be started.");
+                }
+
                 App.ShutdownApplication();
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
             }
             catch (Exception exception)
             {
                 App.logger.Error(exception, "Failed to install the SynToolkit update.");
+                return false;
             }
         }
 
