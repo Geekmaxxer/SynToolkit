@@ -570,7 +570,13 @@
   ,
   "NeedsAttention": "Erfordert Aufmerksamkeit",
   "Installer_NvidiaAppDescription": "Offizielle NVIDIA-App für Grafiktreiber, Spieleinstellungen und NVIDIA-Funktionen.",
-  "Installer_AmdAdrenalinDescription": "Offizielle AMD-App für Radeon-Grafiktreiber, Spieleinstellungen und Leistungsfunktionen."
+  "Installer_AmdAdrenalinDescription": "Offizielle AMD-App für Radeon-Grafiktreiber, Spieleinstellungen und Leistungsfunktionen.",
+  "Installer_NvidiaControlPanelDescription": "Offizielle NVIDIA-Systemsteuerung für Anzeige-, 3D- und Treibereinstellungen.",
+  "Installer_FilterLabel": "Anzeigen",
+  "Installer_FilterAll": "Alle",
+  "Installer_FilterInstalled": "Installiert",
+  "Installer_FilterNotInstalled": "Nicht installiert",
+  "Installer_FilterNeedsUpdate": "Update verfügbar"
   ,
   "NeedsAttention_Subtitle": "Prüft auf veraltete oder fehlende Treiber und Apps, eine alte SynToolkit-Version, keinen Wiederherstellungspunkt und eine nicht synchronisierte Windows-Uhr.",
   "NeedsAttention_Refresh": "Aktualisieren",

@@ -25,7 +25,6 @@
         HorizontalScrollMode="Disabled"
         VerticalScrollBarVisibility="Auto">
         <StackPanel
-            MaxWidth="1180"
             Margin="36,28,36,56"
             HorizontalAlignment="Stretch"
             Spacing="24">
@@ -82,6 +81,27 @@
                         Text="{Binding CatalogResultsSummary, Mode=OneWay}" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Bottom" Orientation="Horizontal" Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <ToggleButton
+                            x:Name="GridInstallerViewButton"
+                            Padding="8,4"
+                            AutomationProperties.Name="Grid view"
+                            Click="InstallerViewModeButton_Click"
+                            IsChecked="True"
+                            Tag="Grid"
+                            ToolTipService.ToolTip="Grid view">
+                            <FontIcon FontSize="16" Glyph="&#xECA5;" />
+                        </ToggleButton>
+                        <ToggleButton
+                            x:Name="ListInstallerViewButton"
+                            Padding="8,4"
+                            AutomationProperties.Name="List view"
+                            Click="InstallerViewModeButton_Click"
+                            Tag="List"
+                            ToolTipService.ToolTip="List view">
+                            <FontIcon FontSize="16" Glyph="&#xE8FD;" />
+                        </ToggleButton>
+                    </StackPanel>
                     <ProgressRing
                         Width="18"
                         Height="18"
@@ -122,6 +142,14 @@
                             MinWidth="165"
                             ItemsSource="{Binding Categories, Mode=OneWay}"
                             SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Show" local:LocalizedText.TextKey="Installer_FilterLabel" />
+                        <ComboBox
+                            MinWidth="145"
+                            ItemsSource="{Binding AvailabilityFilters, Mode=OneWay}"
+                            SelectedItem="{Binding SelectedAvailabilityFilter, Mode=TwoWay}" />
                     </StackPanel>
                 </Grid>
             </Border>
@@ -278,7 +306,9 @@
                 HorizontalScrollMode="Disabled"
                 VerticalScrollBarVisibility="Auto"
                 VerticalScrollMode="Auto">
-                <ItemsRepeater ItemsSource="{Binding FeaturedInstallers, Mode=OneWay}">
+                <ItemsRepeater
+                    x:Name="FeaturedInstallersRepeater"
+                    ItemsSource="{Binding FeaturedInstallers, Mode=OneWay}">
                     <ItemsRepeater.Layout>
                         <UniformGridLayout
                             ItemsJustification="Start"
@@ -436,11 +466,7 @@
                                         </Grid>
                                     </Border>
                                 </Button>
-                                <Grid Grid.Row="3" ColumnSpacing="8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Row="3" Spacing="8">
                                     <HyperlinkButton
                                         HorizontalAlignment="Left"
                                         Padding="0"
@@ -451,34 +477,36 @@
                                             <FontIcon FontSize="11" Glyph="&#xE8A7;" />
                                         </StackPanel>
                                     </HyperlinkButton>
-                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="6">
-                                        <StackPanel
-                                            HorizontalAlignment="Right"
-                                            Orientation="Horizontal"
-                                            Spacing="8"
-                                            Visibility="{Binding CanSelect, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                                            <CheckBox
-                                                VerticalAlignment="Center"
-                                                Content="{Binding QueueSelectionText, Mode=OneWay}"
-                                                IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                ToolTipService.ToolTip="Add this app to the multi-app queue" />
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox
+                                            VerticalAlignment="Center"
+                                            Content="{Binding QueueSelectionText, Mode=OneWay}"
+                                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                            ToolTipService.ToolTip="Add this app to the multi-app queue"
+                                            Visibility="{Binding CanSelect, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="6">
                                             <Button
                                                 MinWidth="72"
                                                 Click="InstallerPrimaryAction_Click"
                                                 Content="{Binding PrimaryActionText, Mode=OneWay}"
                                                 Style="{StaticResource AccentButtonStyle}"
-                                                ToolTipService.ToolTip="Install or update this app" />
+                                                ToolTipService.ToolTip="Install or update this app"
+                                                Visibility="{Binding CanSelect, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <Button
+                                                HorizontalAlignment="Right"
+                                                MinWidth="86"
+                                                Click="InstallerUninstall_Click"
+                                                Content="{Binding UninstallActionText, Mode=OneWay}"
+                                                IsEnabled="{Binding IsUninstallButtonEnabled, Mode=OneWay}"
+                                                ToolTipService.ToolTip="Uninstall this app"
+                                                Visibility="{Binding CanUninstall, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
                                         </StackPanel>
-                                        <Button
-                                            HorizontalAlignment="Right"
-                                            MinWidth="86"
-                                            Click="InstallerUninstall_Click"
-                                            Content="{Binding UninstallActionText, Mode=OneWay}"
-                                            IsEnabled="{Binding IsUninstallButtonEnabled, Mode=OneWay}"
-                                            ToolTipService.ToolTip="Uninstall this app"
-                                            Visibility="{Binding CanUninstall, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                    </StackPanel>
-                                </Grid>
+                                    </Grid>
+                                </StackPanel>
                             </Grid>
                         </Border>
                     </DataTemplate>

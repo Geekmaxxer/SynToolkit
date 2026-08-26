@@ -648,7 +648,13 @@
   ,
   "NeedsAttention": "Nécessite votre attention",
   "Installer_NvidiaAppDescription": "Application NVIDIA officielle pour les pilotes graphiques, les paramètres de jeu et les fonctionnalités NVIDIA.",
-  "Installer_AmdAdrenalinDescription": "Application AMD officielle pour les pilotes graphiques Radeon, les paramètres de jeu et les fonctions de performance."
+  "Installer_AmdAdrenalinDescription": "Application AMD officielle pour les pilotes graphiques Radeon, les paramètres de jeu et les fonctions de performance.",
+  "Installer_NvidiaControlPanelDescription": "Panneau de configuration NVIDIA officiel pour les paramètres d'affichage, 3D et pilotes.",
+  "Installer_FilterLabel": "Afficher",
+  "Installer_FilterAll": "Toutes",
+  "Installer_FilterInstalled": "Installées",
+  "Installer_FilterNotInstalled": "Non installées",
+  "Installer_FilterNeedsUpdate": "Mise à jour disponible"
   ,
   "NeedsAttention_Subtitle": "Vérifie les pilotes et applications obsolètes ou manquants, une ancienne version de SynToolkit, l'absence de point de restauration et une horloge Windows désynchronisée.",
   "NeedsAttention_Refresh": "Actualiser",

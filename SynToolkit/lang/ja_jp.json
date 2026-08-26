@@ -648,7 +648,13 @@
   ,
   "NeedsAttention": "要確認",
   "Installer_NvidiaAppDescription": "グラフィックス ドライバー、ゲーム設定、NVIDIA 機能のための公式 NVIDIA アプリです。",
-  "Installer_AmdAdrenalinDescription": "Radeon グラフィックス ドライバー、ゲーム設定、パフォーマンス機能のための公式 AMD アプリです。"
+  "Installer_AmdAdrenalinDescription": "Radeon グラフィックス ドライバー、ゲーム設定、パフォーマンス機能のための公式 AMD アプリです。",
+  "Installer_NvidiaControlPanelDescription": "ディスプレイ、3D、ドライバー設定用の公式 NVIDIA コントロール パネル。",
+  "Installer_FilterLabel": "表示",
+  "Installer_FilterAll": "すべて",
+  "Installer_FilterInstalled": "インストール済み",
+  "Installer_FilterNotInstalled": "未インストール",
+  "Installer_FilterNeedsUpdate": "更新あり"
   ,
   "NeedsAttention_Subtitle": "古いまたは不足しているドライバーとアプリ、古い SynToolkit バージョン、復元ポイントの不在、同期されていない Windows の時計を確認します。",
   "NeedsAttention_Refresh": "更新",

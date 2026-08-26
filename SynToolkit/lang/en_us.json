@@ -647,7 +647,13 @@
   "RadeonSlimmer_OptimizationNoMatch": "This import doesn't match a recognized AMD package layout, so no optimization was applied. You can still configure settings manually.",
   "NeedsAttention": "Needs attention",
   "Installer_NvidiaAppDescription": "Official NVIDIA app for graphics drivers, game settings, and NVIDIA features.",
-  "Installer_AmdAdrenalinDescription": "Official AMD app for Radeon graphics drivers, game settings, and performance features."
+  "Installer_AmdAdrenalinDescription": "Official AMD app for Radeon graphics drivers, game settings, and performance features.",
+  "Installer_NvidiaControlPanelDescription": "Official NVIDIA Control Panel for display, 3D, and driver settings.",
+  "Installer_FilterLabel": "Show",
+  "Installer_FilterAll": "All",
+  "Installer_FilterInstalled": "Installed",
+  "Installer_FilterNotInstalled": "Not installed",
+  "Installer_FilterNeedsUpdate": "Needs update"
   ,
   "NeedsAttention_Subtitle": "Checks for out-of-date/missing drivers and apps, old SynToolkit version, no restore point, and out-of-sync Windows time.",
   "NeedsAttention_Refresh": "Refresh",

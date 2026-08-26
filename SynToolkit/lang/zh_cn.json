@@ -648,7 +648,13 @@
   ,
   "NeedsAttention": "需要注意",
   "Installer_NvidiaAppDescription": "用于图形驱动程序、游戏设置和 NVIDIA 功能的官方 NVIDIA 应用。",
-  "Installer_AmdAdrenalinDescription": "用于 Radeon 图形驱动程序、游戏设置和性能功能的官方 AMD 应用。"
+  "Installer_AmdAdrenalinDescription": "用于 Radeon 图形驱动程序、游戏设置和性能功能的官方 AMD 应用。",
+  "Installer_NvidiaControlPanelDescription": "用于显示、3D 和驱动程序设置的官方 NVIDIA 控制面板。",
+  "Installer_FilterLabel": "显示",
+  "Installer_FilterAll": "全部",
+  "Installer_FilterInstalled": "已安装",
+  "Installer_FilterNotInstalled": "未安装",
+  "Installer_FilterNeedsUpdate": "需要更新"
   ,
   "NeedsAttention_Subtitle": "检查过期或缺失的驱动程序和应用、旧版 SynToolkit、没有还原点以及未同步的 Windows 时钟。",
   "NeedsAttention_Refresh": "刷新",

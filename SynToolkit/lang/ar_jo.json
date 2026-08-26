@@ -568,7 +568,13 @@
   ,
   "NeedsAttention": "يتطلب الانتباه",
   "Installer_NvidiaAppDescription": "تطبيق NVIDIA الرسمي لتعريفات الرسومات وإعدادات الألعاب وميزات NVIDIA.",
-  "Installer_AmdAdrenalinDescription": "تطبيق AMD الرسمي لتعريفات Radeon الرسومية وإعدادات الألعاب وميزات الأداء."
+  "Installer_AmdAdrenalinDescription": "تطبيق AMD الرسمي لتعريفات Radeon الرسومية وإعدادات الألعاب وميزات الأداء.",
+  "Installer_NvidiaControlPanelDescription": "لوحة تحكم NVIDIA الرسمية لإعدادات العرض وثلاثية الأبعاد وبرامج التشغيل.",
+  "Installer_FilterLabel": "إظهار",
+  "Installer_FilterAll": "الكل",
+  "Installer_FilterInstalled": "مثبت",
+  "Installer_FilterNotInstalled": "غير مثبت",
+  "Installer_FilterNeedsUpdate": "يحتاج إلى تحديث"
   ,
   "NeedsAttention_Subtitle": "يفحص برامج التشغيل والتطبيقات القديمة أو المفقودة، وإصدار SynToolkit القديم، وعدم وجود نقطة استعادة، وعدم تزامن ساعة Windows.",
   "NeedsAttention_Refresh": "تحديث",

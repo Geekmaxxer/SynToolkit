@@ -648,7 +648,13 @@
   ,
   "NeedsAttention": "Cần chú ý",
   "Installer_NvidiaAppDescription": "Ứng dụng NVIDIA chính thức cho trình điều khiển đồ họa, cài đặt trò chơi và các tính năng NVIDIA.",
-  "Installer_AmdAdrenalinDescription": "Ứng dụng AMD chính thức cho trình điều khiển đồ họa Radeon, cài đặt trò chơi và các tính năng hiệu năng."
+  "Installer_AmdAdrenalinDescription": "Ứng dụng AMD chính thức cho trình điều khiển đồ họa Radeon, cài đặt trò chơi và các tính năng hiệu năng.",
+  "Installer_NvidiaControlPanelDescription": "Bảng điều khiển NVIDIA chính thức cho cài đặt hiển thị, 3D và trình điều khiển.",
+  "Installer_FilterLabel": "Hiển thị",
+  "Installer_FilterAll": "Tất cả",
+  "Installer_FilterInstalled": "Đã cài đặt",
+  "Installer_FilterNotInstalled": "Chưa cài đặt",
+  "Installer_FilterNeedsUpdate": "Cần cập nhật"
   ,
   "NeedsAttention_Subtitle": "Kiểm tra trình điều khiển và ứng dụng lỗi thời hoặc bị thiếu, phiên bản SynToolkit cũ, không có điểm khôi phục và đồng hồ Windows không đồng bộ.",
   "NeedsAttention_Refresh": "Làm mới",

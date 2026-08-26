@@ -18,12 +18,15 @@ namespace SynToolkit.Views
     {
         private readonly AppFetchPageViewModel _viewModel;
         private CancellationTokenSource _lifetimeCancellation = new();
+        private readonly StackLayout _installerListLayout = new() { Spacing = 12 };
+        private UniformGridLayout _installerGridLayout;
         private bool _hasLoadedInstallerStates;
         private bool _isListeningForUpdateCount;
 
         public AppFetchPage()
         {
             InitializeComponent();
+            _installerGridLayout = FeaturedInstallersRepeater.Layout as UniformGridLayout;
             _viewModel = App._host.Services.GetRequiredService<AppFetchPageViewModel>();
             DataContext = _viewModel;
             NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
@@ -130,6 +133,24 @@ namespace SynToolkit.Views
             {
                 card.Background = originalBackground;
             }
+        }
+
+        private void InstallerViewModeButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool useGridView = ReferenceEquals(sender, GridInstallerViewButton);
+            GridInstallerViewButton.IsChecked = useGridView;
+            ListInstallerViewButton.IsChecked = !useGridView;
+            FeaturedInstallersRepeater.Layout = useGridView
+                ? _installerGridLayout ?? new UniformGridLayout
+                {
+                    ItemsJustification = UniformGridLayoutItemsJustification.Start,
+                    ItemsStretch = UniformGridLayoutItemsStretch.Fill,
+                    MinColumnSpacing = 12,
+                    MinItemHeight = 268,
+                    MinItemWidth = 270,
+                    MinRowSpacing = 12
+                }
+                : _installerListLayout;
         }
 
         private async void InstallerUninstall_Click(object sender, RoutedEventArgs e)

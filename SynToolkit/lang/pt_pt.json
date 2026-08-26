@@ -648,7 +648,13 @@
   ,
   "NeedsAttention": "Requer atenção",
   "Installer_NvidiaAppDescription": "Aplicação oficial da NVIDIA para controladores gráficos, definições de jogos e funcionalidades NVIDIA.",
-  "Installer_AmdAdrenalinDescription": "Aplicação oficial da AMD para controladores gráficos Radeon, definições de jogos e funcionalidades de desempenho."
+  "Installer_AmdAdrenalinDescription": "Aplicação oficial da AMD para controladores gráficos Radeon, definições de jogos e funcionalidades de desempenho.",
+  "Installer_NvidiaControlPanelDescription": "Painel de Controlo NVIDIA oficial para definições de ecrã, 3D e controladores.",
+  "Installer_FilterLabel": "Mostrar",
+  "Installer_FilterAll": "Todos",
+  "Installer_FilterInstalled": "Instalados",
+  "Installer_FilterNotInstalled": "Não instalados",
+  "Installer_FilterNeedsUpdate": "Atualização disponível"
   ,
   "NeedsAttention_Subtitle": "Verifica controladores e aplicações desatualizados ou em falta, uma versão antiga do SynToolkit, a ausência de um ponto de restauro e um relógio do Windows dessincronizado.",
   "NeedsAttention_Refresh": "Atualizar",

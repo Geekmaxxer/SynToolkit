@@ -648,7 +648,13 @@
   ,
   "NeedsAttention": "Требует внимания",
   "Installer_NvidiaAppDescription": "Официальное приложение NVIDIA для графических драйверов, игровых настроек и функций NVIDIA.",
-  "Installer_AmdAdrenalinDescription": "Официальное приложение AMD для графических драйверов Radeon, игровых настроек и функций производительности."
+  "Installer_AmdAdrenalinDescription": "Официальное приложение AMD для графических драйверов Radeon, игровых настроек и функций производительности.",
+  "Installer_NvidiaControlPanelDescription": "Официальная панель управления NVIDIA для настроек дисплея, 3D и драйверов.",
+  "Installer_FilterLabel": "Показать",
+  "Installer_FilterAll": "Все",
+  "Installer_FilterInstalled": "Установлено",
+  "Installer_FilterNotInstalled": "Не установлено",
+  "Installer_FilterNeedsUpdate": "Требуется обновление"
   ,
   "NeedsAttention_Subtitle": "Проверяет устаревшие или отсутствующие драйверы и приложения, старую версию SynToolkit, отсутствие точки восстановления и несинхронизированные часы Windows.",
   "NeedsAttention_Refresh": "Обновить",

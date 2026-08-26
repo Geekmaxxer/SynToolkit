@@ -648,7 +648,13 @@
   ,
   "NeedsAttention": "Behöver åtgärdas",
   "Installer_NvidiaAppDescription": "Officiell NVIDIA-app för grafikdrivrutiner, spelinställningar och NVIDIA-funktioner.",
-  "Installer_AmdAdrenalinDescription": "Officiell AMD-app för Radeon-grafikdrivrutiner, spelinställningar och prestandafunktioner."
+  "Installer_AmdAdrenalinDescription": "Officiell AMD-app för Radeon-grafikdrivrutiner, spelinställningar och prestandafunktioner.",
+  "Installer_NvidiaControlPanelDescription": "Officiella NVIDIA Kontrollpanelen för bildskärms-, 3D- och drivrutinsinställningar.",
+  "Installer_FilterLabel": "Visa",
+  "Installer_FilterAll": "Alla",
+  "Installer_FilterInstalled": "Installerade",
+  "Installer_FilterNotInstalled": "Inte installerade",
+  "Installer_FilterNeedsUpdate": "Uppdatering tillgänglig"
   ,
   "NeedsAttention_Subtitle": "Kontrollerar föråldrade eller saknade drivrutiner och appar, en gammal SynToolkit-version, ingen återställningspunkt och en osynkroniserad Windows-klocka.",
   "NeedsAttention_Refresh": "Uppdatera",

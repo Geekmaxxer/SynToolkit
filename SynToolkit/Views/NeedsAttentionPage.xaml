@@ -11,8 +11,14 @@
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Page.Resources>
 
-    <ScrollViewer>
-        <StackPanel MaxWidth="1100" Margin="36,28,36,56" Spacing="18">
+    <ScrollViewer
+        HorizontalContentAlignment="Stretch"
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled">
+        <StackPanel
+            Margin="36,28,36,56"
+            HorizontalAlignment="Stretch"
+            Spacing="18">
             <Grid ColumnSpacing="14">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />

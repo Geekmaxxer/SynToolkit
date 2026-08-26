@@ -568,7 +568,13 @@
   ,
   "NeedsAttention": "Dikkat gerekiyor",
   "Installer_NvidiaAppDescription": "Grafik sürücüleri, oyun ayarları ve NVIDIA özellikleri için resmi NVIDIA uygulaması.",
-  "Installer_AmdAdrenalinDescription": "Radeon grafik sürücüleri, oyun ayarları ve performans özellikleri için resmi AMD uygulaması."
+  "Installer_AmdAdrenalinDescription": "Radeon grafik sürücüleri, oyun ayarları ve performans özellikleri için resmi AMD uygulaması.",
+  "Installer_NvidiaControlPanelDescription": "Görüntü, 3B ve sürücü ayarları için resmi NVIDIA Denetim Masası.",
+  "Installer_FilterLabel": "Göster",
+  "Installer_FilterAll": "Tümü",
+  "Installer_FilterInstalled": "Yüklü",
+  "Installer_FilterNotInstalled": "Yüklü değil",
+  "Installer_FilterNeedsUpdate": "Güncelleme gerekli"
   ,
   "NeedsAttention_Subtitle": "Eski veya eksik sürücüleri ve uygulamaları, eski SynToolkit sürümünü, geri yükleme noktası olmamasını ve eşitlenmemiş Windows saatini denetler.",
   "NeedsAttention_Refresh": "Yenile",

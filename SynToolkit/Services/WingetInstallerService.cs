@@ -23,7 +23,8 @@ namespace SynToolkit.Services
 
     public sealed record CuratedPackageProbe(
         string PackageIdentifier,
-        IReadOnlyList<string> InstalledDisplayNamePrefixes);
+        IReadOnlyList<string> InstalledDisplayNamePrefixes,
+        string PackageSource = "winget");
 
     public sealed record CuratedPackageStatus(
         string PackageIdentifier,
@@ -77,6 +78,7 @@ namespace SynToolkit.Services
 
         public async Task<WingetInstallResult> InstallAsync(
             string packageIdentifier,
+            string packageSource = "winget",
             string? silentArgumentsOverride = null,
             bool isUpdate = false,
             IProgress<double>? progress = null,
@@ -93,7 +95,7 @@ namespace SynToolkit.Services
                         "--id",
                         packageIdentifier,
                         "--source",
-                        "winget",
+                        packageSource,
                         "--silent",
                         "--accept-source-agreements",
                         "--accept-package-agreements",
@@ -103,12 +105,15 @@ namespace SynToolkit.Services
                     cancellationToken);
             }
 
-            return await InstallFromPackageManifestAsync(packageIdentifier, silentArgumentsOverride, progress, cancellationToken);
+            return string.Equals(packageSource, "winget", StringComparison.OrdinalIgnoreCase)
+                ? await InstallFromPackageManifestAsync(packageIdentifier, silentArgumentsOverride, progress, cancellationToken)
+                : new WingetInstallResult(false, -1, "Microsoft Store installs require Windows Package Manager.");
         }
 
         public async Task<WingetInstallResult> UninstallAsync(
             string packageIdentifier,
             IReadOnlyList<string> installedDisplayNamePrefixes,
+            string packageSource = "winget",
             CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(packageIdentifier);
@@ -124,7 +129,7 @@ namespace SynToolkit.Services
                         "--id",
                         packageIdentifier,
                         "--source",
-                        "winget",
+                        packageSource,
                         "--silent",
                         "--accept-source-agreements",
                         "--disable-interactivity"
@@ -197,6 +202,17 @@ namespace SynToolkit.Services
             if (installedApplication == null)
             {
                 return new CuratedPackageStatus(probe.PackageIdentifier, false, false, null, null, true);
+            }
+
+            if (string.Equals(probe.PackageSource, "msstore", StringComparison.OrdinalIgnoreCase))
+            {
+                return new CuratedPackageStatus(
+                    probe.PackageIdentifier,
+                    true,
+                    false,
+                    installedApplication.DisplayVersion,
+                    null,
+                    false);
             }
 
             string? availableVersion = null;

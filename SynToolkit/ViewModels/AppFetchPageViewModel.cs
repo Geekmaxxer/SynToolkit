@@ -39,6 +39,14 @@ namespace SynToolkit.ViewModels
         public IReadOnlyList<string> Categories { get; } =
             ["All", "Browser", "Communication", "Gaming", "Utility", "Media", "Creator", "Development", "Productivity", "System", "Community"];
 
+        public IReadOnlyList<string> AvailabilityFilters { get; } =
+            [
+                App.GetValueFromItemList("Installer_FilterAll"),
+                App.GetValueFromItemList("Installer_FilterInstalled"),
+                App.GetValueFromItemList("Installer_FilterNotInstalled"),
+                App.GetValueFromItemList("Installer_FilterNeedsUpdate")
+            ];
+
         private string _catalogSearchText = string.Empty;
 
         public string CatalogSearchText
@@ -80,6 +88,9 @@ namespace SynToolkit.ViewModels
 
         [ObservableProperty]
         public partial string SelectedCategory { get; set; } = "All";
+
+        [ObservableProperty]
+        public partial string SelectedAvailabilityFilter { get; set; } = App.GetValueFromItemList("Installer_FilterAll");
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CanInstallSelected))]
@@ -131,8 +142,6 @@ namespace SynToolkit.ViewModels
                 // Communication
                 new("Discord", "Communication", "Voice, video, and chat for communities.", "ms-appx:///assets/Icons/Installers/discord.svg", "https://discord.com/download", "Discord.Discord", ["Discord"], isEssential: true, silentArgumentsOverride: "-s"),
                 new("Telegram Desktop", "Communication", "Fast messaging with synced chats and large groups.", "ms-appx:///assets/Icons/Installers/telegram.svg", "https://desktop.telegram.org/", "Telegram.TelegramDesktop", ["Telegram Desktop"]),
-                new("Zoom Workplace", "Communication", "Video meetings, screen sharing, and team collaboration.", "ms-appx:///assets/Icons/Installers/zoom.svg", "https://zoom.us/download", "Zoom.Zoom", ["Zoom Workplace", "Zoom"]),
-                new("Slack", "Communication", "Team channels, direct messages, and integrations.", "ms-appx:///assets/Icons/Installers/slack.svg", "https://slack.com/downloads/windows", "SlackTechnologies.Slack", ["Slack"]),
                 new("Vesktop", "Communication", "A desktop Discord client with Vencord built in.", "ms-appx:///assets/Icons/Installers/vencord.svg", "https://vencord.dev/download/", "Vencord.Vesktop", ["Vesktop"]),
 
                 // Gaming
@@ -187,6 +196,7 @@ namespace SynToolkit.ViewModels
                 new("Visual C++ Runtime", "System", "Official Microsoft runtime for desktop apps and games.", "ms-appx:///assets/Icons/Installers/cplusplus.svg", "https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist?view=msvc-170", "Microsoft.VCRedist.2015+.x64", ["Microsoft Visual C++ 2015-2022 Redistributable (x64)", "Microsoft Visual C++ 2015-2019 Redistributable (x64)"], isEssential: true),
                 new(".NET Desktop Runtime 8", "System", "Microsoft runtime required by many modern Windows apps.", "ms-appx:///assets/Icons/Installers/dotnet.svg", "https://dotnet.microsoft.com/download/dotnet/8.0", "Microsoft.DotNet.DesktopRuntime.8", ["Microsoft Windows Desktop Runtime - 8"]),
                 new("NVIDIA App", "System", App.GetValueFromItemList("Installer_NvidiaAppDescription"), "ms-appx:///assets/Icons/Nvidia.png", "https://www.nvidia.com/en-us/software/nvidia-app/", "Manual.NvidiaApp", ["NVIDIA App"], isManualOnly: true),
+                new("NVIDIA Control Panel", "System", App.GetValueFromItemList("Installer_NvidiaControlPanelDescription"), "ms-appx:///assets/Icons/Nvidia.png", "https://apps.microsoft.com/detail/9NF8H0H7WMLT", "9NF8H0H7WMLT", ["NVIDIA Control Panel"], packageSource: "msstore"),
                 new("AMD Software: Adrenalin Edition", "System", App.GetValueFromItemList("Installer_AmdAdrenalinDescription"), "ms-appx:///assets/Icons/Amd.png", "https://www.amd.com/en/products/software/adrenalin.html", "Manual.AmdAdrenalin", ["AMD Software", "AMD Adrenalin Edition"], isManualOnly: true),
 
                 // Community modifications require their official, visible setup flow.
@@ -244,12 +254,18 @@ namespace SynToolkit.ViewModels
 
         partial void OnSelectedCategoryChanged(string value) => ApplyCatalogFilter();
 
+        partial void OnSelectedAvailabilityFilterChanged(string value) => ApplyCatalogFilter();
+
         private void ApplyCatalogFilter()
         {
             string searchTerm = CatalogSearchText.Trim();
             FeaturedInstallers.Clear();
             foreach (FeaturedInstallerViewModel installer in _allFeaturedInstallers.Where(
                 installer => (SelectedCategory == "All" || installer.Category == SelectedCategory) &&
+                    (SelectedAvailabilityFilter == AvailabilityFilters[0] ||
+                        (SelectedAvailabilityFilter == AvailabilityFilters[1] && installer.AvailabilityState is InstallerAvailabilityState.Installed or InstallerAvailabilityState.UpdateAvailable) ||
+                        (SelectedAvailabilityFilter == AvailabilityFilters[2] && installer.AvailabilityState == InstallerAvailabilityState.NotInstalled) ||
+                        (SelectedAvailabilityFilter == AvailabilityFilters[3] && installer.AvailabilityState == InstallerAvailabilityState.UpdateAvailable)) &&
                     (searchTerm.Length == 0 ||
                         installer.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                         installer.Category.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
@@ -268,6 +284,10 @@ namespace SynToolkit.ViewModels
             if (eventArgs.PropertyName == nameof(FeaturedInstallerViewModel.IsSelected))
             {
                 NotifySelectionChanged();
+            }
+            else if (eventArgs.PropertyName == nameof(FeaturedInstallerViewModel.AvailabilityState))
+            {
+                ApplyCatalogFilter();
             }
         }
 
@@ -309,7 +329,8 @@ namespace SynToolkit.ViewModels
                             .Where(installer => !installer.IsManualOnly)
                             .Select(installer => new CuratedPackageProbe(
                                 installer.PackageIdentifier,
-                                installer.InstalledDisplayNamePrefixes))
+                                installer.InstalledDisplayNamePrefixes,
+                                installer.PackageSource))
                             .ToList(),
                         cancellationToken);
 
@@ -429,7 +450,8 @@ namespace SynToolkit.ViewModels
             {
                 WingetInstallResult result = await _wingetInstallerService.UninstallAsync(
                     installer.PackageIdentifier,
-                    installer.InstalledDisplayNamePrefixes);
+                    installer.InstalledDisplayNamePrefixes,
+                    installer.PackageSource);
                 if (!result.Succeeded)
                 {
                     ErrorMessage = string.IsNullOrWhiteSpace(result.Output)
@@ -492,6 +514,7 @@ namespace SynToolkit.ViewModels
 
                     WingetInstallResult result = await _wingetInstallerService.InstallAsync(
                         queueItem.PackageIdentifier,
+                        queueItem.Installer.PackageSource,
                         queueItem.Installer.SilentArgumentsOverride,
                         queueItem.Installer.AvailabilityState == InstallerAvailabilityState.UpdateAvailable,
                         new Progress<double>(value =>

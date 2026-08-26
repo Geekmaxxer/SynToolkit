@@ -124,9 +124,9 @@
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <local:HeaderTile
                         x:Name="UpdateNotesTile"
-                        AutomationProperties.HelpText="Open local release notes for SynToolkit 1.6.1"
+                        AutomationProperties.HelpText="Open local release notes for SynToolkit 1.6.0"
                         Click="UpdateNotesTile_Click"
-                        ToolTipService.ToolTip="Open SynToolkit 1.6.1 update notes">
+                        ToolTipService.ToolTip="Open SynToolkit 1.6.0 update notes">
                         <local:HeaderTile.Source>
                             <Image
                                 Width="56"
@@ -194,17 +194,17 @@
             x:Name="UpdateNotesDialog"
             CloseButtonText="Close"
             DefaultButton="Close"
-            Title="SynToolkit 1.6.1 update notes">
+            Title="SynToolkit 1.6.0 update notes">
             <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="500" Spacing="18">
                     <StackPanel Spacing="4">
                         <TextBlock
                             FontSize="16"
                             FontWeight="SemiBold"
-                            Text="SynToolkit 1.6.1" />
+                            Text="SynToolkit 1.6.0" />
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="New Installers page, polished checkbox styling, version sync, and codebase-wide audit fixes."
+                            Text="A combined release with installer improvements, system attention checks, recovery tools, and update reliability fixes."
                             TextWrapping="Wrap" />
                     </StackPanel>
 
@@ -257,7 +257,7 @@
                             <TextBlock FontWeight="SemiBold" Text="Version synchronization" />
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="All version strings across manifests, CI workflows, and UI are now unified at 1.6.1 for consistency."
+                                Text="All version strings across manifests, CI workflows, and UI are now unified at 1.6.0 for consistency."
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </Grid>
@@ -288,12 +288,12 @@
                         <FontIcon
                             FontSize="16"
                             Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                            Glyph="&#xE946;" />
+                            Glyph="&#xE7BA;" />
                         <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="View modes" />
+                            <TextBlock FontWeight="SemiBold" Text="Needs Attention" />
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Switch between List and Grid views in the Installers page, with category filtering and search."
+                                Text="Review disk space, restore points, time sync, app updates, critical drivers, and available SynToolkit updates in one place."
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </Grid>
@@ -306,12 +306,120 @@
                         <FontIcon
                             FontSize="16"
                             Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                            Glyph="&#xE90F;" />
+                            Glyph="&#xE946;" />
                         <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="Codebase audit" />
+                            <TextBlock FontWeight="SemiBold" Text="View modes" />
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Comprehensive review of detection systems, feature wiring, and DI registrations with fixes applied."
+                                Text="Switch between detailed Grid and List views in the Installers page, alongside category, status, and search filters."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE72C;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Restoration quick actions" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Re-register DNS, renew DHCP, sync Windows time, and restart audio services from Restoration."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE777;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Reliable in-app updates" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Update checks refresh on demand, and the downloaded setup is launched only after it is fully ready."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE8D4;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Expanded language support" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="English, Spanish, French, Portuguese, Russian, Swedish, Chinese, Vietnamese, Japanese, Korean, Arabic, Turkish, and German now cover the newer Toolkit pages and installer content."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE790;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Desktop customization" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Add custom wallpapers, name them, choose the desktop fit, and apply the same fitting options to lock screen images."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE950;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Advanced system details" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Expanded CPU, motherboard, memory, graphics, storage, network, and Windows details, including GPU vendor detection and enabled or disabled Device Manager state."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE9D9;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Built-in portable tools" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Launch WizTree, HWiNFO, CPU-Z, GPU-Z, CrystalDiskMark, and EmptyStandbyList directly from their Toolkit pages."
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </Grid>
