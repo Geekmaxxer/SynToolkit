@@ -1,6 +1,6 @@
 #define MyAppName "SynToolkit"
 #ifndef MyAppVersion
-  #define MyAppVersion "1.6.0"
+  #define MyAppVersion "1.6.1"
 #endif
 #define MyAppPublisher "Kwanteks"
 #define MyAppURL "https://github.com/kwanteks/synergyos"
