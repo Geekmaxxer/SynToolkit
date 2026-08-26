@@ -26,6 +26,7 @@ namespace SynToolkit.Views
         public PowerPlansPage()
         {
             InitializeComponent();
+            NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Disabled;
             LoadBundledPlans();
         }
 
@@ -84,6 +85,7 @@ namespace SynToolkit.Views
             _isPageLoaded = true;
             ElevationInfoBar.IsOpen = !_powerPlanService.CanMutatePowerPlans;
             _lifetimeCancellation.Cancel();
+            _lifetimeCancellation.Dispose();
             _lifetimeCancellation = new CancellationTokenSource();
             int lifetimeVersion = ++_lifetimeVersion;
             CancellationToken cancellationToken = _lifetimeCancellation.Token;

@@ -72,7 +72,7 @@ namespace SynToolkit.Services
             List<GpuSpec> gpus = new();
             try
             {
-                using ManagementObjectSearcher searcher = new("SELECT Name, AdapterRAM, DriverVersion, PNPDeviceID FROM Win32_VideoController");
+                using ManagementObjectSearcher searcher = new("SELECT Name, AdapterRAM, DriverVersion, PNPDeviceID, ConfigManagerErrorCode FROM Win32_VideoController");
                 foreach (ManagementBaseObject item in searcher.Get())
                 {
                     using (item)
@@ -87,7 +87,8 @@ namespace SynToolkit.Services
                         ulong? accurateVram = TryGetAccurateVramBytes(pnpDeviceId);
                         GpuVendor vendor = GpuDetectionService.GetVendor(name, pnpDeviceId);
                         string iconPath = GpuDetectionService.GetIconPath(vendor);
-                        gpus.Add(new GpuSpec(name, accurateVram ?? adapterRam, driverVersion, iconPath, vendor));
+                        uint? deviceManagerErrorCode = ReadUInt32(item["ConfigManagerErrorCode"]);
+                        gpus.Add(new GpuSpec(name, accurateVram ?? adapterRam, driverVersion, iconPath, vendor, deviceManagerErrorCode));
                     }
                 }
             }

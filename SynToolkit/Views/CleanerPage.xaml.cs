@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
@@ -23,6 +24,7 @@ namespace SynToolkit.Views
     {
         private readonly CleanerPageViewModel _viewModel;
         private readonly ObservableCollection<DriveModel> _drives = new();
+        private CancellationTokenSource _lifetimeCancellation = new();
         private bool _isRunningDiskCleanup;
 
         public CleanerPage()
@@ -35,14 +37,38 @@ namespace SynToolkit.Views
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            await LoadDrivesAsync();
+            if (_lifetimeCancellation.IsCancellationRequested)
+            {
+                _lifetimeCancellation.Dispose();
+                _lifetimeCancellation = new CancellationTokenSource();
+            }
+
+            try
+            {
+                await LoadDrivesAsync(_lifetimeCancellation.Token);
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
-        private async Task LoadDrivesAsync()
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _lifetimeCancellation.Cancel();
+            foreach (DriveModel drive in _drives)
+            {
+                drive.Icon = null;
+            }
+
+            _drives.Clear();
+        }
+
+        private async Task LoadDrivesAsync(CancellationToken cancellationToken)
         {
             _drives.Clear();
             foreach (DriveInfo drive in DriveInfo.GetDrives().Where(d => d.IsReady))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 double totalGiB = drive.TotalSize / 1073741824d;
                 double freeGiB = drive.TotalFreeSpace / 1073741824d;
 
@@ -65,6 +91,7 @@ namespace SynToolkit.Views
                     {
                         BitmapImage bmp = new();
                         await bmp.SetSourceAsync(thumb);
+                        cancellationToken.ThrowIfCancellationRequested();
                         model.Icon = bmp;
                     }
                 }
@@ -73,6 +100,7 @@ namespace SynToolkit.Views
                     // Ignore thumbnail errors
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
                 _drives.Add(model);
             }
         }

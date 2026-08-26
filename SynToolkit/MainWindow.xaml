@@ -125,6 +125,29 @@
                         <ImageIcon Source="ms-appx:///assets/Icons/Home.png" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem x:Name="NeedsAttention" Tag="SynToolkit.Views.NeedsAttentionPage">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Foreground="#FFF4B400" Glyph="&#xE7BA;" />
+                    </NavigationViewItem.Icon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="NeedsAttentionText" VerticalAlignment="Center" />
+                        <Border
+                            x:Name="NeedsAttentionBadgeBorder"
+                            MinWidth="20"
+                            Padding="6,2"
+                            VerticalAlignment="Center"
+                            Background="#FFC42B1C"
+                            CornerRadius="10"
+                            Visibility="Collapsed">
+                            <TextBlock
+                                x:Name="NeedsAttentionBadge"
+                                HorizontalAlignment="Center"
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Foreground="White" />
+                        </Border>
+                    </StackPanel>
+                </NavigationViewItem>
                 <NavigationViewItem x:Name="Installer" Tag="SynToolkit.Views.AppFetchPage">
                     <NavigationViewItem.Icon>
                         <ImageIcon Source="ms-appx:///assets/Icons/Installer.png" />
@@ -143,6 +166,21 @@
                                 FontWeight="SemiBold"
                                 Foreground="White"
                                 Text="NEW" />
+                        </Border>
+                        <Border
+                            x:Name="InstallerUpdateBadgeBorder"
+                            MinWidth="20"
+                            Padding="6,2"
+                            VerticalAlignment="Center"
+                            Background="#FFC42B1C"
+                            CornerRadius="10"
+                            Visibility="Collapsed">
+                            <TextBlock
+                                x:Name="InstallerUpdateBadge"
+                                HorizontalAlignment="Center"
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Foreground="White" />
                         </Border>
                     </StackPanel>
                 </NavigationViewItem>

@@ -82,6 +82,45 @@
                 Grid.Column="0"
                 Grid.ColumnSpan="2"
                 Margin="36,5,36,20">
+                <Border
+                    x:Name="NeedsAttentionCallout"
+                    Margin="0,0,0,20"
+                    Padding="16"
+                    Background="#2AF4B400"
+                    BorderBrush="#70F4B400"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Visibility="Collapsed">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            VerticalAlignment="Center"
+                            FontSize="24"
+                            Foreground="#FFF4B400"
+                            Glyph="&#xE7BA;" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                Text="Needs attention"
+                                local:LocalizedText.TextKey="NeedsAttention" />
+                            <TextBlock
+                                x:Name="NeedsAttentionSummary"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            Click="NeedsAttentionButton_Click"
+                            Content="Review now"
+                            local:LocalizedText.ContentKey="NeedsAttention_ReviewNow" />
+                    </Grid>
+                </Border>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />

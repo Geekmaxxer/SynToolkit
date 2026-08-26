@@ -1,6 +1,8 @@
 #nullable enable
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -12,6 +14,7 @@ namespace SynToolkit.Views
     {
         private readonly SpecsPageViewModel _viewModel;
         private readonly DispatcherTimer _cpuMonitoringTimer;
+        private CancellationTokenSource _lifetimeCancellation = new();
         private bool _isCpuDetailsExpanded;
 
         public SpecsPage()
@@ -25,7 +28,6 @@ namespace SynToolkit.Views
             Loaded += SpecsPage_Loaded;
             Unloaded += SpecsPage_Unloaded;
 
-            _ = _viewModel.LoadAsync();
         }
 
         private void CpuDetailsExpander_Expanded(object sender, EventArgs args)
@@ -42,10 +44,17 @@ namespace SynToolkit.Views
         }
         private void MotherboardDetailsExpander_Expanded(object sender, EventArgs args)
         {
-            _ = _viewModel.LoadMotherboardDetailsAsync();
+            _ = _viewModel.LoadMotherboardDetailsAsync(_lifetimeCancellation.Token);
         }
         private void SpecsPage_Loaded(object sender, RoutedEventArgs e)
         {
+            if (_lifetimeCancellation.IsCancellationRequested)
+            {
+                _lifetimeCancellation.Dispose();
+                _lifetimeCancellation = new CancellationTokenSource();
+            }
+
+            _ = LoadSpecsAsync(_lifetimeCancellation.Token);
             if (_isCpuDetailsExpanded)
             {
                 _viewModel.RefreshCpuLiveMetrics();
@@ -53,7 +62,22 @@ namespace SynToolkit.Views
             }
         }
 
-        private void SpecsPage_Unloaded(object sender, RoutedEventArgs e) => _cpuMonitoringTimer.Stop();
+        private void SpecsPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _cpuMonitoringTimer.Stop();
+            _lifetimeCancellation.Cancel();
+        }
+
+        private async Task LoadSpecsAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _viewModel.LoadAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
 
         private void CpuMonitoringTimer_Tick(object? sender, object e) => _viewModel.RefreshCpuLiveMetrics();
     }

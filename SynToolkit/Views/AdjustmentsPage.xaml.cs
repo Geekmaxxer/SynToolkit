@@ -20,7 +20,7 @@ namespace SynToolkit.Views
         public required string DisplayName { get; init; }
         public bool IsAddTile { get; init; }
         public bool IsDeletable { get; init; }
-        public string? ThumbnailPath => IsAddTile ? null : FilePath;
+        public Microsoft.UI.Xaml.Media.ImageSource? ThumbnailSource { get; init; }
         public bool IsSelected { get; set; }
         public Microsoft.UI.Xaml.Media.Brush BorderBrush => IsSelected
             ? (Microsoft.UI.Xaml.Media.Brush)Microsoft.UI.Xaml.Application.Current.Resources["AccentFillColorDefaultBrush"]
@@ -35,11 +35,13 @@ namespace SynToolkit.Views
         private const string ImageFileFilter = "Image files (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp";
 
         private bool _isPageLoaded;
+        private bool _hasLoadedWallpapers;
         private string? _currentWallpaperPath;
 
         public AdjustmentsPage()
         {
             InitializeComponent();
+            NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
@@ -48,10 +50,17 @@ namespace SynToolkit.Views
             bool isElevated = IsCurrentProcessElevated();
             ElevationInfoBar.IsOpen = !isElevated;
             SetActionsEnabled(isElevated);
-            LoadWallpapers();
+            if (!_hasLoadedWallpapers)
+            {
+                LoadWallpapers();
+            }
         }
 
-        private void Page_Unloaded(object sender, RoutedEventArgs e) => _isPageLoaded = false;
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _isPageLoaded = false;
+
+        }
 
         private void SetActionsEnabled(bool enabled)
         {
@@ -415,6 +424,7 @@ namespace SynToolkit.Views
 
             RefreshCustomWallpaperGrid();
             UpdateRestorePreviousButtonState();
+            _hasLoadedWallpapers = true;
         }
 
         private void RefreshCustomWallpaperGrid()
@@ -436,9 +446,27 @@ namespace SynToolkit.Views
         {
             FilePath = path,
             DisplayName = WindowsWallpaperService.GetDisplayName(path),
+            ThumbnailSource = CreateThumbnail(path, decodePixelWidth: 320),
             IsSelected = IsCurrentWallpaper(path),
             IsDeletable = isDeletable
         };
+
+        private static Microsoft.UI.Xaml.Media.ImageSource? CreateThumbnail(string path, int decodePixelWidth)
+        {
+            try
+            {
+                Microsoft.UI.Xaml.Media.Imaging.BitmapImage thumbnail = new()
+                {
+                    DecodePixelWidth = decodePixelWidth,
+                    UriSource = new Uri(Path.GetFullPath(path))
+                };
+                return thumbnail;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         private void UpdateCurrentWallpaperPreview()
         {
@@ -464,7 +492,11 @@ namespace SynToolkit.Views
 
             try
             {
-                CurrentWallpaperPreview.ImageSource = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(path));
+                CurrentWallpaperPreview.ImageSource = CreateThumbnail(path, decodePixelWidth: 400);
+                if (CurrentWallpaperPreview.ImageSource is null)
+                {
+                    return false;
+                }
                 return true;
             }
             catch
@@ -746,6 +778,7 @@ namespace SynToolkit.Views
                     {
                         FilePath = item.FilePath,
                         DisplayName = item.DisplayName,
+                        ThumbnailSource = item.ThumbnailSource,
                         IsSelected = IsCurrentWallpaper(item.FilePath),
                         IsDeletable = item.IsDeletable
                     })

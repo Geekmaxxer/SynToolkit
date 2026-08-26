@@ -1,34 +1,90 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
 using SynToolkit.Services;
 using SynToolkit.ViewModels;
+using Windows.UI;
+using Windows.System;
 
 namespace SynToolkit.Views
 {
     public sealed partial class AppFetchPage : Page
     {
         private readonly AppFetchPageViewModel _viewModel;
+        private CancellationTokenSource _lifetimeCancellation = new();
         private bool _hasLoadedInstallerStates;
+        private bool _isListeningForUpdateCount;
 
         public AppFetchPage()
         {
             InitializeComponent();
             _viewModel = App._host.Services.GetRequiredService<AppFetchPageViewModel>();
             DataContext = _viewModel;
+            NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
+            Unloaded += Page_Unloaded;
         }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            if (!_isListeningForUpdateCount)
+            {
+                _viewModel.AvailableInstallerUpdateCountChanged += OnAvailableInstallerUpdateCountChanged;
+                _isListeningForUpdateCount = true;
+            }
+
+            if (_lifetimeCancellation.IsCancellationRequested)
+            {
+                _lifetimeCancellation.Dispose();
+                _lifetimeCancellation = new CancellationTokenSource();
+            }
+
             if (_hasLoadedInstallerStates)
             {
                 return;
             }
 
             _hasLoadedInstallerStates = true;
-            await _viewModel.RefreshInstallerStatesAsync();
+            try
+            {
+                await _viewModel.RefreshInstallerStatesAsync(_lifetimeCancellation.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                _hasLoadedInstallerStates = false;
+            }
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _lifetimeCancellation.Cancel();
+            _viewModel.CancelPendingSearch();
+            if (_isListeningForUpdateCount)
+            {
+                _viewModel.AvailableInstallerUpdateCountChanged -= OnAvailableInstallerUpdateCountChanged;
+                _isListeningForUpdateCount = false;
+            }
+        }
+
+        private void OnAvailableInstallerUpdateCountChanged(int updateCount) =>
+            DispatcherQueue.TryEnqueue(() =>
+                (App.m_window as MainWindow)?.UpdateInstallerUpdateBadge(updateCount));
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            if (e.Parameter is InstallerNavigationRequest request &&
+                !string.IsNullOrWhiteSpace(request.SearchTerm))
+            {
+                _viewModel.SelectedCategory = "All";
+                _viewModel.CatalogSearchText = request.SearchTerm;
+                MainScrollViewer.ChangeView(null, 0, null, disableAnimation: false);
+            }
         }
 
         private async void InstallerPrimaryAction_Click(object sender, RoutedEventArgs e)
@@ -41,11 +97,38 @@ namespace SynToolkit.Views
 
             try
             {
+                if (installer.IsManualOnly)
+                {
+                    await Launcher.LaunchUriAsync(installer.DownloadUri);
+                    return;
+                }
+
                 await _viewModel.InstallSingleAsync(installer);
             }
             catch (Exception exception)
             {
                 App.logger.Error(exception, "[Installers] The quick action failed for {AppName}.", installer.Name);
+            }
+        }
+
+        private void ManualSetupCard_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            if (sender is not Button button || button.Content is not Border card)
+            {
+                return;
+            }
+
+            card.Tag ??= card.Background;
+            card.Background = button.ActualTheme == ElementTheme.Dark
+                ? new SolidColorBrush(Color.FromArgb(255, 54, 54, 54))
+                : new SolidColorBrush(Color.FromArgb(255, 222, 222, 222));
+        }
+
+        private void ManualSetupCard_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            if (sender is Button { Content: Border card } && card.Tag is Brush originalBackground)
+            {
+                card.Background = originalBackground;
             }
         }
 
@@ -104,7 +187,7 @@ namespace SynToolkit.Views
 
             try
             {
-                Task searchTask = _viewModel.SearchAsync(searchTerm);
+                Task searchTask = _viewModel.SearchAsync(searchTerm, _lifetimeCancellation.Token);
                 ResultsSection.StartBringIntoView(new BringIntoViewOptions
                 {
                     AnimationDesired = true,

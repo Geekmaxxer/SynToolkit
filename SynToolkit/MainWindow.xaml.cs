@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.WinUI;
 using CommunityToolkit.WinUI.Controls;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -29,6 +30,8 @@ namespace SynToolkit
         public List<IConfigurationItem> RootList { get; set; }
         private bool _isSynchronizingNavigationSelection;
         private bool _isNavigating;
+        private DispatcherQueueTimer _memoryBudgetTimer;
+        private const int MaximumMainFrameHistoryEntries = 16;
 
         private const int DefaultWindowWidth = 1250;
         private const int DefaultWindowHeight = 850;
@@ -95,8 +98,11 @@ namespace SynToolkit
             SetWindowPosSize();
             InitializeAccountHeader();
             InitializeGpuTabIcon();
+            _ = RefreshNeedsAttentionBadgeAsync();
             Activated += OnMainWindowActivated;
             this.Closed += AppBehaviorHelper.HandleMainWindowClosed;
+            StartMemoryBudgetMonitor();
+            this.Closed += (_, _) => _memoryBudgetTimer?.Stop();
 
             SubscribeToConfigurationChanges();
         }
@@ -247,6 +253,7 @@ namespace SynToolkit
 
             // Navigation Items
             Home.Content = App.GetValueFromItemList("Home");
+            NeedsAttentionText.Text = App.GetValueFromItemList("NeedsAttention");
             InstallerText.Text = App.GetValueFromItemList("Installer");
             PowerPlansText.Text = App.GetValueFromItemList("PowerPlans");
             AdjustmentsText.Text = App.GetValueFromItemList("Adjustments");
@@ -292,6 +299,38 @@ namespace SynToolkit
             if (NavigationNewBadgeService.MarkTabSeenForNavigationTag(App.CurrentCategory))
             {
                 UpdateNewBadges();
+            }
+        }
+
+        public void UpdateNeedsAttentionBadge(int count)
+        {
+            int boundedCount = Math.Max(0, count);
+            NeedsAttentionBadge.Text = boundedCount > 99 ? "99+" : boundedCount.ToString();
+            NeedsAttentionBadgeBorder.Visibility = boundedCount > 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        public void UpdateInstallerUpdateBadge(int count)
+        {
+            int boundedCount = Math.Max(0, count);
+            InstallerUpdateBadge.Text = boundedCount > 99 ? "99+" : boundedCount.ToString();
+            InstallerUpdateBadgeBorder.Visibility = boundedCount > 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private async Task RefreshNeedsAttentionBadgeAsync()
+        {
+            try
+            {
+                NeedsAttentionService service = App._host.Services.GetRequiredService<NeedsAttentionService>();
+                NeedsAttentionSnapshot snapshot = await service.GetStartupSnapshotAsync();
+                DispatcherQueue.TryEnqueue(() => UpdateNeedsAttentionBadge(snapshot.Items.Count));
+            }
+            catch (Exception exception)
+            {
+                App.logger.Debug(exception, "[NeedsAttention] Startup badge could not be refreshed.");
             }
         }
 
@@ -365,6 +404,7 @@ namespace SynToolkit
             Type destination = selectedItem switch
             {
                 "SettingsPage" => typeof(SettingsPage),
+                "SynToolkit.Views.NeedsAttentionPage" => typeof(NeedsAttentionPage),
                 "SynToolkit.Views.AppFetchPage" => typeof(AppFetchPage),
                 "SynToolkit.Views.PowerPlansPage" => typeof(PowerPlansPage),
                 "SynToolkit.Views.AdjustmentsPage" => typeof(AdjustmentsPage),
@@ -390,14 +430,17 @@ namespace SynToolkit
         /// Navigates the ContentFrame to the selected page
         /// </summary>
         /// <param name="tag"></param>
-        private bool Navigate(Type type, NavigationTransitionInfo transitionInfo = null)
+        private bool Navigate(
+            Type type,
+            NavigationTransitionInfo transitionInfo = null,
+            object parameter = null)
         {
             if (type is null || ContentFrame is null || _isNavigating)
             {
                 return false;
             }
 
-            if (ContentFrame.SourcePageType == type && type != typeof(ConfigPage))
+            if (ContentFrame.SourcePageType == type && type != typeof(ConfigPage) && parameter is null)
             {
                 return true;
             }
@@ -405,10 +448,16 @@ namespace SynToolkit
             try
             {
                 _isNavigating = true;
-                return ContentFrame.Navigate(
+                bool navigated = ContentFrame.Navigate(
                     type,
-                    App.CurrentCategory,
+                    parameter ?? App.CurrentCategory,
                     transitionInfo ?? new DrillInNavigationTransitionInfo());
+                if (navigated)
+                {
+                    TrimMainFrameHistory();
+                }
+
+                return navigated;
             }
             catch (Exception exception)
             {
@@ -418,6 +467,30 @@ namespace SynToolkit
             finally
             {
                 _isNavigating = false;
+            }
+        }
+
+        public void NavigateToPage(Type destination, string category, object parameter = null)
+        {
+            if (destination is null || string.IsNullOrWhiteSpace(category))
+            {
+                return;
+            }
+
+            string previousCategory = App.CurrentCategory;
+            App.CurrentCategory = category;
+            if (!Navigate(destination, parameter: parameter))
+            {
+                App.CurrentCategory = previousCategory;
+                NavigateTo();
+            }
+        }
+
+        private void TrimMainFrameHistory()
+        {
+            while (ContentFrame.BackStack.Count > MaximumMainFrameHistoryEntries)
+            {
+                ContentFrame.BackStack.RemoveAt(0);
             }
         }
 
@@ -434,14 +507,38 @@ namespace SynToolkit
         {
             if (e.Parameter is string category && !string.IsNullOrWhiteSpace(category))
             {
-                // The frame journal preserves navigation parameters, so restoring the
-                // category here keeps Back/Forward content and sidebar state in sync.
                 App.CurrentCategory = category;
             }
 
             App.UpdateDiscordPresence(GetDiscordPresenceState(App.CurrentCategory));
             MarkCurrentTabNewBadgeSeenIfNeeded();
+            ScheduleMemoryCleanupAfterNavigation();
             NavigateTo();
+        }
+
+        private static void ScheduleMemoryCleanupAfterNavigation()
+        {
+            if (MemoryPressureCleanup.TryScheduleAfterNavigation())
+            {
+                ImageSourceCache.TrimForMemoryPressure();
+            }
+        }
+
+        private void StartMemoryBudgetMonitor()
+        {
+            _memoryBudgetTimer = DispatcherQueue.CreateTimer();
+            _memoryBudgetTimer.Interval = TimeSpan.FromSeconds(15);
+            _memoryBudgetTimer.Tick += (_, _) => EnforceMemoryBudget();
+            _memoryBudgetTimer.Start();
+            EnforceMemoryBudget();
+        }
+
+        private static void EnforceMemoryBudget()
+        {
+            if (MemoryPressureCleanup.TryScheduleIfOverBudget())
+            {
+                ImageSourceCache.TrimForMemoryPressure();
+            }
         }
 
         private static string GetDiscordPresenceState(string category)
@@ -449,6 +546,7 @@ namespace SynToolkit
             return category switch
             {
                 "SynToolkit.Views.HomePage" => "Home",
+                "SynToolkit.Views.NeedsAttentionPage" => "Needs Attention",
                 "SynToolkit.Views.AppFetchPage" => "Installer",
                 "SynToolkit.Views.PowerPlansPage" => "Power Plans",
                 "SynToolkit.Views.AdjustmentsPage" => "Adjustments",

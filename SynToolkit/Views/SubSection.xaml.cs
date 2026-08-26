@@ -73,6 +73,7 @@ namespace SynToolkit.Views
                     item2.Remove(item2.Last());
                 }
                 BreadcrumbBar.ItemsSource = item2;
+                BreadcrumbBar.ItemClicked -= BreadcrumbBar_ItemClicked;
                 BreadcrumbBar.ItemClicked += BreadcrumbBar_ItemClicked;
 
                 oldCat = App.CurrentCategory;
@@ -167,6 +168,7 @@ namespace SynToolkit.Views
         private void ConfigPage_Unloaded(object sender, RoutedEventArgs e)
         {
             App.ConfigurationActionSucceeded -= ConfigurationActionSucceeded;
+            BreadcrumbBar.ItemClicked -= BreadcrumbBar_ItemClicked;
             _lifetimeCancellation.Cancel();
             _highlightTimer?.Stop();
             _highlightTimer = null;

@@ -11,7 +11,8 @@ namespace SynToolkit.Models
         ulong? AdapterRamBytes,
         string? DriverVersion,
         string IconPath,
-        GpuVendor Vendor);
+        GpuVendor Vendor,
+        uint? DeviceManagerErrorCode = null);
 
     public sealed record MemoryModuleSpec(
         string? Manufacturer,

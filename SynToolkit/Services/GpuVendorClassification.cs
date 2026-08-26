@@ -34,11 +34,6 @@ namespace SynToolkit.Services
 
         public static GpuVendor GetVendor(string name, string pnpDeviceId)
         {
-            if (IsBasicDisplayAdapter(name))
-            {
-                return GpuVendor.Unknown;
-            }
-
             if (IsNvidiaGpu(name, pnpDeviceId))
             {
                 return GpuVendor.Nvidia;
@@ -52,6 +47,11 @@ namespace SynToolkit.Services
             if (IsIntelGpu(name, pnpDeviceId))
             {
                 return GpuVendor.Intel;
+            }
+
+            if (IsBasicDisplayAdapter(name))
+            {
+                return GpuVendor.Unknown;
             }
 
             return GpuVendor.Unknown;

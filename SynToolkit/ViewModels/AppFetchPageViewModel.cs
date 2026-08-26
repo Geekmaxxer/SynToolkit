@@ -21,11 +21,14 @@ namespace SynToolkit.ViewModels
     /// </summary>
     public partial class AppFetchPageViewModel : ObservableObject
     {
+        private const int MaximumStoreSearchResults = 24;
         private readonly AppFetchService _service;
         private readonly WingetInstallerService _wingetInstallerService;
         private readonly IConfigurationService _xboxServicesConfigurationService;
         private readonly IReadOnlyList<FeaturedInstallerViewModel> _allFeaturedInstallers;
         private CancellationTokenSource? _installQueueCancellationTokenSource;
+
+        public event Action<int>? AvailableInstallerUpdateCountChanged;
 
         public ObservableCollection<AppFetchItemViewModel> Results { get; } = new();
 
@@ -113,7 +116,7 @@ namespace SynToolkit.ViewModels
             private set => SetProperty(ref _installerStatusSummary, value);
         }
 
-        private static IReadOnlyList<FeaturedInstallerViewModel> CreateFeaturedInstallers() =>
+        internal static IReadOnlyList<FeaturedInstallerViewModel> CreateFeaturedInstallers() =>
             new List<FeaturedInstallerViewModel>
             {
                 // Browsers
@@ -183,6 +186,8 @@ namespace SynToolkit.ViewModels
                 // System runtimes
                 new("Visual C++ Runtime", "System", "Official Microsoft runtime for desktop apps and games.", "ms-appx:///assets/Icons/Installers/cplusplus.svg", "https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist?view=msvc-170", "Microsoft.VCRedist.2015+.x64", ["Microsoft Visual C++ 2015-2022 Redistributable (x64)", "Microsoft Visual C++ 2015-2019 Redistributable (x64)"], isEssential: true),
                 new(".NET Desktop Runtime 8", "System", "Microsoft runtime required by many modern Windows apps.", "ms-appx:///assets/Icons/Installers/dotnet.svg", "https://dotnet.microsoft.com/download/dotnet/8.0", "Microsoft.DotNet.DesktopRuntime.8", ["Microsoft Windows Desktop Runtime - 8"]),
+                new("NVIDIA App", "System", App.GetValueFromItemList("Installer_NvidiaAppDescription"), "ms-appx:///assets/Icons/Nvidia.png", "https://www.nvidia.com/en-us/software/nvidia-app/", "Manual.NvidiaApp", ["NVIDIA App"], isManualOnly: true),
+                new("AMD Software: Adrenalin Edition", "System", App.GetValueFromItemList("Installer_AmdAdrenalinDescription"), "ms-appx:///assets/Icons/Amd.png", "https://www.amd.com/en/products/software/adrenalin.html", "Manual.AmdAdrenalin", ["AMD Software", "AMD Adrenalin Edition"], isManualOnly: true),
 
                 // Community modifications require their official, visible setup flow.
                 new("SpotX", "Community", "Community Spotify customization and patching tool.", "ms-appx:///assets/Icons/Installers/spotx.svg", "https://github.com/SpotX-Official/SpotX", "Community.SpotX", [], isManualOnly: true),
@@ -215,6 +220,8 @@ namespace SynToolkit.ViewModels
             OnPropertyChanged(nameof(IsRevertXboxServicesButtonEnabled));
 
         private Task? _installedPackagesTask;
+        private CancellationTokenSource? _searchCancellationTokenSource;
+        private int _searchGeneration;
 
         public AppFetchPageViewModel(
             AppFetchService service,
@@ -282,7 +289,9 @@ namespace SynToolkit.ViewModels
         }
 
         [RelayCommand]
-        public async Task RefreshInstallerStatesAsync()
+        private Task RefreshInstallerStates() => RefreshInstallerStatesAsync(CancellationToken.None);
+
+        public async Task RefreshInstallerStatesAsync(CancellationToken cancellationToken)
         {
             if (IsRefreshingInstallerStates || IsInstallingQueue)
             {
@@ -301,7 +310,8 @@ namespace SynToolkit.ViewModels
                             .Select(installer => new CuratedPackageProbe(
                                 installer.PackageIdentifier,
                                 installer.InstalledDisplayNamePrefixes))
-                            .ToList());
+                            .ToList(),
+                        cancellationToken);
 
                 Dictionary<string, CuratedPackageStatus> statusesByIdentifier = statuses.ToDictionary(
                     status => status.PackageIdentifier,
@@ -340,6 +350,7 @@ namespace SynToolkit.ViewModels
                 int incompleteUpdateCheckCount = _allFeaturedInstallers.Count(installer =>
                     installer.AvailabilityState == InstallerAvailabilityState.Installed &&
                     !installer.IsUpdateCheckComplete);
+                AvailableInstallerUpdateCountChanged?.Invoke(updateCount);
                 InstallerStatusSummary = (updateCount, incompleteUpdateCheckCount) switch
                 {
                     (0, 0) => $"{installedCount} installed • Everything detected is current",
@@ -347,6 +358,10 @@ namespace SynToolkit.ViewModels
                     (_, 0) => $"{installedCount} installed • {updateCount} update{(updateCount == 1 ? string.Empty : "s")} available",
                     _ => $"{installedCount} installed • {updateCount} update{(updateCount == 1 ? string.Empty : "s")} available • {incompleteUpdateCheckCount} check{(incompleteUpdateCheckCount == 1 ? string.Empty : "s")} incomplete"
                 };
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception exception)
             {
@@ -435,7 +450,7 @@ namespace SynToolkit.ViewModels
             finally
             {
                 installer.IsUninstalling = false;
-                await RefreshInstallerStatesAsync();
+                await RefreshInstallerStatesAsync(CancellationToken.None);
             }
         }
 
@@ -552,7 +567,7 @@ namespace SynToolkit.ViewModels
             {
                 IsInstallingQueue = false;
                 OnPropertyChanged(nameof(CanRetryFailed));
-                await RefreshInstallerStatesAsync();
+                await RefreshInstallerStatesAsync(CancellationToken.None);
             }
         }
 
@@ -653,14 +668,20 @@ namespace SynToolkit.ViewModels
             }
         }
 
-        public async Task SearchAsync(string searchTerm)
+        public async Task SearchAsync(string searchTerm, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
                 return;
             }
 
-            Results.Clear();
+            int searchGeneration = Interlocked.Increment(ref _searchGeneration);
+            _searchCancellationTokenSource?.Cancel();
+            _searchCancellationTokenSource?.Dispose();
+            CancellationTokenSource searchCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _searchCancellationTokenSource = searchCancellation;
+
+            ClearResults();
             IsLoading = true;
             HasError = false;
 
@@ -668,7 +689,10 @@ namespace SynToolkit.ViewModels
 
             try
             {
-                List<AppFetchService.StoreProductListDto> list = await _service.SearchProductsAsync(searchTerm);
+                List<AppFetchService.StoreProductListDto> list = await _service.SearchProductsAsync(
+                    searchTerm,
+                    searchCancellation.Token);
+                searchCancellation.Token.ThrowIfCancellationRequested();
 
                 try
                 {
@@ -679,7 +703,12 @@ namespace SynToolkit.ViewModels
                     App.logger.Debug(exception, "[AppFetch] Unable to load installed-package state.");
                 }
 
-                foreach (AppFetchService.StoreProductListDto result in list)
+                if (searchGeneration != Volatile.Read(ref _searchGeneration))
+                {
+                    return;
+                }
+
+                foreach (AppFetchService.StoreProductListDto result in list.Take(MaximumStoreSearchResults))
                 {
                     AppFetchItemViewModel item = new(_service, result);
                     item.OperationFailed += Item_OperationFailed;
@@ -687,14 +716,46 @@ namespace SynToolkit.ViewModels
                     _ = item.RefineInstalledStateAsync();
                 }
             }
+            catch (OperationCanceledException) when (searchCancellation.IsCancellationRequested)
+            {
+            }
             catch (Exception exception)
             {
                 App.logger.Error(exception, "[AppFetch] Search failed for term \"{SearchTerm}\".", searchTerm);
                 ErrorMessage = "Network request failed. Ensure you have a stable internet connection.";
                 HasError = true;
             }
+            finally
+            {
+                if (searchGeneration == Volatile.Read(ref _searchGeneration))
+                {
+                    IsLoading = false;
+                    if (ReferenceEquals(_searchCancellationTokenSource, searchCancellation))
+                    {
+                        _searchCancellationTokenSource = null;
+                    }
+                }
 
+                searchCancellation.Dispose();
+            }
+        }
+
+        public void CancelPendingSearch()
+        {
+            Interlocked.Increment(ref _searchGeneration);
+            _searchCancellationTokenSource?.Cancel();
+            ClearResults();
             IsLoading = false;
+        }
+
+        private void ClearResults()
+        {
+            foreach (AppFetchItemViewModel item in Results)
+            {
+                item.OperationFailed -= Item_OperationFailed;
+            }
+
+            Results.Clear();
         }
 
         private void Item_OperationFailed(object? sender, string message)

@@ -14,6 +14,7 @@
 
     <Page.Resources>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <local:BoolToVisibilityInverseConverter x:Key="BoolToVisibilityInverseConverter" />
         <local:ImageSourceConverter x:Key="ImageSourceConverter" />
     </Page.Resources>
 
@@ -270,17 +271,24 @@
                 </StackPanel>
             </Border>
 
-            <ItemsRepeater ItemsSource="{Binding FeaturedInstallers, Mode=OneWay}">
-                <ItemsRepeater.Layout>
-                    <UniformGridLayout
-                        ItemsJustification="Start"
-                        ItemsStretch="Fill"
-                        MinColumnSpacing="12"
-                        MinItemHeight="268"
-                        MinItemWidth="270"
-                        MinRowSpacing="12" />
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
+            <ScrollViewer
+                MaxHeight="720"
+                MinHeight="320"
+                HorizontalScrollBarVisibility="Disabled"
+                HorizontalScrollMode="Disabled"
+                VerticalScrollBarVisibility="Auto"
+                VerticalScrollMode="Auto">
+                <ItemsRepeater ItemsSource="{Binding FeaturedInstallers, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout
+                            ItemsJustification="Start"
+                            ItemsStretch="Fill"
+                            MinColumnSpacing="12"
+                            MinItemHeight="268"
+                            MinItemWidth="270"
+                            MinRowSpacing="12" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
                         <Border
                             MinHeight="268"
@@ -354,7 +362,8 @@
                                     Margin="0,0,0,10"
                                     Padding="9,6"
                                     Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    CornerRadius="6">
+                                    CornerRadius="6"
+                                    Visibility="{Binding IsManualOnly, Mode=OneWay, Converter={StaticResource BoolToVisibilityInverseConverter}}">
                                     <Grid ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
@@ -383,6 +392,50 @@
                                         </StackPanel>
                                     </Grid>
                                 </Border>
+                                <Button
+                                    Grid.Row="2"
+                                    Margin="0,0,0,10"
+                                    Padding="0"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Center"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="InstallerPrimaryAction_Click"
+                                    CornerRadius="6"
+                                    PointerEntered="ManualSetupCard_PointerEntered"
+                                    PointerExited="ManualSetupCard_PointerExited"
+                                    ToolTipService.ToolTip="Open the official setup page"
+                                    Visibility="{Binding IsManualOnly, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <Border
+                                        Padding="9,6"
+                                        Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                        CornerRadius="6">
+                                        <Grid ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon
+                                                Width="18"
+                                                Height="18"
+                                                VerticalAlignment="Center"
+                                                FontSize="14"
+                                                Glyph="{Binding StatusGlyph, Mode=OneWay}" />
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    FontWeight="SemiBold"
+                                                    Text="{Binding StatusText, Mode=OneWay}" />
+                                                <TextBlock
+                                                    FontSize="11"
+                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                    Text="{Binding StatusDetail, Mode=OneWay}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </Button>
                                 <Grid Grid.Row="3" ColumnSpacing="8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -414,7 +467,7 @@
                                                 Click="InstallerPrimaryAction_Click"
                                                 Content="{Binding PrimaryActionText, Mode=OneWay}"
                                                 Style="{StaticResource AccentButtonStyle}"
-                                                ToolTipService.ToolTip="Install or update this app now" />
+                                                ToolTipService.ToolTip="Install or update this app" />
                                         </StackPanel>
                                         <Button
                                             HorizontalAlignment="Right"
@@ -429,8 +482,9 @@
                             </Grid>
                         </Border>
                     </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
 
             <Border
                 Padding="32"

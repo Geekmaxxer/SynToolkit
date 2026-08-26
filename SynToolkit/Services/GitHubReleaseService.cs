@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 
@@ -14,16 +15,20 @@ namespace SynToolkit.Services
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private const string ReleasesApiUrl = "https://api.github.com/repos/synergy-tweaks/synergyos/releases";
         private const string ReleasesPageUrl = "https://github.com/synergy-tweaks/synergyos/releases";
+        private static readonly HttpClient Client = CreateHttpClient();
 
         public static string ReleasesUrl => ReleasesPageUrl;
 
-        public async Task<GitHubRelease?> GetLatestReleaseAsync()
+        public async Task<GitHubRelease?> GetLatestReleaseAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                using HttpClient client = CreateHttpClient();
-                string json = await client.GetStringAsync($"{ReleasesApiUrl}/latest");
+                string json = await Client.GetStringAsync($"{ReleasesApiUrl}/latest", cancellationToken);
                 return ParseRelease(json);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception exception)
             {
@@ -32,13 +37,12 @@ namespace SynToolkit.Services
             }
         }
 
-        public async Task<List<GitHubRelease>> GetRecentReleasesAsync(int count = 3)
+        public async Task<List<GitHubRelease>> GetRecentReleasesAsync(int count = 3, CancellationToken cancellationToken = default)
         {
             List<GitHubRelease> releases = new();
             try
             {
-                using HttpClient client = CreateHttpClient();
-                string json = await client.GetStringAsync($"{ReleasesApiUrl}?per_page={count}");
+                string json = await Client.GetStringAsync($"{ReleasesApiUrl}?per_page={count}", cancellationToken);
                 using JsonDocument document = JsonDocument.Parse(json);
 
                 foreach (JsonElement element in document.RootElement.EnumerateArray())
@@ -49,6 +53,10 @@ namespace SynToolkit.Services
                         releases.Add(release);
                     }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception exception)
             {

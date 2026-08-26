@@ -57,7 +57,7 @@
                                 <Border>
                                     <Border.Background>
                                         <ImageBrush
-                                            ImageSource="{Binding ThumbnailPath}"
+                                            ImageSource="{Binding ThumbnailSource}"
                                             Stretch="UniformToFill" />
                                     </Border.Background>
                                 </Border>
@@ -341,11 +341,13 @@
 
                     <GridView
                         x:Name="WallpaperGridView"
+                        MaxHeight="520"
                         IsItemClickEnabled="True"
                         ItemClick="WallpaperGridView_ItemClick"
                         ItemContainerStyle="{StaticResource WallpaperGridViewItemStyle}"
                         ItemTemplate="{StaticResource WallpaperTileTemplate}"
-                        SelectionMode="None">
+                        SelectionMode="None"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <GridView.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <ItemsWrapGrid Orientation="Horizontal" />
@@ -361,11 +363,13 @@
 
                     <GridView
                         x:Name="CustomWallpaperGridView"
+                        MaxHeight="520"
                         IsItemClickEnabled="True"
                         ItemClick="CustomWallpaperGridView_ItemClick"
                         ItemContainerStyle="{StaticResource WallpaperGridViewItemStyle}"
                         ItemTemplate="{StaticResource WallpaperTileTemplate}"
-                        SelectionMode="None">
+                        SelectionMode="None"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <GridView.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <ItemsWrapGrid Orientation="Horizontal" />

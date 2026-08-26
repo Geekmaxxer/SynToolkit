@@ -263,6 +263,7 @@ namespace SynToolkit.Views
             try
             {
                 s.IsOn = RegistryHelper.IsMatch(@$"HKLM\SOFTWARE\SynToolkit\Experiments\{s.Tag}", "enabled", 1);
+                s.Toggled -= ToggleState;
                 s.Toggled += ToggleState;
             }
             catch (Exception ex)
