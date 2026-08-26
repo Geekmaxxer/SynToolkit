@@ -488,6 +488,29 @@ namespace SynToolkit
 
         private void TrimMainFrameHistory()
         {
+            for (int index = 0; index < ContentFrame.BackStack.Count; index++)
+            {
+                Type pageType = ContentFrame.BackStack[index].SourcePageType;
+                if (pageType != typeof(AppFetchPage) &&
+                    pageType != typeof(PowerPlansPage) &&
+                    pageType != typeof(AdjustmentsPage))
+                {
+                    continue;
+                }
+
+                for (int laterIndex = index + 1; laterIndex < ContentFrame.BackStack.Count; laterIndex++)
+                {
+                    if (ContentFrame.BackStack[laterIndex].SourcePageType != pageType)
+                    {
+                        continue;
+                    }
+
+                    ContentFrame.BackStack.RemoveAt(index);
+                    index--;
+                    break;
+                }
+            }
+
             while (ContentFrame.BackStack.Count > MaximumMainFrameHistoryEntries)
             {
                 ContentFrame.BackStack.RemoveAt(0);

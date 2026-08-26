@@ -20,13 +20,14 @@ namespace SynToolkit.Views
         private PowerPlanSnapshot? _snapshot;
         private bool _isBusy = true;
         private bool _isPageLoaded;
+        private bool _hasLoadedStatus;
         private int _lifetimeVersion;
         private IReadOnlyList<BundledPowerPlan> _allBundledPlans = Array.Empty<BundledPowerPlan>();
 
         public PowerPlansPage()
         {
             InitializeComponent();
-            NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Disabled;
+            NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
             LoadBundledPlans();
         }
 
@@ -90,10 +91,20 @@ namespace SynToolkit.Views
             int lifetimeVersion = ++_lifetimeVersion;
             CancellationToken cancellationToken = _lifetimeCancellation.Token;
 
+            if (_hasLoadedStatus)
+            {
+                SetBusy(false);
+                return;
+            }
+
             SetBusy(true);
             try
             {
                 await RefreshStatusAsync(cancellationToken, lifetimeVersion, showErrors: true);
+                if (IsCurrentLifetime(lifetimeVersion, cancellationToken))
+                {
+                    _hasLoadedStatus = true;
+                }
             }
             finally
             {

@@ -109,7 +109,7 @@
                         Visibility="{Binding IsRefreshingInstallerStates, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
                     <Button
                         Command="{Binding RefreshInstallerStatesCommand}"
-                        Content="Refresh status" local:LocalizedText.ContentKey="AppFetchPageContent2AB48378ABE3"
+                        Content="Refresh" local:LocalizedText.ContentKey="AppFetchPageContent2AB48378ABE3"
                         IsEnabled="{Binding CanRefreshInstallerStates, Mode=OneWay}" />
                 </StackPanel>
             </Grid>
@@ -305,7 +305,8 @@
                 HorizontalScrollBarVisibility="Disabled"
                 HorizontalScrollMode="Disabled"
                 VerticalScrollBarVisibility="Auto"
-                VerticalScrollMode="Auto">
+                VerticalScrollMode="Auto"
+                Visibility="{Binding HasNoCatalogResults, Mode=OneWay, Converter={StaticResource BoolToVisibilityInverseConverter}}">
                 <ItemsRepeater
                     x:Name="FeaturedInstallersRepeater"
                     ItemsSource="{Binding FeaturedInstallers, Mode=OneWay}">

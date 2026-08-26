@@ -394,7 +394,7 @@ namespace SynToolkit.ViewModels
                     installer.ApplyAvailabilityState(InstallerAvailabilityState.Unavailable);
                 }
 
-                InstallerStatusSummary = "Some app statuses could not be checked. Select Refresh status to retry.";
+                InstallerStatusSummary = "Some app statuses could not be checked. Select Refresh to retry.";
             }
             finally
             {
