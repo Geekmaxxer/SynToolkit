@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SynToolkit.Models;
@@ -14,18 +15,31 @@ namespace SynToolkit.ViewModels
 {
     public sealed class GpuSpecDisplay
     {
-        public GpuSpecDisplay(string name, string vramText, string driverVersionText, string iconPath)
+        public GpuSpecDisplay(
+            string name,
+            string vramText,
+            string driverVersionText,
+            string iconPath,
+            uint? deviceManagerErrorCode)
         {
             Name = name;
             VramText = vramText;
             DriverVersionText = driverVersionText;
             IconPath = iconPath;
+            DeviceManagerStatusText = deviceManagerErrorCode switch
+            {
+                0 => "Device Manager: Enabled",
+                22 => "Device Manager: Disabled",
+                null => "Device Manager: Status unavailable",
+                _ => $"Device Manager: Error code {deviceManagerErrorCode}"
+            };
         }
 
         public string Name { get; }
         public string VramText { get; }
         public string DriverVersionText { get; }
         public string IconPath { get; }
+        public string DeviceManagerStatusText { get; }
     }
 
     public sealed record MemoryModuleDisplay(string ManufacturerText, string CapacityText);
@@ -109,13 +123,16 @@ namespace SynToolkit.ViewModels
             _systemInformationService = systemInformationService;
         }
 
-        public async Task LoadAsync()
+        public async Task LoadAsync(CancellationToken cancellationToken = default)
         {
             IsLoading = true;
             HasError = false;
             try
             {
-                SystemSpecsSnapshot snapshot = await Task.Run(() => SystemSpecsService.GetSnapshot(_systemInformationService));
+                SystemSpecsSnapshot snapshot = await Task.Run(
+                    () => SystemSpecsService.GetSnapshot(_systemInformationService),
+                    cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 CpuName = snapshot.Cpu?.Name ?? "Unknown CPU";
                 CpuDetailsText = CreateCpuSummary(snapshot.Cpu) + " · Loading detailed CPU information...";
@@ -136,7 +153,8 @@ namespace SynToolkit.ViewModels
                         gpu.Name,
                         gpu.AdapterRamBytes.HasValue ? FormatBytes(gpu.AdapterRamBytes.Value) : "Unknown",
                         string.IsNullOrWhiteSpace(gpu.DriverVersion) ? "Unknown driver version" : $"Driver {gpu.DriverVersion}",
-                        gpu.IconPath));
+                        gpu.IconPath,
+                        gpu.DeviceManagerErrorCode));
                 }
 
                 GraphicsHeaderIcon = GpuDetectionService.GetPrimaryIconPath(snapshot.Gpus);
@@ -181,8 +199,12 @@ namespace SynToolkit.ViewModels
                 }
 
                 MemoryDescriptionText = $"{TotalMemoryText} · Loading CAS Latency & timings...";
-                _ = LoadMemoryTimingDetailsAsync(snapshot.MemoryModules);
-                _ = LoadCpuDetailsAsync(snapshot.Cpu);
+                _ = LoadMemoryTimingDetailsAsync(snapshot.MemoryModules, cancellationToken);
+                _ = LoadCpuDetailsAsync(snapshot.Cpu, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception exception)
             {
@@ -197,7 +219,7 @@ namespace SynToolkit.ViewModels
         }
 
 
-        public async Task LoadMotherboardDetailsAsync()
+        public async Task LoadMotherboardDetailsAsync(CancellationToken cancellationToken = default)
         {
             if (_areMotherboardDetailsLoaded || _areMotherboardDetailsLoading)
             {
@@ -209,7 +231,10 @@ namespace SynToolkit.ViewModels
             MotherboardDetails.Add(new MotherboardDetailDisplay("Motherboard details", "Loading..."));
             try
             {
-                IReadOnlyList<MotherboardDetail> details = await Task.Run(SystemSpecsService.GetMotherboardDetails);
+                IReadOnlyList<MotherboardDetail> details = await Task.Run(
+                    SystemSpecsService.GetMotherboardDetails,
+                    cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 MotherboardDetails.Clear();
                 if (details.Count == 0)
                 {
@@ -223,6 +248,10 @@ namespace SynToolkit.ViewModels
                 {
                     MotherboardDetails.Add(new MotherboardDetailDisplay(detail.Label, detail.Value));
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception exception)
             {
@@ -264,17 +293,24 @@ namespace SynToolkit.ViewModels
                 : $"{FormatLiveCpuFrequency(_minimumObservedCpuFrequencyMHz.Value)} - {FormatLiveCpuFrequency(_maximumObservedCpuFrequencyMHz.Value)}";
         }
 
-        private async Task LoadCpuDetailsAsync(CpuSpec? cpu)
+        private async Task LoadCpuDetailsAsync(CpuSpec? cpu, CancellationToken cancellationToken)
         {
             try
             {
-                CpuZProcessorDetails? details = await Task.Run(CpuZMemoryReportService.GetCurrentProcessorDetails);
+                CpuZProcessorDetails? details = await Task.Run(
+                    CpuZMemoryReportService.GetCurrentProcessorDetails,
+                    cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 if (details is not null)
                 {
                     DisplayCpuDetails(cpu, details);
                     CpuDetailsText = CreateCpuSummary(cpu, details);
                     return;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
             catch (Exception exception)
             {
@@ -395,13 +431,21 @@ namespace SynToolkit.ViewModels
             megahertz.ToString("0", CultureInfo.InvariantCulture) + " MHz";
 
         private static string FormatCpuFrequency(uint megahertz) => FormatCpuFrequency((decimal)megahertz);
-        private async Task LoadMemoryTimingDetailsAsync(IReadOnlyList<MemoryModuleSpec> modules)
+        private async Task LoadMemoryTimingDetailsAsync(
+            IReadOnlyList<MemoryModuleSpec> modules,
+            CancellationToken cancellationToken)
         {
             try
             {
                 IReadOnlyList<MemoryModuleSpec> modulesWithTimings = await Task.Run(
-                    () => SystemSpecsService.AddCurrentMemoryTimingDetails(modules));
+                    () => SystemSpecsService.AddCurrentMemoryTimingDetails(modules),
+                    cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 DisplayMemoryModules(modulesWithTimings);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
             catch (Exception exception)
             {
@@ -409,7 +453,10 @@ namespace SynToolkit.ViewModels
             }
             finally
             {
-                MemoryDescriptionText = TotalMemoryText;
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    MemoryDescriptionText = TotalMemoryText;
+                }
             }
         }
 

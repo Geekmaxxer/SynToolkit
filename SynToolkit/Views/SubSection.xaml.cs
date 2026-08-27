@@ -73,6 +73,7 @@ namespace SynToolkit.Views
                     item2.Remove(item2.Last());
                 }
                 BreadcrumbBar.ItemsSource = item2;
+                BreadcrumbBar.ItemClicked -= BreadcrumbBar_ItemClicked;
                 BreadcrumbBar.ItemClicked += BreadcrumbBar_ItemClicked;
 
                 oldCat = App.CurrentCategory;
@@ -134,6 +135,8 @@ namespace SynToolkit.Views
 
         private async void ConfigPage_Loaded(object sender, RoutedEventArgs e)
         {
+            App.ConfigurationActionSucceeded += ConfigurationActionSucceeded;
+
             if (_lifetimeCancellation.IsCancellationRequested)
             {
                 _lifetimeCancellation.Dispose();
@@ -164,9 +167,24 @@ namespace SynToolkit.Views
 
         private void ConfigPage_Unloaded(object sender, RoutedEventArgs e)
         {
+            App.ConfigurationActionSucceeded -= ConfigurationActionSucceeded;
+            BreadcrumbBar.ItemClicked -= BreadcrumbBar_ItemClicked;
             _lifetimeCancellation.Cancel();
             _highlightTimer?.Stop();
             _highlightTimer = null;
+        }
+
+        private void ConfigurationActionSucceeded(string message)
+        {
+            if (!IsLoaded)
+            {
+                return;
+            }
+
+            OperationInfoBar.Title = "Done";
+            OperationInfoBar.Message = message;
+            OperationInfoBar.Severity = InfoBarSeverity.Success;
+            OperationInfoBar.IsOpen = true;
         }
 
         private void ScrollToAndHighlightItem(string itemKey)

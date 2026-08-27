@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -22,6 +23,9 @@ namespace SynToolkit.Views
         private HomePageViewModel _viewModel;
         private List<IConfigurationItem> _configurationItems;
         private GitHubRelease _latestRelease;
+        private bool _hasCheckedNeedsAttention;
+        private bool _hasStartedReleaseNotesLoad;
+        private CancellationTokenSource _lifetimeCancellation = new();
 
         public HomePage()
         {
@@ -33,19 +37,74 @@ namespace SynToolkit.Views
             this.DataContext = _viewModel;
             LoadText();
             LoadFavorites();
-            _ = LoadReleaseNotesAsync();
             this.SizeChanged += MainWindow_SizeChanged;
+            Loaded += HomePage_Loaded;
+            Unloaded += HomePage_Unloaded;
 
             ProfilesListView.ItemsSource = _viewModel.ProfilesList;
             ProfilesListView.SelectedItem = _viewModel.ProfileSelected;
         }
 
-        private async Task LoadReleaseNotesAsync()
+        private async void HomePage_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (_lifetimeCancellation.IsCancellationRequested)
+            {
+                _lifetimeCancellation.Dispose();
+                _lifetimeCancellation = new CancellationTokenSource();
+            }
+
+            if (!_hasStartedReleaseNotesLoad)
+            {
+                _hasStartedReleaseNotesLoad = true;
+                _ = LoadReleaseNotesAsync(_lifetimeCancellation.Token);
+            }
+
+            if (_hasCheckedNeedsAttention)
+            {
+                return;
+            }
+
+            _hasCheckedNeedsAttention = true;
+            try
+            {
+                NeedsAttentionService service = App._host.Services.GetRequiredService<NeedsAttentionService>();
+                NeedsAttentionSnapshot snapshot = await service.GetStartupSnapshotAsync(_lifetimeCancellation.Token);
+                if (snapshot.Items.Count == 0)
+                {
+                    return;
+                }
+
+                NeedsAttentionSummary.Text = snapshot.Items.Count == 1
+                    ? snapshot.Items[0].Title
+                    : string.Format(
+                        CultureInfo.CurrentCulture,
+                        App.GetValueFromItemList("NeedsAttention_HomeSummaryMany"),
+                        snapshot.Items.Count);
+                NeedsAttentionCallout.Visibility = Visibility.Visible;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception exception)
+            {
+                App.logger.Debug(exception, "[NeedsAttention] Home callout could not be refreshed.");
+            }
+        }
+
+        private void HomePage_Unloaded(object sender, RoutedEventArgs e) => _lifetimeCancellation.Cancel();
+
+        private void NeedsAttentionButton_Click(object sender, RoutedEventArgs e) =>
+            (App.m_window as MainWindow)?.NavigateToPage(
+                typeof(NeedsAttentionPage),
+                "SynToolkit.Views.NeedsAttentionPage");
+
+        private async Task LoadReleaseNotesAsync(CancellationToken cancellationToken)
         {
             try
             {
                 GitHubReleaseService releaseService = new();
-                _latestRelease = await releaseService.GetLatestReleaseAsync();
+                _latestRelease = await releaseService.GetLatestReleaseAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (_latestRelease is not null)
                 {
@@ -61,6 +120,9 @@ namespace SynToolkit.Views
                     ReleaseNotesLoading.Visibility = Visibility.Collapsed;
                     ReleaseNotesError.Visibility = Visibility.Visible;
                 }
+            }
+            catch (OperationCanceledException)
+            {
             }
             catch (Exception ex)
             {

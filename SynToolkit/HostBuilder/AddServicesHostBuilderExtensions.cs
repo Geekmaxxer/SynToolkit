@@ -22,6 +22,7 @@ namespace SynToolkit.HostBuilder
                 services.AddSingleton<IUserAccountInfoService, UserAccountInfoService>();
                 services.AddSingleton<AppFetchService>();
                 services.AddSingleton<WingetInstallerService>();
+                services.AddSingleton<NeedsAttentionService>();
             });
 
             host.AddConfigurationServices();

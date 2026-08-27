@@ -227,6 +227,11 @@
                                                     FontSize="12"
                                                     Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                                     Text="{x:Bind DriverVersionText, Mode=OneTime}" />
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="{x:Bind DeviceManagerStatusText, Mode=OneTime}" />
                                             </StackPanel>
                                             <TextBlock
                                                 Grid.Column="2"

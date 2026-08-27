@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
@@ -20,27 +21,59 @@ namespace SynToolkit.Views
         private const string NipFileFilter = "NVIDIA Profile Inspector profiles (*.nip)|*.nip|All files (*.*)|*.*";
 
         private readonly GpuPageViewModel _viewModel;
+        private readonly PropertyChangedEventHandler _viewModelPropertyChangedHandler;
         private int _currentSlimmerTab = 0; // 0 = Packages, 1 = Scheduled Tasks, 2 = Display Components
+        private bool _isViewModelPropertyChangedSubscribed;
 
         public GpuPage()
         {
             InitializeComponent();
             _viewModel = App._host.Services.GetRequiredService<GpuPageViewModel>();
             DataContext = _viewModel;
-            _viewModel.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName == nameof(GpuPageViewModel.CurrentStep))
-                {
-                    UpdateStepVisibility();
-                }
-                else if (e.PropertyName == nameof(GpuPageViewModel.SelectedVendor))
-                {
-                    UpdateVendorPanelVisibility();
-                }
-            };
+            _viewModelPropertyChangedHandler = ViewModel_PropertyChanged;
+            Loaded += GpuPage_Loaded;
+            Unloaded += GpuPage_Unloaded;
             UpdateStepVisibility();
             UpdateVendorPanelVisibility();
-            _ = _viewModel.DetectGpusAsync();
+        }
+
+        private async void GpuPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!_isViewModelPropertyChangedSubscribed)
+            {
+                _viewModel.PropertyChanged += _viewModelPropertyChangedHandler;
+                _isViewModelPropertyChangedSubscribed = true;
+            }
+
+            try
+            {
+                await _viewModel.DetectGpusAsync();
+            }
+            catch (Exception exception)
+            {
+                App.logger.Debug(exception, "[GPU] GPU detection failed while loading the page.");
+            }
+        }
+
+        private void GpuPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (_isViewModelPropertyChangedSubscribed)
+            {
+                _viewModel.PropertyChanged -= _viewModelPropertyChangedHandler;
+                _isViewModelPropertyChangedSubscribed = false;
+            }
+        }
+
+        private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(GpuPageViewModel.CurrentStep))
+            {
+                UpdateStepVisibility();
+            }
+            else if (e.PropertyName == nameof(GpuPageViewModel.SelectedVendor))
+            {
+                UpdateVendorPanelVisibility();
+            }
         }
 
         private void UpdateVendorPanelVisibility()

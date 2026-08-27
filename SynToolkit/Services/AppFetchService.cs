@@ -466,17 +466,21 @@ namespace SynToolkit.Services
         [JsonSerializable(typeof(InstallerSwitches))]
         internal partial class SourceGenerationContext : JsonSerializerContext { }
 
-        public async Task<List<StorePackageDto>> SearchInstallerProductsAsync(string productId)
+        public async Task<List<StorePackageDto>> SearchInstallerProductsAsync(
+            string productId,
+            CancellationToken cancellationToken = default)
         {
             string requestUrl = $"{_storeApiUrl}/packageManifests/{Uri.EscapeDataString(productId)}?Market=US";
 
-            HttpResponseMessage response = await _httpClient.GetAsync(requestUrl);
+            using HttpResponseMessage response = await _httpClient.GetAsync(requestUrl, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
                 List<StorePackageDto> results = new();
 
-                StoreInstallerPackageResponseDto? responseData = await response.Content.ReadFromJsonAsync<StoreInstallerPackageResponseDto>(new JsonSerializerOptions() { TypeInfoResolver = new SourceGenerationContext() });
+                StoreInstallerPackageResponseDto? responseData = await response.Content.ReadFromJsonAsync<StoreInstallerPackageResponseDto>(
+                    new JsonSerializerOptions() { TypeInfoResolver = new SourceGenerationContext() },
+                    cancellationToken);
                 if (responseData is null)
                 {
                     throw new Exception("Invalid response from the server.");
@@ -514,15 +518,19 @@ namespace SynToolkit.Services
             throw new Exception("Failed to search the product: " + (response.ReasonPhrase ?? response.StatusCode.ToString()));
         }
 
-        public async Task<List<StoreProductListDto>> SearchProductsAsync(string query)
+        public async Task<List<StoreProductListDto>> SearchProductsAsync(
+            string query,
+            CancellationToken cancellationToken = default)
         {
             string requestUrl = $"{_searchApiUrl}?gl=US&hl=en-us&query={Uri.EscapeDataString(query)}&mediaType=all&age=all&price=all&category=all&subscription=all";
 
-            HttpResponseMessage response = await _httpClient.GetAsync(requestUrl);
+            using HttpResponseMessage response = await _httpClient.GetAsync(requestUrl, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
-                StoreSearchResponseDto? responseData = await response.Content.ReadFromJsonAsync<StoreSearchResponseDto>(new JsonSerializerOptions() { TypeInfoResolver = new SourceGenerationContext() });
+                StoreSearchResponseDto? responseData = await response.Content.ReadFromJsonAsync<StoreSearchResponseDto>(
+                    new JsonSerializerOptions() { TypeInfoResolver = new SourceGenerationContext() },
+                    cancellationToken);
                 if (responseData is null)
                 {
                     throw new Exception("Invalid response from the server.");
@@ -554,8 +562,8 @@ namespace SynToolkit.Services
                 return _cookie;
             }
 
-            HttpRequestMessage request = CreateSoapRequest(CookieContent, _fe3DeliveryUrl);
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            using HttpRequestMessage request = CreateSoapRequest(CookieContent, _fe3DeliveryUrl);
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -578,7 +586,7 @@ namespace SynToolkit.Services
         {
             string url = $"{_storeApiUrl}/products/{id}?market=US&locale=en-us&deviceFamily=Windows.Desktop";
 
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            using HttpResponseMessage response = await _httpClient.GetAsync(url);
 
             if (response.IsSuccessStatusCode)
             {
@@ -620,8 +628,8 @@ namespace SynToolkit.Services
                 .Replace("{2}", categoryID)
                 .Replace("{3}", ring);
 
-            HttpRequestMessage request = CreateSoapRequest(requestXml, _fe3DeliveryUrl);
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            using HttpRequestMessage request = CreateSoapRequest(requestXml, _fe3DeliveryUrl);
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -639,8 +647,8 @@ namespace SynToolkit.Services
                 .Replace("{2}", revision)
                 .Replace("{3}", ring);
 
-            HttpRequestMessage request = CreateSoapRequest(requestXml, _fe3DeliveryUrl + "/secured");
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            using HttpRequestMessage request = CreateSoapRequest(requestXml, _fe3DeliveryUrl + "/secured");
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {

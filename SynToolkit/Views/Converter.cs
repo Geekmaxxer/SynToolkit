@@ -7,6 +7,8 @@ using SynToolkit.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace SynToolkit.Views
 {
@@ -63,7 +65,7 @@ namespace SynToolkit.Views
             if (iconValue.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
                 iconValue.StartsWith("ms-appx:", StringComparison.OrdinalIgnoreCase))
             {
-                return new ImageIcon { Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(iconValue)) };
+                return new ImageIcon { Source = ImageSourceCache.Get(iconValue) };
             }
 
             // Otherwise, treat it as a FontIcon glyph
@@ -80,16 +82,9 @@ namespace SynToolkit.Views
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value is string path &&
-                !string.IsNullOrWhiteSpace(path) &&
-                Uri.TryCreate(path, UriKind.Absolute, out Uri uri))
+            if (value is string path && !string.IsNullOrWhiteSpace(path))
             {
-                if (path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
-                {
-                    return new Microsoft.UI.Xaml.Media.Imaging.SvgImageSource(uri);
-                }
-
-                return new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(uri);
+                return ImageSourceCache.Get(path);
             }
 
             return null;
@@ -98,6 +93,71 @@ namespace SynToolkit.Views
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    internal static class ImageSourceCache
+    {
+        private const int MaximumBundledSources = 32;
+        private const int MemoryPressureSourceLimit = 8;
+        private static readonly Dictionary<string, LinkedListNode<CacheEntry>> BundledSources = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly LinkedList<CacheEntry> SourceUsage = new();
+        private static readonly object CacheLock = new();
+
+        private sealed record CacheEntry(string Path, ImageSource Source);
+
+        public static ImageSource Get(string path)
+        {
+            if (!Uri.TryCreate(path, UriKind.Absolute, out Uri uri))
+            {
+                return null;
+            }
+
+            if (!path.StartsWith("ms-appx:", StringComparison.OrdinalIgnoreCase))
+            {
+                return Create(path, uri);
+            }
+
+            lock (CacheLock)
+            {
+                if (BundledSources.TryGetValue(path, out LinkedListNode<CacheEntry> cachedNode))
+                {
+                    SourceUsage.Remove(cachedNode);
+                    SourceUsage.AddFirst(cachedNode);
+                    return cachedNode.Value.Source;
+                }
+
+                ImageSource source = Create(path, uri);
+                LinkedListNode<CacheEntry> node = SourceUsage.AddFirst(new CacheEntry(path, source));
+                BundledSources.Add(path, node);
+                if (BundledSources.Count > MaximumBundledSources && SourceUsage.Last is LinkedListNode<CacheEntry> oldestNode)
+                {
+                    SourceUsage.RemoveLast();
+                    BundledSources.Remove(oldestNode.Value.Path);
+                }
+
+                return source;
+            }
+        }
+
+        internal static void TrimForMemoryPressure()
+        {
+            lock (CacheLock)
+            {
+                while (BundledSources.Count > MemoryPressureSourceLimit &&
+                    SourceUsage.Last is LinkedListNode<CacheEntry> oldestNode)
+                {
+                    SourceUsage.RemoveLast();
+                    BundledSources.Remove(oldestNode.Value.Path);
+                }
+            }
+        }
+
+        private static ImageSource Create(string path, Uri uri)
+        {
+            return path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)
+                ? new SvgImageSource(uri)
+                : new BitmapImage(uri);
         }
     }
 

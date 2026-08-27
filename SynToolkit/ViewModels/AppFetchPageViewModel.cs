@@ -21,11 +21,14 @@ namespace SynToolkit.ViewModels
     /// </summary>
     public partial class AppFetchPageViewModel : ObservableObject
     {
+        private const int MaximumStoreSearchResults = 24;
         private readonly AppFetchService _service;
         private readonly WingetInstallerService _wingetInstallerService;
         private readonly IConfigurationService _xboxServicesConfigurationService;
         private readonly IReadOnlyList<FeaturedInstallerViewModel> _allFeaturedInstallers;
         private CancellationTokenSource? _installQueueCancellationTokenSource;
+
+        public event Action<int>? AvailableInstallerUpdateCountChanged;
 
         public ObservableCollection<AppFetchItemViewModel> Results { get; } = new();
 
@@ -35,6 +38,14 @@ namespace SynToolkit.ViewModels
 
         public IReadOnlyList<string> Categories { get; } =
             ["All", "Browser", "Communication", "Gaming", "Utility", "Media", "Creator", "Development", "Productivity", "System", "Community"];
+
+        public IReadOnlyList<string> AvailabilityFilters { get; } =
+            [
+                App.GetValueFromItemList("Installer_FilterAll"),
+                App.GetValueFromItemList("Installer_FilterInstalled"),
+                App.GetValueFromItemList("Installer_FilterNotInstalled"),
+                App.GetValueFromItemList("Installer_FilterNeedsUpdate")
+            ];
 
         private string _catalogSearchText = string.Empty;
 
@@ -79,6 +90,9 @@ namespace SynToolkit.ViewModels
         public partial string SelectedCategory { get; set; } = "All";
 
         [ObservableProperty]
+        public partial string SelectedAvailabilityFilter { get; set; } = App.GetValueFromItemList("Installer_FilterAll");
+
+        [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CanInstallSelected))]
         [NotifyPropertyChangedFor(nameof(CanDismissQueue))]
         [NotifyPropertyChangedFor(nameof(CanRetryFailed))]
@@ -113,7 +127,7 @@ namespace SynToolkit.ViewModels
             private set => SetProperty(ref _installerStatusSummary, value);
         }
 
-        private static IReadOnlyList<FeaturedInstallerViewModel> CreateFeaturedInstallers() =>
+        internal static IReadOnlyList<FeaturedInstallerViewModel> CreateFeaturedInstallers() =>
             new List<FeaturedInstallerViewModel>
             {
                 // Browsers
@@ -128,8 +142,6 @@ namespace SynToolkit.ViewModels
                 // Communication
                 new("Discord", "Communication", "Voice, video, and chat for communities.", "ms-appx:///assets/Icons/Installers/discord.svg", "https://discord.com/download", "Discord.Discord", ["Discord"], isEssential: true, silentArgumentsOverride: "-s"),
                 new("Telegram Desktop", "Communication", "Fast messaging with synced chats and large groups.", "ms-appx:///assets/Icons/Installers/telegram.svg", "https://desktop.telegram.org/", "Telegram.TelegramDesktop", ["Telegram Desktop"]),
-                new("Zoom Workplace", "Communication", "Video meetings, screen sharing, and team collaboration.", "ms-appx:///assets/Icons/Installers/zoom.svg", "https://zoom.us/download", "Zoom.Zoom", ["Zoom Workplace", "Zoom"]),
-                new("Slack", "Communication", "Team channels, direct messages, and integrations.", "ms-appx:///assets/Icons/Installers/slack.svg", "https://slack.com/downloads/windows", "SlackTechnologies.Slack", ["Slack"]),
                 new("Vesktop", "Communication", "A desktop Discord client with Vencord built in.", "ms-appx:///assets/Icons/Installers/vencord.svg", "https://vencord.dev/download/", "Vencord.Vesktop", ["Vesktop"]),
 
                 // Gaming
@@ -183,6 +195,9 @@ namespace SynToolkit.ViewModels
                 // System runtimes
                 new("Visual C++ Runtime", "System", "Official Microsoft runtime for desktop apps and games.", "ms-appx:///assets/Icons/Installers/cplusplus.svg", "https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist?view=msvc-170", "Microsoft.VCRedist.2015+.x64", ["Microsoft Visual C++ 2015-2022 Redistributable (x64)", "Microsoft Visual C++ 2015-2019 Redistributable (x64)"], isEssential: true),
                 new(".NET Desktop Runtime 8", "System", "Microsoft runtime required by many modern Windows apps.", "ms-appx:///assets/Icons/Installers/dotnet.svg", "https://dotnet.microsoft.com/download/dotnet/8.0", "Microsoft.DotNet.DesktopRuntime.8", ["Microsoft Windows Desktop Runtime - 8"]),
+                new("NVIDIA App", "System", App.GetValueFromItemList("Installer_NvidiaAppDescription"), "ms-appx:///assets/Icons/Nvidia.png", "https://www.nvidia.com/en-us/software/nvidia-app/", "Manual.NvidiaApp", ["NVIDIA App"], isManualOnly: true),
+                new("NVIDIA Control Panel", "System", App.GetValueFromItemList("Installer_NvidiaControlPanelDescription"), "ms-appx:///assets/Icons/Nvidia.png", "https://apps.microsoft.com/detail/9NF8H0H7WMLT", "9NF8H0H7WMLT", ["NVIDIA Control Panel"], packageSource: "msstore"),
+                new("AMD Software: Adrenalin Edition", "System", App.GetValueFromItemList("Installer_AmdAdrenalinDescription"), "ms-appx:///assets/Icons/Amd.png", "https://www.amd.com/en/products/software/adrenalin.html", "Manual.AmdAdrenalin", ["AMD Software", "AMD Adrenalin Edition"], isManualOnly: true),
 
                 // Community modifications require their official, visible setup flow.
                 new("SpotX", "Community", "Community Spotify customization and patching tool.", "ms-appx:///assets/Icons/Installers/spotx.svg", "https://github.com/SpotX-Official/SpotX", "Community.SpotX", [], isManualOnly: true),
@@ -215,6 +230,8 @@ namespace SynToolkit.ViewModels
             OnPropertyChanged(nameof(IsRevertXboxServicesButtonEnabled));
 
         private Task? _installedPackagesTask;
+        private CancellationTokenSource? _searchCancellationTokenSource;
+        private int _searchGeneration;
 
         public AppFetchPageViewModel(
             AppFetchService service,
@@ -237,12 +254,18 @@ namespace SynToolkit.ViewModels
 
         partial void OnSelectedCategoryChanged(string value) => ApplyCatalogFilter();
 
+        partial void OnSelectedAvailabilityFilterChanged(string value) => ApplyCatalogFilter();
+
         private void ApplyCatalogFilter()
         {
             string searchTerm = CatalogSearchText.Trim();
             FeaturedInstallers.Clear();
             foreach (FeaturedInstallerViewModel installer in _allFeaturedInstallers.Where(
                 installer => (SelectedCategory == "All" || installer.Category == SelectedCategory) &&
+                    (SelectedAvailabilityFilter == AvailabilityFilters[0] ||
+                        (SelectedAvailabilityFilter == AvailabilityFilters[1] && installer.AvailabilityState is InstallerAvailabilityState.Installed or InstallerAvailabilityState.UpdateAvailable) ||
+                        (SelectedAvailabilityFilter == AvailabilityFilters[2] && installer.AvailabilityState == InstallerAvailabilityState.NotInstalled) ||
+                        (SelectedAvailabilityFilter == AvailabilityFilters[3] && installer.AvailabilityState == InstallerAvailabilityState.UpdateAvailable)) &&
                     (searchTerm.Length == 0 ||
                         installer.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                         installer.Category.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
@@ -261,6 +284,10 @@ namespace SynToolkit.ViewModels
             if (eventArgs.PropertyName == nameof(FeaturedInstallerViewModel.IsSelected))
             {
                 NotifySelectionChanged();
+            }
+            else if (eventArgs.PropertyName == nameof(FeaturedInstallerViewModel.AvailabilityState))
+            {
+                ApplyCatalogFilter();
             }
         }
 
@@ -282,7 +309,9 @@ namespace SynToolkit.ViewModels
         }
 
         [RelayCommand]
-        public async Task RefreshInstallerStatesAsync()
+        private Task RefreshInstallerStates() => RefreshInstallerStatesAsync(CancellationToken.None);
+
+        public async Task RefreshInstallerStatesAsync(CancellationToken cancellationToken)
         {
             if (IsRefreshingInstallerStates || IsInstallingQueue)
             {
@@ -300,8 +329,10 @@ namespace SynToolkit.ViewModels
                             .Where(installer => !installer.IsManualOnly)
                             .Select(installer => new CuratedPackageProbe(
                                 installer.PackageIdentifier,
-                                installer.InstalledDisplayNamePrefixes))
-                            .ToList());
+                                installer.InstalledDisplayNamePrefixes,
+                                installer.PackageSource))
+                            .ToList(),
+                        cancellationToken);
 
                 Dictionary<string, CuratedPackageStatus> statusesByIdentifier = statuses.ToDictionary(
                     status => status.PackageIdentifier,
@@ -340,6 +371,7 @@ namespace SynToolkit.ViewModels
                 int incompleteUpdateCheckCount = _allFeaturedInstallers.Count(installer =>
                     installer.AvailabilityState == InstallerAvailabilityState.Installed &&
                     !installer.IsUpdateCheckComplete);
+                AvailableInstallerUpdateCountChanged?.Invoke(updateCount);
                 InstallerStatusSummary = (updateCount, incompleteUpdateCheckCount) switch
                 {
                     (0, 0) => $"{installedCount} installed • Everything detected is current",
@@ -347,6 +379,10 @@ namespace SynToolkit.ViewModels
                     (_, 0) => $"{installedCount} installed • {updateCount} update{(updateCount == 1 ? string.Empty : "s")} available",
                     _ => $"{installedCount} installed • {updateCount} update{(updateCount == 1 ? string.Empty : "s")} available • {incompleteUpdateCheckCount} check{(incompleteUpdateCheckCount == 1 ? string.Empty : "s")} incomplete"
                 };
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception exception)
             {
@@ -358,7 +394,7 @@ namespace SynToolkit.ViewModels
                     installer.ApplyAvailabilityState(InstallerAvailabilityState.Unavailable);
                 }
 
-                InstallerStatusSummary = "Some app statuses could not be checked. Select Refresh status to retry.";
+                InstallerStatusSummary = "Some app statuses could not be checked. Select Refresh to retry.";
             }
             finally
             {
@@ -414,7 +450,8 @@ namespace SynToolkit.ViewModels
             {
                 WingetInstallResult result = await _wingetInstallerService.UninstallAsync(
                     installer.PackageIdentifier,
-                    installer.InstalledDisplayNamePrefixes);
+                    installer.InstalledDisplayNamePrefixes,
+                    installer.PackageSource);
                 if (!result.Succeeded)
                 {
                     ErrorMessage = string.IsNullOrWhiteSpace(result.Output)
@@ -435,7 +472,7 @@ namespace SynToolkit.ViewModels
             finally
             {
                 installer.IsUninstalling = false;
-                await RefreshInstallerStatesAsync();
+                await RefreshInstallerStatesAsync(CancellationToken.None);
             }
         }
 
@@ -477,6 +514,7 @@ namespace SynToolkit.ViewModels
 
                     WingetInstallResult result = await _wingetInstallerService.InstallAsync(
                         queueItem.PackageIdentifier,
+                        queueItem.Installer.PackageSource,
                         queueItem.Installer.SilentArgumentsOverride,
                         queueItem.Installer.AvailabilityState == InstallerAvailabilityState.UpdateAvailable,
                         new Progress<double>(value =>
@@ -552,7 +590,7 @@ namespace SynToolkit.ViewModels
             {
                 IsInstallingQueue = false;
                 OnPropertyChanged(nameof(CanRetryFailed));
-                await RefreshInstallerStatesAsync();
+                await RefreshInstallerStatesAsync(CancellationToken.None);
             }
         }
 
@@ -653,14 +691,20 @@ namespace SynToolkit.ViewModels
             }
         }
 
-        public async Task SearchAsync(string searchTerm)
+        public async Task SearchAsync(string searchTerm, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
                 return;
             }
 
-            Results.Clear();
+            int searchGeneration = Interlocked.Increment(ref _searchGeneration);
+            _searchCancellationTokenSource?.Cancel();
+            _searchCancellationTokenSource?.Dispose();
+            CancellationTokenSource searchCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _searchCancellationTokenSource = searchCancellation;
+
+            ClearResults();
             IsLoading = true;
             HasError = false;
 
@@ -668,7 +712,10 @@ namespace SynToolkit.ViewModels
 
             try
             {
-                List<AppFetchService.StoreProductListDto> list = await _service.SearchProductsAsync(searchTerm);
+                List<AppFetchService.StoreProductListDto> list = await _service.SearchProductsAsync(
+                    searchTerm,
+                    searchCancellation.Token);
+                searchCancellation.Token.ThrowIfCancellationRequested();
 
                 try
                 {
@@ -679,7 +726,12 @@ namespace SynToolkit.ViewModels
                     App.logger.Debug(exception, "[AppFetch] Unable to load installed-package state.");
                 }
 
-                foreach (AppFetchService.StoreProductListDto result in list)
+                if (searchGeneration != Volatile.Read(ref _searchGeneration))
+                {
+                    return;
+                }
+
+                foreach (AppFetchService.StoreProductListDto result in list.Take(MaximumStoreSearchResults))
                 {
                     AppFetchItemViewModel item = new(_service, result);
                     item.OperationFailed += Item_OperationFailed;
@@ -687,14 +739,46 @@ namespace SynToolkit.ViewModels
                     _ = item.RefineInstalledStateAsync();
                 }
             }
+            catch (OperationCanceledException) when (searchCancellation.IsCancellationRequested)
+            {
+            }
             catch (Exception exception)
             {
                 App.logger.Error(exception, "[AppFetch] Search failed for term \"{SearchTerm}\".", searchTerm);
                 ErrorMessage = "Network request failed. Ensure you have a stable internet connection.";
                 HasError = true;
             }
+            finally
+            {
+                if (searchGeneration == Volatile.Read(ref _searchGeneration))
+                {
+                    IsLoading = false;
+                    if (ReferenceEquals(_searchCancellationTokenSource, searchCancellation))
+                    {
+                        _searchCancellationTokenSource = null;
+                    }
+                }
 
+                searchCancellation.Dispose();
+            }
+        }
+
+        public void CancelPendingSearch()
+        {
+            Interlocked.Increment(ref _searchGeneration);
+            _searchCancellationTokenSource?.Cancel();
+            ClearResults();
             IsLoading = false;
+        }
+
+        private void ClearResults()
+        {
+            foreach (AppFetchItemViewModel item in Results)
+            {
+                item.OperationFailed -= Item_OperationFailed;
+            }
+
+            Results.Clear();
         }
 
         private void Item_OperationFailed(object? sender, string message)

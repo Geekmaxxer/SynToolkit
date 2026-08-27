@@ -40,6 +40,11 @@
         </BreadcrumbBar>
         <ScrollViewer x:Name="ConfigScrollViewer" Grid.Row="1">
             <StackPanel>
+                <InfoBar
+                    x:Name="OperationInfoBar"
+                    Margin="0,0,36,18"
+                    IsClosable="True"
+                    IsOpen="False" />
                 <ItemsControl x:Name="SubMenuItems">
                     <ItemsControl.ItemTemplate>
                     <DataTemplate>

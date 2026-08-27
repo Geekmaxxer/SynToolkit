@@ -5,7 +5,7 @@
 #define MyAppPublisher "Kwanteks"
 #define MyAppURL "https://github.com/kwanteks/synergyos"
 #define MyAppExeName "SynToolkit.exe"
-#define AppChannel "Stable"
+#define AppChannel "Beta"
 
 [Setup]
 ; AppId is the stable GUID used by Inno Setup for upgrade detection.
@@ -37,7 +37,7 @@ WizardImageFile=Synergy\Assets\WizardImage.bmp
 WizardSmallImageFile=Synergy\Assets\WizardSmallImage.bmp
 LicenseFile=..\LICENSE
 OutputDir=Output
-OutputBaseFilename=SynToolkit-Setup-{#MyAppVersion}
+OutputBaseFilename=SynToolkit-Setup-{#MyAppVersion}-{#AppChannel}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -106,6 +106,9 @@ Type: files; Name: "{commonappdata}\Synergy\ConfigurationServices\FileSharing\en
 Type: dirifempty; Name: "{commonappdata}\Synergy\ConfigurationServices\FileSharing"
 
 [UninstallDelete]
+Type: files; Name: "{app}\assets\Tools\HWiNFO64.INI"
+Type: dirifempty; Name: "{app}\assets\Tools"
+Type: dirifempty; Name: "{app}\assets"
 Type: files; Name: "{commonappdata}\Synergy\PostInstall.log"
 Type: files; Name: "{commonappdata}\Synergy\InstallState.ini"
 Type: files; Name: "{commonappdata}\Synergy\InstallState.ini.tmp"

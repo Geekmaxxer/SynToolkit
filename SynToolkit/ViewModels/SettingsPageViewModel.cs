@@ -155,17 +155,5 @@ namespace SynToolkit.ViewModels
             OnPropertyChanged(nameof(CurrentLanguage));
         }
 
-        public bool CheckUpdates()
-        {
-            if (SynToolkitUpdateHelper.CheckUpdates())
-            {
-                App.ContentDialogCaller("newUpdate");
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-        }
     }
 }

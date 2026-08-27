@@ -31,7 +31,8 @@ namespace SynToolkit.ViewModels
             IReadOnlyList<string> installedDisplayNamePrefixes,
             bool isEssential = false,
             string? silentArgumentsOverride = null,
-            bool isManualOnly = false)
+            bool isManualOnly = false,
+            string packageSource = "winget")
         {
             Name = name;
             Category = category;
@@ -43,6 +44,7 @@ namespace SynToolkit.ViewModels
             IsEssential = isEssential;
             SilentArgumentsOverride = silentArgumentsOverride;
             IsManualOnly = isManualOnly;
+            PackageSource = packageSource;
             _availabilityState = isManualOnly
                 ? InstallerAvailabilityState.ManualSetup
                 : InstallerAvailabilityState.Checking;
@@ -67,6 +69,8 @@ namespace SynToolkit.ViewModels
         public string? SilentArgumentsOverride { get; }
 
         public bool IsManualOnly { get; }
+
+        public string PackageSource { get; }
 
         public string PublisherLinkText => IsManualOnly ? "Open official setup" : "Website";
 
