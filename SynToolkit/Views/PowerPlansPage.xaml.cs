@@ -2,6 +2,7 @@
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using SynToolkit.Services;
 using SynToolkit.Utils;
 using System;
@@ -13,6 +14,29 @@ using System.Threading.Tasks;
 
 namespace SynToolkit.Views
 {
+    internal sealed class BundledPowerPlanItem
+    {
+        public required BundledPowerPlan Plan { get; init; }
+        public bool IsActive { get; init; }
+        public bool IsApplying { get; init; }
+        public bool IsApplyButtonEnabled { get; init; }
+
+        public string DisplayName => Plan.DisplayName;
+        public string Description => Plan.Description;
+
+        public Brush BorderBrush => IsActive
+            ? (Brush)Application.Current.Resources["AccentFillColorDefaultBrush"]
+            : (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
+
+        public Thickness BorderThickness => IsActive ? new Thickness(2) : new Thickness(1);
+
+        public string ApplyButtonLabel => IsApplying
+            ? "Activating…"
+            : IsActive
+                ? "Active"
+                : "Import and activate";
+    }
+
     public sealed partial class PowerPlansPage : Page
     {
         private readonly PowerPlanService _powerPlanService = new();
@@ -23,6 +47,9 @@ namespace SynToolkit.Views
         private bool _hasLoadedStatus;
         private int _lifetimeVersion;
         private IReadOnlyList<BundledPowerPlan> _allBundledPlans = Array.Empty<BundledPowerPlan>();
+        private readonly Dictionary<string, Guid> _bundledPlanSchemeIds = new(StringComparer.OrdinalIgnoreCase);
+        private string? _applyingBundledPlanFilePath;
+        private bool _isBundledPlanOperationInProgress;
 
         public PowerPlansPage()
         {
@@ -50,7 +77,9 @@ namespace SynToolkit.Views
             string query = BundledPlansSearchBox?.Text?.Trim() ?? string.Empty;
             IReadOnlyList<BundledPowerPlan> matches = FilterBundledPlans(_allBundledPlans, query);
 
-            BundledPlansListView.ItemsSource = matches;
+            BundledPlansListView.ItemsSource = matches
+                .Select(CreateBundledPlanItem)
+                .ToList();
 
             bool folderEmpty = _allBundledPlans.Count == 0;
             bool noMatches = !folderEmpty && matches.Count == 0;
@@ -58,6 +87,81 @@ namespace SynToolkit.Views
             BundledPlansEmptyState.Visibility = folderEmpty ? Visibility.Visible : Visibility.Collapsed;
             BundledPlansNoMatchesState.Visibility = noMatches ? Visibility.Visible : Visibility.Collapsed;
             BundledPlansListView.Visibility = matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private BundledPowerPlanItem CreateBundledPlanItem(BundledPowerPlan plan)
+        {
+            bool isActive = IsBundledPlanActive(plan);
+            bool isApplying = string.Equals(
+                _applyingBundledPlanFilePath,
+                plan.FilePath,
+                StringComparison.OrdinalIgnoreCase);
+            bool canMutate = !_isBusy &&
+                !_isBundledPlanOperationInProgress &&
+                _snapshot is not null &&
+                _powerPlanService.CanMutatePowerPlans;
+
+            return new BundledPowerPlanItem
+            {
+                Plan = plan,
+                IsActive = isActive,
+                IsApplying = isApplying,
+                IsApplyButtonEnabled = canMutate && !isActive && !isApplying
+            };
+        }
+
+        private bool IsBundledPlanActive(BundledPowerPlan plan)
+        {
+            if (_snapshot?.ActiveSchemeId is not Guid activeSchemeId)
+            {
+                return false;
+            }
+
+            if (_bundledPlanSchemeIds.TryGetValue(plan.FilePath, out Guid storedSchemeId))
+            {
+                return activeSchemeId == storedSchemeId;
+            }
+
+            if (!IsBundledPlanMatchingActiveScheme(plan, _snapshot.ActiveSchemeName))
+            {
+                return false;
+            }
+
+            _bundledPlanSchemeIds[plan.FilePath] = activeSchemeId;
+            return true;
+        }
+
+        private static bool IsBundledPlanMatchingActiveScheme(BundledPowerPlan plan, string activeSchemeName)
+        {
+            if (string.IsNullOrWhiteSpace(activeSchemeName))
+            {
+                return false;
+            }
+
+            return string.Equals(plan.DisplayName, activeSchemeName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(Path.GetFileNameWithoutExtension(plan.FileName), activeSchemeName, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void ApplyActivePlanState(Guid schemeId, string schemeName)
+        {
+            _snapshot = _snapshot is not null
+                ? _snapshot with
+                {
+                    ActiveSchemeId = schemeId,
+                    ActiveSchemeName = schemeName
+                }
+                : new PowerPlanSnapshot(
+                    schemeId,
+                    schemeName,
+                    false,
+                    false,
+                    false,
+                    null,
+                    null);
+
+            CurrentPlanName.Text = schemeName;
+            CurrentPlanId.Text = schemeId.ToString("D");
+            ApplyBundledPlansFilter();
         }
 
         internal static IReadOnlyList<BundledPowerPlan> FilterBundledPlans(
@@ -321,20 +425,24 @@ namespace SynToolkit.Views
 
         private async void ImportBundledPlanButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_isBusy)
+            if (_isBusy || _isBundledPlanOperationInProgress)
             {
                 return;
             }
 
-            if (sender is not Button button || button.Tag is not BundledPowerPlan plan)
+            if (sender is not Button button || button.Tag is not BundledPowerPlanItem item)
             {
                 return;
             }
 
+            BundledPowerPlan plan = item.Plan;
             int lifetimeVersion = _lifetimeVersion;
             CancellationToken cancellationToken = _lifetimeCancellation.Token;
-            SetBusy(true);
+            _applyingBundledPlanFilePath = plan.FilePath;
+            _isBundledPlanOperationInProgress = true;
             OperationInfoBar.IsOpen = false;
+            ApplyBundledPlansFilter();
+            UpdateButtonStates();
             try
             {
                 PowerPlanImportResult importResult = await _powerPlanService.ImportCustomPlanAsync(
@@ -342,9 +450,11 @@ namespace SynToolkit.Views
                     cancellationToken);
                 if (IsCurrentLifetime(lifetimeVersion, cancellationToken))
                 {
+                    _bundledPlanSchemeIds[plan.FilePath] = importResult.SchemeId;
+                    ApplyActivePlanState(importResult.SchemeId, importResult.SchemeName);
                     ShowResult(
                         "Power plan imported",
-                        $"{plan.DisplayName} was imported and activated. ID: {importResult.SchemeId:D}",
+                        $"{plan.DisplayName} imported and activated.",
                         InfoBarSeverity.Success);
                 }
             }
@@ -362,12 +472,15 @@ namespace SynToolkit.Views
             }
             finally
             {
+                _applyingBundledPlanFilePath = null;
+                _isBundledPlanOperationInProgress = false;
                 if (IsCurrentLifetime(lifetimeVersion, cancellationToken))
                 {
                     await RefreshStatusAsync(cancellationToken, lifetimeVersion, showErrors: false);
                     if (IsCurrentLifetime(lifetimeVersion, cancellationToken))
                     {
-                        SetBusy(false);
+                        ApplyBundledPlansFilter();
+                        UpdateButtonStates();
                     }
                 }
             }
@@ -445,8 +558,7 @@ namespace SynToolkit.Views
                 }
 
                 _snapshot = snapshot;
-                CurrentPlanName.Text = _snapshot.ActiveSchemeName;
-                CurrentPlanId.Text = _snapshot.ActiveSchemeId?.ToString("D") ?? "Active plan ID unavailable";
+                ApplyActivePlanDisplayFromSnapshot();
 
                 BuiltInPlanState.Text = _snapshot.HasSynToolkitSchemeConflict
                     ? "Reserved ID conflict — not managed"
@@ -484,6 +596,7 @@ namespace SynToolkit.Views
                 {
                     StatusProgressRing.IsActive = _isBusy;
                     StatusProgressRing.Visibility = _isBusy ? Visibility.Visible : Visibility.Collapsed;
+                    ApplyBundledPlansFilter();
                     UpdateButtonStates();
                 }
             }
@@ -502,13 +615,27 @@ namespace SynToolkit.Views
             UpdateButtonStates();
         }
 
+        private void ApplyActivePlanDisplayFromSnapshot()
+        {
+            if (_snapshot is null)
+            {
+                return;
+            }
+
+            CurrentPlanName.Text = _snapshot.ActiveSchemeName;
+            CurrentPlanId.Text = _snapshot.ActiveSchemeId?.ToString("D") ?? "Active plan ID unavailable";
+        }
+
         private void UpdateButtonStates()
         {
             bool stateReady = _snapshot is not null;
             bool hasConflict = _snapshot?.HasSynToolkitSchemeConflict == true;
-            bool canMutate = !_isBusy && stateReady && _powerPlanService.CanMutatePowerPlans;
-            RefreshButton.IsEnabled = !_isBusy;
-            RefreshBundledPlansButton.IsEnabled = !_isBusy;
+            bool canMutate = !_isBusy &&
+                !_isBundledPlanOperationInProgress &&
+                stateReady &&
+                _powerPlanService.CanMutatePowerPlans;
+            RefreshButton.IsEnabled = !_isBusy && !_isBundledPlanOperationInProgress;
+            RefreshBundledPlansButton.IsEnabled = !_isBusy && !_isBundledPlanOperationInProgress;
             ImportBuiltInButton.IsEnabled = canMutate && !hasConflict;
             ImportCustomButton.IsEnabled = canMutate;
             ActivateBuiltInButton.IsEnabled = canMutate && !hasConflict && _snapshot?.IsSynToolkitPlanInstalled == true && _snapshot.IsSynToolkitPlanActive == false;
@@ -516,7 +643,7 @@ namespace SynToolkit.Views
             RestorePreviousButton.IsEnabled = canMutate && _snapshot?.PreviousSchemeId is not null;
             ActivateBalancedButton.IsEnabled = canMutate && _snapshot?.ActiveSchemeId is Guid activeSchemeId && activeSchemeId != PowerPlanService.BalancedSchemeId;
             RestoreDefaultSchemesButton.IsEnabled = canMutate;
-            BundledPlansListView.IsEnabled = canMutate;
+            ApplyBundledPlansFilter();
         }
 
         /// <summary>

@@ -9,6 +9,7 @@
     Unloaded="Page_Unloaded">
 
     <Page.Resources>
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <Style x:Key="CategoryTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -26,7 +27,7 @@
                 <TextBlock
                     VerticalAlignment="Center"
                     Style="{StaticResource TitleTextBlockStyle}"
-                    Text="Power plans" local:LocalizedText.TextKey="PowerPlansPageText2EC4CBA35614" />
+                    Text="Power Plans" local:LocalizedText.TextKey="PowerPlansPageText2EC4CBA35614" />
                 <StackPanel
                     Grid.Column="1"
                     VerticalAlignment="Center"
@@ -281,18 +282,44 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <controls:SettingsCard
-                            Header="{Binding DisplayName}"
-                            Description="{Binding Description}"
-                            Style="{StaticResource ConfigurationSettingsCardTemplate}">
-                            <controls:SettingsCard.HeaderIcon>
-                                <ImageIcon Source="ms-appx:///assets/Icons/Energy.png" />
-                            </controls:SettingsCard.HeaderIcon>
-                            <Button
-                                Click="ImportBundledPlanButton_Click"
-                                Content="Import and activate" local:LocalizedText.ContentKey="PowerPlansPageContentD405C33784A6"
-                                Tag="{Binding}" />
-                        </controls:SettingsCard>
+                        <Border
+                            BorderBrush="{Binding BorderBrush}"
+                            BorderThickness="{Binding BorderThickness}"
+                            CornerRadius="8">
+                            <controls:SettingsCard
+                                Header="{Binding DisplayName}"
+                                Description="{Binding Description}"
+                                Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                                <controls:SettingsCard.HeaderIcon>
+                                    <ImageIcon Source="ms-appx:///assets/Icons/Energy.png" />
+                                </controls:SettingsCard.HeaderIcon>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button
+                                        Click="ImportBundledPlanButton_Click"
+                                        Content="{Binding ApplyButtonLabel}"
+                                        IsEnabled="{Binding IsApplyButtonEnabled}"
+                                        Tag="{Binding}" />
+                                    <ProgressRing
+                                        Width="16"
+                                        Height="16"
+                                        VerticalAlignment="Center"
+                                        IsActive="{Binding IsApplying}"
+                                        Visibility="{Binding IsApplying, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <Border
+                                        Padding="8,4"
+                                        VerticalAlignment="Center"
+                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                        CornerRadius="4"
+                                        Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <TextBlock
+                                            FontSize="12"
+                                            FontWeight="SemiBold"
+                                            Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                            Text="Active" />
+                                    </Border>
+                                </StackPanel>
+                            </controls:SettingsCard>
+                        </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
