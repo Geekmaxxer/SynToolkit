@@ -10,6 +10,7 @@
 
     <Page.Resources>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <local:BoolToVisibilityInverseConverter x:Key="BoolToVisibilityInverseConverter" />
         <Style x:Key="CategoryTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -160,10 +161,16 @@
             </controls:SettingsExpander>
 
             <TextBlock Style="{StaticResource CategoryTitle}" Text="Manage plans" local:LocalizedText.TextKey="PowerPlansPageTextC5BE90F1D6A5" />
-            <controls:SettingsExpander
-                Header="SynToolkit SOS Performance" local:LocalizedText.HeaderKey="PowerPlansPageHeaderEC2BEE95E81C"
-                Description="The official SOS.pow plan, embedded securely inside SynToolkit." local:LocalizedText.DescriptionKey="PowerPlansPageDescription00DF1C96DB4F"
-                Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
+            <Border
+                x:Name="BuiltInPlanActiveBorder"
+                Margin="0,0,36,10"
+                BorderThickness="0"
+                CornerRadius="8">
+                <controls:SettingsExpander
+                    Header="SynToolkit SOS Performance" local:LocalizedText.HeaderKey="PowerPlansPageHeaderEC2BEE95E81C"
+                    Description="The official SOS.pow plan, embedded securely inside SynToolkit." local:LocalizedText.DescriptionKey="PowerPlansPageDescription00DF1C96DB4F"
+                    Margin="0"
+                    Style="{StaticResource ConfigurationSettingsExpanderTemplate}">
                 <controls:SettingsExpander.HeaderIcon>
                     <BitmapIcon ShowAsMonochrome="False" UriSource="/assets/logo/SynToolkit.ico" />
                 </controls:SettingsExpander.HeaderIcon>
@@ -204,7 +211,8 @@
                             Content="Remove" local:LocalizedText.ContentKey="PowerPlansPageContentECB59C22D98B" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
+                </controls:SettingsExpander>
+            </Border>
 
             <controls:SettingsCard
                 Header="Import a .pow file" local:LocalizedText.HeaderKey="PowerPlansPageHeaderDE35348C21CF"
@@ -282,14 +290,13 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border
+                        <controls:SettingsCard
+                            Header="{Binding DisplayName}"
+                            Description="{Binding Description}"
+                            Margin="0,0,0,10"
                             BorderBrush="{Binding BorderBrush}"
                             BorderThickness="{Binding BorderThickness}"
-                            CornerRadius="8">
-                            <controls:SettingsCard
-                                Header="{Binding DisplayName}"
-                                Description="{Binding Description}"
-                                Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                            Style="{StaticResource ConfigurationSettingsCardTemplate}">
                                 <controls:SettingsCard.HeaderIcon>
                                     <ImageIcon Source="ms-appx:///assets/Icons/Energy.png" />
                                 </controls:SettingsCard.HeaderIcon>
@@ -298,7 +305,8 @@
                                         Click="ImportBundledPlanButton_Click"
                                         Content="{Binding ApplyButtonLabel}"
                                         IsEnabled="{Binding IsApplyButtonEnabled}"
-                                        Tag="{Binding}" />
+                                        Tag="{Binding}"
+                                        Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityInverseConverter}}" />
                                     <ProgressRing
                                         Width="16"
                                         Height="16"
@@ -318,8 +326,7 @@
                                             Text="Active" />
                                     </Border>
                                 </StackPanel>
-                            </controls:SettingsCard>
-                        </Border>
+                        </controls:SettingsCard>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

@@ -3,87 +3,104 @@
     {
       "fileName": "adamx.pow",
       "displayName": "AdamX",
-      "description": "AdamX's optimized power plan for balanced performance."
+      "description": "AdamX's optimized power plan for balanced performance.",
+      "activeSchemeNameHints": ["Adamx Tweaking Utility Power Plan"]
     },
     {
       "fileName": "Ancel.pow",
       "displayName": "Ancel",
-      "description": "Ancel's power configuration for system optimization."
+      "description": "Ancel's power configuration for system optimization.",
+      "activeSchemeNameHints": ["Ancels Experimental Power Plan"]
     },
     {
       "fileName": "ApexOS.pow",
       "displayName": "ApexOS",
-      "description": "ApexOS performance-focused power plan."
+      "description": "ApexOS performance-focused power plan.",
+      "activeSchemeNameHints": ["ApexOS"]
     },
     {
       "fileName": "atlas.pow",
       "displayName": "AtlasOS",
-      "description": "AtlasOS lightweight power plan for reduced latency."
+      "description": "AtlasOS lightweight power plan for reduced latency.",
+      "activeSchemeNameHints": ["Atlas Power Plan"]
     },
     {
       "fileName": "Beyond.pow",
       "displayName": "Beyond",
-      "description": "Beyond's custom power settings for gaming and productivity."
+      "description": "Beyond's custom power settings for gaming and productivity.",
+      "activeSchemeNameHints": ["BEYOND PERFORMANCE AMD/INTEL V1"]
     },
     {
       "fileName": "bitsum.pow",
       "displayName": "Bitsum",
-      "description": "Bitsum (Process Lasso) optimized power scheme."
+      "description": "Bitsum (Process Lasso) optimized power scheme.",
+      "activeSchemeNameHints": ["Bitsum Highest Performance"]
     },
     {
       "fileName": "BlitzOS.pow",
       "displayName": "BlitzOS",
-      "description": "BlitzOS high-performance power plan."
+      "description": "BlitzOS high-performance power plan.",
+      "activeSchemeNameHints": ["BLITZOSv1.1"]
     },
     {
       "fileName": "Calypto.pow",
       "displayName": "Calypto",
-      "description": "Calypto's tweaked power configuration."
+      "description": "Calypto's tweaked power configuration.",
+      "activeSchemeNameHints": ["Calypto's Low Latency"]
     },
     {
       "fileName": "core.pow",
       "displayName": "Core",
-      "description": "Core performance power plan for enthusiasts."
+      "description": "Core performance power plan for enthusiasts.",
+      "activeSchemeNameHints": ["CoreVeeAir's"]
     },
     {
       "fileName": "exmfree.pow",
       "displayName": "ExmFree",
-      "description": "ExmFree's power plan for system efficiency."
+      "description": "ExmFree's power plan for system efficiency.",
+      "activeSchemeNameHints": ["EXM Free Power Plan V6"]
     },
     {
       "fileName": "FrameSyncBoost.pow",
       "displayName": "FrameSync Boost",
-      "description": "FrameSync Boost power plan optimized for smooth frame delivery."
+      "description": "FrameSync Boost power plan optimized for smooth frame delivery.",
+      "activeSchemeNameHints": ["FRAMESYNC Labs Boost"]
     },
     {
       "fileName": "hybred.pow",
       "displayName": "Hybred",
-      "description": "Hybred power plan balancing performance and efficiency."
+      "description": "Hybred power plan balancing performance and efficiency.",
+      "activeSchemeNameHints": ["Hybred Low Latency (HP)"]
     },
     {
       "fileName": "Kaisen.pow",
       "displayName": "Kaisen",
-      "description": "Kaisen's performance-tuned power configuration."
+      "description": "Kaisen's performance-tuned power configuration.",
+      "activeSchemeNameHints": ["Kaisen V5 lowlatency"]
     },
     {
       "fileName": "khorvie.pow",
       "displayName": "Khorvie",
-      "description": "Khorvie's optimized power plan for gaming."
+      "description": "Khorvie's optimized power plan for gaming.",
+      "activeSchemeNameHints": ["Khorvie's PowerPlan"]
     },
     {
       "fileName": "lawliet.pow",
       "displayName": "Lawliet",
-      "description": "Lawliet's custom power scheme."
+      "description": "Lawliet's custom power scheme.",
+      "activeSchemeNameHints": ["Lawliet's power plan"]
     },
     {
       "fileName": "NovaOS.pow",
       "displayName": "NovaOS",
-      "description": "NovaOS performance power plan."
+      "description": "NovaOS performance power plan.",
+      "activeSchemeNameHints": ["NovaOS"]
     },
     {
       "fileName": "PeakOS.pow",
       "displayName": "PeakOS",
-      "description": "PeakOS maximum performance power configuration."
+      "description": "PeakOS maximum performance power configuration.",
+      "activeSchemeNameHints": ["PeakOS"]
     }
   ]
 }

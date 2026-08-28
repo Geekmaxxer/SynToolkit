@@ -32,9 +32,7 @@ namespace SynToolkit.Views
 
         public string ApplyButtonLabel => IsApplying
             ? "Activating…"
-            : IsActive
-                ? "Active"
-                : "Import and activate";
+            : "Import and activate";
     }
 
     public sealed partial class PowerPlansPage : Page
@@ -139,7 +137,9 @@ namespace SynToolkit.Views
             }
 
             return string.Equals(plan.DisplayName, activeSchemeName, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(Path.GetFileNameWithoutExtension(plan.FileName), activeSchemeName, StringComparison.OrdinalIgnoreCase);
+                string.Equals(Path.GetFileNameWithoutExtension(plan.FileName), activeSchemeName, StringComparison.OrdinalIgnoreCase) ||
+                plan.ActiveSchemeNameHints.Any(hint =>
+                    activeSchemeName.Contains(hint, StringComparison.OrdinalIgnoreCase));
         }
 
         private void ApplyActivePlanState(Guid schemeId, string schemeName)
@@ -567,6 +567,7 @@ namespace SynToolkit.Views
                         : _snapshot.IsSynToolkitPlanInstalled
                             ? "Installed"
                             : "Not imported";
+                UpdateBuiltInPlanActiveBorder();
 
                 PreviousPlanState.Text = _snapshot.PreviousSchemeId is Guid previousSchemeId
                     ? $"Previous plan: {_snapshot.PreviousSchemeName ?? previousSchemeId.ToString("D")}" 
@@ -584,6 +585,7 @@ namespace SynToolkit.Views
                     _snapshot = null;
                     CurrentPlanName.Text = "Power-plan status unavailable";
                     CurrentPlanId.Text = string.Empty;
+                    UpdateBuiltInPlanActiveBorder();
                     if (showErrors)
                     {
                         ShowResult("Status unavailable", exception.Message, InfoBarSeverity.Error);
@@ -624,6 +626,19 @@ namespace SynToolkit.Views
 
             CurrentPlanName.Text = _snapshot.ActiveSchemeName;
             CurrentPlanId.Text = _snapshot.ActiveSchemeId?.ToString("D") ?? "Active plan ID unavailable";
+        }
+
+        private void UpdateBuiltInPlanActiveBorder()
+        {
+            if (_snapshot?.IsSynToolkitPlanActive == true)
+            {
+                BuiltInPlanActiveBorder.BorderBrush =
+                    (Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
+                BuiltInPlanActiveBorder.BorderThickness = new Thickness(2);
+                return;
+            }
+
+            BuiltInPlanActiveBorder.BorderThickness = new Thickness(0);
         }
 
         private void UpdateButtonStates()
