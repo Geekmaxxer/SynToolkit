@@ -26,7 +26,12 @@ namespace SynToolkit.Services
 
     public sealed record PowerPlanImportResult(Guid SchemeId, string SchemeName);
 
-    public sealed record BundledPowerPlan(string FileName, string DisplayName, string Description, string FilePath);
+    public sealed record BundledPowerPlan(
+        string FileName,
+        string DisplayName,
+        string Description,
+        string FilePath,
+        IReadOnlyList<string> ActiveSchemeNameHints);
 
     /// <summary>
     /// Imports and manages Windows power schemes without invoking cmd.exe.
@@ -68,7 +73,7 @@ namespace SynToolkit.Services
                 return plans;
             
             // Try to load manifest for display names and descriptions
-            Dictionary<string, (string DisplayName, string Description)>? manifest = null;
+            Dictionary<string, BundledPowerPlanManifestEntry>? manifest = null;
             if (File.Exists(BundledPlansManifestPath))
             {
                 try
@@ -77,16 +82,29 @@ namespace SynToolkit.Services
                     using var doc = JsonDocument.Parse(json);
                     if (doc.RootElement.TryGetProperty("plans", out var plansArray))
                     {
-                        manifest = new Dictionary<string, (string, string)>(StringComparer.OrdinalIgnoreCase);
+                        manifest = new Dictionary<string, BundledPowerPlanManifestEntry>(StringComparer.OrdinalIgnoreCase);
                         foreach (var planElement in plansArray.EnumerateArray())
                         {
                             string? fileName = planElement.TryGetProperty("fileName", out var fn) ? fn.GetString() : null;
                             string? displayName = planElement.TryGetProperty("displayName", out var dn) ? dn.GetString() : null;
                             string? description = planElement.TryGetProperty("description", out var desc) ? desc.GetString() : null;
+                            IReadOnlyList<string> activeSchemeNameHints = planElement.TryGetProperty("activeSchemeNameHints", out var hintsElement) &&
+                                hintsElement.ValueKind == JsonValueKind.Array
+                                    ? hintsElement.EnumerateArray()
+                                        .Where(element => element.ValueKind == JsonValueKind.String)
+                                        .Select(element => element.GetString()?.Trim())
+                                        .Where(hint => !string.IsNullOrWhiteSpace(hint))
+                                        .Select(hint => hint!)
+                                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                                        .ToArray()
+                                    : Array.Empty<string>();
                             
                             if (!string.IsNullOrEmpty(fileName) && !string.IsNullOrEmpty(displayName))
                             {
-                                manifest[fileName] = (displayName, description ?? "No description provided.");
+                                manifest[fileName] = new BundledPowerPlanManifestEntry(
+                                    displayName,
+                                    description ?? "No description provided.",
+                                    activeSchemeNameHints);
                             }
                         }
                     }
@@ -108,24 +126,32 @@ namespace SynToolkit.Services
                 
                 string displayName;
                 string description;
+                IReadOnlyList<string> activeSchemeNameHints;
                 
                 if (manifest?.TryGetValue(fileName, out var info) == true)
                 {
                     displayName = info.DisplayName;
                     description = info.Description;
+                    activeSchemeNameHints = info.ActiveSchemeNameHints;
                 }
                 else
                 {
                     // Fallback: use filename without extension as display name
                     displayName = Path.GetFileNameWithoutExtension(fileName);
                     description = "No description provided.";
+                    activeSchemeNameHints = Array.Empty<string>();
                 }
                 
-                plans.Add(new BundledPowerPlan(fileName, displayName, description, filePath));
+                plans.Add(new BundledPowerPlan(fileName, displayName, description, filePath, activeSchemeNameHints));
             }
             
             return plans.OrderBy(p => p.DisplayName, StringComparer.OrdinalIgnoreCase).ToList();
         }
+
+        private sealed record BundledPowerPlanManifestEntry(
+            string DisplayName,
+            string Description,
+            IReadOnlyList<string> ActiveSchemeNameHints);
 
         public async Task<PowerPlanSnapshot> GetStateAsync(CancellationToken cancellationToken = default)
         {
