@@ -240,7 +240,7 @@
   "ProcessExplorer": "Установить Process Explorer",
   "ProcessExplorerDescription": "Установить Process Explorer от Microsoft Sysinternals",
   "VbsState": "Безопасность на основе виртуализации",
-  "VbsStateDescription": "Включает VBS, HVCI, Credential Guard и связанные средства защиты, которые SynergyOS отключает по умолчанию. Требуется перезагрузка.",
+  "VbsStateDescription": "Включает или отключает безопасность на основе виртуализации / целостность памяти (как в SynergyOS). Некоторым античитам нужен включённый VBS/HVCI; отключение снижает защиту от вредоносных программ уровня ядра. Требуется перезагрузка.",
   "GiveAccessToMenu": "Меню «Предоставить доступ к»",
   "GiveAccessToMenuDescription": "Добавляет пункт «Предоставить доступ к» в контекстное меню для файлов и папок",
   "NetworkNavigationPane": "Область навигации по сети",

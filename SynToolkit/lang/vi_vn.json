@@ -240,7 +240,7 @@
   "ProcessExplorer": "Cài đặt Process Explorer",
   "ProcessExplorerDescription": "Cài đặt Process Explorer từ Microsoft Sysinternals",
   "VbsState": "Bảo mật dựa trên ảo hóa (VBS)",
-  "VbsStateDescription": "Bật VBS, HVCI, Credential Guard và các tính năng bảo vệ liên quan mà SynergyOS tắt theo mặc định. Cần khởi động lại.",
+  "VbsStateDescription": "Bật hoặc tắt bảo mật dựa trên ảo hóa / Tính toàn vẹn bộ nhớ (để khớp với SynergyOS). Một số phần mềm chống gian lận cần VBS/HVCI bật; tắt sẽ làm giảm bảo vệ trước phần mềm độc hại cấp nhân. Cần khởi động lại.",
   "GiveAccessToMenu": "Menu \"Cấp quyền truy cập cho\"",
   "GiveAccessToMenuDescription": "Thêm tùy chọn \"Cấp quyền truy cập cho\" vào menu ngữ cảnh cho tệp và thư mục",
   "NetworkNavigationPane": "Khung điều hướng mạng",

@@ -240,7 +240,7 @@
   "ProcessExplorer": "Instalar o Process Explorer",
   "ProcessExplorerDescription": "Instala o Process Explorer da Microsoft Sysinternals",
   "VbsState": "Segurança Baseada em Virtualização",
-  "VbsStateDescription": "Habilita o VBS, HVCI, Credential Guard e proteções relacionadas que o SynergyOS desabilita por padrão. Requer reinicialização.",
+  "VbsStateDescription": "Ativa ou desativa a segurança baseada em virtualização / Integridade da memória (para combinar com o SynergyOS). Alguns anti-cheats precisam de VBS/HVCI ligado; desligar reduz a proteção contra malware em nível de kernel. Requer reinicialização.",
   "GiveAccessToMenu": "Menu Conceder acesso a",
   "GiveAccessToMenuDescription": "Adiciona uma opção \"Conceder acesso a\" no menu de contexto para arquivos e pastas",
   "NetworkNavigationPane": "Painel de navegação de rede",

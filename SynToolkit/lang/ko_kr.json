@@ -240,7 +240,7 @@
   "ProcessExplorer": "Process Explorer 설치",
   "ProcessExplorerDescription": "Microsoft Sysinternals의 Process Explorer를 설치합니다",
   "VbsState": "가상화 기반 보안",
-  "VbsStateDescription": "SynergyOS가 기본적으로 비활성화하는 VBS, HVCI, Credential Guard 및 관련 보호 기능을 활성화합니다. 다시 시작이 필요합니다.",
+  "VbsStateDescription": "가상화 기반 보안 / 메모리 무결성을 켜거나 끕니다(SynergyOS에 맞춤). 일부 안티치트는 VBS/HVCI가 켜져 있어야 하며, 끄면 커널 수준 악성 코드로부터의 보호가 약해집니다. 다시 시작이 필요합니다.",
   "GiveAccessToMenu": "\"액세스 권한 부여\" 메뉴",
   "GiveAccessToMenuDescription": "파일 및 폴더의 상황에 맞는 메뉴에 \"액세스 권한 부여\" 옵션을 추가합니다",
   "NetworkNavigationPane": "탐색 창의 네트워크",

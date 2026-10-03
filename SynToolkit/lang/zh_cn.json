@@ -240,7 +240,7 @@
   "ProcessExplorer": "安装 Process Explorer",
   "ProcessExplorerDescription": "安装来自 Microsoft Sysinternals 的 Process Explorer",
   "VbsState": "基于虚拟化的安全性",
-  "VbsStateDescription": "启用 SynergyOS 默认禁用的 VBS、HVCI、Credential Guard 及相关保护措施。需要重启。",
+  "VbsStateDescription": "开启或关闭基于虚拟化的安全性 / 内存完整性（以匹配 SynergyOS）。部分反作弊需要启用 VBS/HVCI；关闭会降低对内核级恶意软件的防护。需要重启。",
   "GiveAccessToMenu": "“授予访问权限给”菜单",
   "GiveAccessToMenuDescription": "在文件和文件夹的右键菜单中添加“授予访问权限给”选项",
   "NetworkNavigationPane": "网络导航窗格",

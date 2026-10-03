@@ -240,7 +240,7 @@
   "ProcessExplorer": "Process Explorerをインストール",
   "ProcessExplorerDescription": "Microsoft SysinternalsのProcess Explorerをインストールします",
   "VbsState": "仮想化ベースのセキュリティ",
-  "VbsStateDescription": "SynergyOSが既定で無効化しているVBS、HVCI、Credential Guardなどの保護機能を有効にします。再起動が必要です。",
+  "VbsStateDescription": "仮想化ベースのセキュリティ / メモリ整合性をオンまたはオフにします（SynergyOSに合わせる場合）。一部のアンチチートはVBS/HVCIの有効化が必要で、オフにするとカーネルレベルのマルウェアへの防御が弱まります。再起動が必要です。",
   "GiveAccessToMenu": "「アクセスを許可する」メニュー",
   "GiveAccessToMenuDescription": "ファイルとフォルダーのコンテキストメニューに「アクセスを許可する」オプションを追加します",
   "NetworkNavigationPane": "ナビゲーションウィンドウのネットワーク",

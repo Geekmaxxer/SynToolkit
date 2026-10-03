@@ -240,7 +240,7 @@
   "ProcessExplorer": "ติดตั้ง Process Explorer",
   "ProcessExplorerDescription": "ติดตั้ง Process Explorer จาก Microsoft Sysinternals",
   "VbsState": "ความปลอดภัยบนพื้นฐานการจำลองเสมือน (VBS)",
-  "VbsStateDescription": "เปิดใช้งาน VBS, HVCI, Credential Guard และการป้องกันที่เกี่ยวข้องที่ SynergyOS ปิดไว้โดยค่าเริ่มต้น ต้องรีสตาร์ท",
+  "VbsStateDescription": "เปิดหรือปิดความปลอดภัยบนพื้นฐานการจำลองเสมือน / ความสมบูรณ์ของหน่วยความจำ (ให้ตรงกับ SynergyOS) ซอฟต์แวร์ป้องกันการโกงบางตัวต้องเปิด VBS/HVCI การปิดจะลดการป้องกันมัลแวร์ระดับเคอร์เนล ต้องรีสตาร์ท",
   "GiveAccessToMenu": "เมนูให้สิทธิ์การเข้าถึง",
   "GiveAccessToMenuDescription": "เพิ่มตัวเลือก \"ให้สิทธิ์การเข้าถึง\" ในเมนูคลิกขวาสำหรับไฟล์และโฟลเดอร์",
   "NetworkNavigationPane": "บานหน้าต่างนำทางเครือข่าย",

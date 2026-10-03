@@ -240,7 +240,7 @@
   "ProcessExplorer": "Installera Process Explorer",
   "ProcessExplorerDescription": "Installera Process Explorer från Microsoft Sysinternals",
   "VbsState": "Virtualiseringsbaserad säkerhet",
-  "VbsStateDescription": "Aktiverar VBS, HVCI, Credential Guard och relaterade skydd som SynergyOS inaktiverar som standard. Omstart krävs.",
+  "VbsStateDescription": "Slår på eller av virtualiseringsbaserad säkerhet / minnesintegritet (för att matcha SynergyOS). Vissa anti-cheat kräver VBS/HVCI; att stänga av det minskar skyddet mot skadlig kod på kärnnivå. Omstart krävs.",
   "GiveAccessToMenu": "Menyn \"Ge åtkomst till\"",
   "GiveAccessToMenuDescription": "Lägger till alternativet \"Ge åtkomst till\" i snabbmenyn för filer och mappar",
   "NetworkNavigationPane": "Navigeringsfönster för nätverk",

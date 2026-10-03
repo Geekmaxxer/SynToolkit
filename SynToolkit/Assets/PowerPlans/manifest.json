@@ -3,13 +3,25 @@
     {
       "fileName": "adamx.pow",
       "displayName": "AdamX",
-      "description": "AdamX's optimized power plan for balanced performance.",
+      "description": "AdamX's optimized power plan for balanced performance and low latency.",
       "activeSchemeNameHints": ["Adamx Tweaking Utility Power Plan"]
+    },
+    {
+      "fileName": "AMD Ryzen Ultimate HighPower.pow",
+      "displayName": "AMD Ryzen Ultimate HighPower",
+      "description": "Ultimate high-power plan optimized for Ryzen CPUs on higher-end PCs.",
+      "activeSchemeNameHints": ["AMD Ryzen", "Ultimate HighPower", "HighPower 11-v4"]
+    },
+    {
+      "fileName": "Amit.pow",
+      "displayName": "Amit",
+      "description": "Amit's low-latency plan that reduces Windows power-saving features.",
+      "activeSchemeNameHints": ["amit's low latency powerplan", "amit"]
     },
     {
       "fileName": "Ancel.pow",
       "displayName": "Ancel",
-      "description": "Ancel's power configuration for system optimization.",
+      "description": "Ancel's experimental power configuration for system optimization.",
       "activeSchemeNameHints": ["Ancels Experimental Power Plan"]
     },
     {
@@ -27,55 +39,103 @@
     {
       "fileName": "Beyond.pow",
       "displayName": "Beyond",
-      "description": "Beyond's custom power settings for gaming and productivity.",
+      "description": "Beyond performance plan tuned for AMD and Intel gaming systems.",
       "activeSchemeNameHints": ["BEYOND PERFORMANCE AMD/INTEL V1"]
     },
     {
       "fileName": "bitsum.pow",
       "displayName": "Bitsum",
-      "description": "Bitsum (Process Lasso) optimized power scheme.",
+      "description": "Bitsum (Process Lasso) highest-performance power scheme.",
       "activeSchemeNameHints": ["Bitsum Highest Performance"]
     },
     {
       "fileName": "BlitzOS.pow",
       "displayName": "BlitzOS",
       "description": "BlitzOS high-performance power plan.",
-      "activeSchemeNameHints": ["BLITZOSv1.1"]
+      "activeSchemeNameHints": ["BLITZOSv1.1", "BlitzOS"]
     },
     {
       "fileName": "Calypto.pow",
       "displayName": "Calypto",
-      "description": "Calypto's tweaked power configuration.",
+      "description": "Calypto's low-latency plan that disables power-saving features.",
       "activeSchemeNameHints": ["Calypto's Low Latency"]
     },
     {
       "fileName": "core.pow",
       "displayName": "Core",
-      "description": "Core performance power plan for enthusiasts.",
+      "description": "CoreVeeAir performance power plan for enthusiasts.",
       "activeSchemeNameHints": ["CoreVeeAir's"]
+    },
+    {
+      "fileName": "DTOS Pineapple Squad Laptop.pow",
+      "displayName": "DTOS Pineapple Squad Laptop",
+      "description": "Pineapple Squad DTOS power plan tuned for laptops.",
+      "activeSchemeNameHints": ["Pineapple Laptop", "Pineapple Squad"]
+    },
+    {
+      "fileName": "DTOS Pineapple Squad OLED.pow",
+      "displayName": "DTOS Pineapple Squad OLED",
+      "description": "Pineapple Squad DTOS power plan tuned for OLED systems.",
+      "activeSchemeNameHints": ["Pineapple OLED", "Pineapple Squad"]
+    },
+    {
+      "fileName": "DTOS Pineapple Squad PC.pow",
+      "displayName": "DTOS Pineapple Squad PC",
+      "description": "Pineapple Squad DTOS power plan tuned for desktop PCs.",
+      "activeSchemeNameHints": ["Pineapple PC", "Pineapple Squad"]
+    },
+    {
+      "fileName": "EnvyOS.pow",
+      "displayName": "EnvyOS",
+      "description": "EnvyOS community performance power plan.",
+      "activeSchemeNameHints": ["EnvyOS", "envy"]
     },
     {
       "fileName": "exmfree.pow",
       "displayName": "ExmFree",
-      "description": "ExmFree's power plan for system efficiency.",
+      "description": "EXM Free V6 plan for higher performance and lower latency.",
       "activeSchemeNameHints": ["EXM Free Power Plan V6"]
+    },
+    {
+      "fileName": "EXO.pow",
+      "displayName": "EXO",
+      "description": "IIIEXOIII low-latency power plan.",
+      "activeSchemeNameHints": ["IIIEXOIII LOW LATENCY", "EXO"]
     },
     {
       "fileName": "FrameSyncBoost.pow",
       "displayName": "FrameSync Boost",
-      "description": "FrameSync Boost power plan optimized for smooth frame delivery.",
+      "description": "FrameSync Labs Boost plan optimized for smooth frame delivery.",
       "activeSchemeNameHints": ["FRAMESYNC Labs Boost"]
     },
     {
       "fileName": "hybred.pow",
       "displayName": "Hybred",
-      "description": "Hybred power plan balancing performance and efficiency.",
+      "description": "Hybred low-latency plan for highest performance.",
       "activeSchemeNameHints": ["Hybred Low Latency (HP)"]
+    },
+    {
+      "fileName": "IIIEXOIII_LOW_LATENCY.pow",
+      "displayName": "IIIEXOIII Low Latency",
+      "description": "IIIEXOIII dedicated low-latency power plan.",
+      "activeSchemeNameHints": ["IIIEXOIII LOW LATENCY"]
+    },
+    {
+      "fileName": "IrisOS.pow",
+      "displayName": "IrisOS",
+      "description": "IrisOS low-latency power plan.",
+      "activeSchemeNameHints": ["Iris low latency powerplan", "Iris"]
+    },
+    {
+      "fileName": "JackpotOS.pow",
+      "displayName": "JackpotOS",
+      "description": "JackpotOS performance power plan for AMD and Intel.",
+      "activeSchemeNameHints": ["Jackpot2026", "JackpotOS"]
     },
     {
       "fileName": "Kaisen.pow",
       "displayName": "Kaisen",
-      "description": "Kaisen's performance-tuned power configuration.",
+      "description": "Kaisen V5 low-latency performance-tuned power configuration.",
       "activeSchemeNameHints": ["Kaisen V5 lowlatency"]
     },
     {
@@ -85,22 +145,148 @@
       "activeSchemeNameHints": ["Khorvie's PowerPlan"]
     },
     {
+      "fileName": "kirby.pow",
+      "displayName": "Kirby",
+      "description": "Kirby PowerPlan v1.2 for maximum performance.",
+      "activeSchemeNameHints": ["Kirby PowerPlan v1.2", "Kirby"]
+    },
+    {
+      "fileName": "Kizzimo.pow",
+      "displayName": "Kizzimo",
+      "description": "Kizzimo extreme low-latency / Latency Master plan.",
+      "activeSchemeNameHints": ["Kizzimo", "Latency Master", "Extreme Low Latency"]
+    },
+    {
       "fileName": "lawliet.pow",
       "displayName": "Lawliet",
-      "description": "Lawliet's custom power scheme.",
+      "description": "Lawliet's custom power scheme from Tweak Zone.",
       "activeSchemeNameHints": ["Lawliet's power plan"]
+    },
+    {
+      "fileName": "LLG.pow",
+      "displayName": "LLG",
+      "description": "Low Latency Gaming community power plan.",
+      "activeSchemeNameHints": ["LLG"]
+    },
+    {
+      "fileName": "LLG-CΞRT1F1ΞD.pow",
+      "displayName": "LLG Certified",
+      "description": "LLG certified performance power plan.",
+      "activeSchemeNameHints": ["LLG-CΞRT1F1ΞD", "LLG"]
+    },
+    {
+      "fileName": "LLG-CΞRT1F1ΞD-FOR-NON-K-CPUs.pow",
+      "displayName": "LLG Certified (Non-K CPUs)",
+      "description": "LLG certified plan tuned for non-K CPUs.",
+      "activeSchemeNameHints": ["LLG-CΞRT1F1ΞD-FOR-NON-K-CPUs", "NON-K"]
+    },
+    {
+      "fileName": "LLG-CΞRT1F1ΞD-FOR-PARKING+E-CORES-FIX.pow",
+      "displayName": "LLG Certified (Parking + E-Cores Fix)",
+      "description": "LLG certified plan with core parking and E-cores fixes.",
+      "activeSchemeNameHints": ["LLG-CΞRT1F1ΞD-FOR-PARKING+E-CORES-FIX", "PARKING", "E-CORES"]
+    },
+    {
+      "fileName": "MaxOS Low Latency Powerplan v1.pow",
+      "displayName": "MaxOS Low Latency v1",
+      "description": "MaxOS v1 low-latency plan aimed at lower DPC latency for gaming.",
+      "activeSchemeNameHints": ["MaxOS Low Latency Powerplan"]
+    },
+    {
+      "fileName": "MaxOS Low Latency Powerplan v2.pow",
+      "displayName": "MaxOS Low Latency v2",
+      "description": "MaxOS v2 low-latency plan tuned for lower delay and reaction time.",
+      "activeSchemeNameHints": ["MaxOS Low Latency Powerplan v2"]
+    },
+    {
+      "fileName": "MaxOS Low Latency Powerplan v3.pow",
+      "displayName": "MaxOS Low Latency v3",
+      "description": "MaxOS v3 low-latency plan tuned for low delay and reaction time.",
+      "activeSchemeNameHints": ["MaxOS Low Latency Powerplan v3"]
+    },
+    {
+      "fileName": "nexus.pow",
+      "displayName": "Nexus",
+      "description": "Nexus LiteOS gaming power plan for strong desktop performance.",
+      "activeSchemeNameHints": ["Nexus LiteOS Powerplan"]
     },
     {
       "fileName": "NovaOS.pow",
       "displayName": "NovaOS",
-      "description": "NovaOS performance power plan.",
+      "description": "NovaOS plan optimized for responsiveness and throughput.",
       "activeSchemeNameHints": ["NovaOS"]
+    },
+    {
+      "fileName": "OverTweak AMD.pow",
+      "displayName": "OverTweak AMD",
+      "description": "OverTweak focus-power plan for AMD systems.",
+      "activeSchemeNameHints": ["OverTweak", "OverTweakr AMD", "Focus Power"]
     },
     {
       "fileName": "PeakOS.pow",
       "displayName": "PeakOS",
-      "description": "PeakOS maximum performance power configuration.",
+      "description": "PeakOS ultra-low latency maximum performance configuration.",
       "activeSchemeNameHints": ["PeakOS"]
+    },
+    {
+      "fileName": "powerx.pow",
+      "displayName": "PowerX",
+      "description": "PowerX v2 for maximum performance and minimum input lag.",
+      "activeSchemeNameHints": ["PowerX v2", "PowerX"]
+    },
+    {
+      "fileName": "RaxOS.pow",
+      "displayName": "RaxOS",
+      "description": "RaxOS PowerPlan favoring performance over energy saving.",
+      "activeSchemeNameHints": ["RaxOS PowerPlan", "RaxOS"]
+    },
+    {
+      "fileName": "sapphire.pow",
+      "displayName": "SapphireOS",
+      "description": "SapphireOS community power plan.",
+      "activeSchemeNameHints": ["SapphireOS Powerplan", "Sapphire"]
+    },
+    {
+      "fileName": "Slower.pow",
+      "displayName": "Slower",
+      "description": "Slower unlock-maximum-performance power plan.",
+      "activeSchemeNameHints": ["Slower", "Unlock Maximum Performance"]
+    },
+    {
+      "fileName": "TrinityOS.pow",
+      "displayName": "TrinityOS",
+      "description": "TrinityOS community performance power plan.",
+      "activeSchemeNameHints": ["TrinityOS"]
+    },
+    {
+      "fileName": "VainOS.pow",
+      "displayName": "VainOS",
+      "description": "VainOS community power plan.",
+      "activeSchemeNameHints": ["VainOS", "vain"]
+    },
+    {
+      "fileName": "vtrl.pow",
+      "displayName": "VTRL",
+      "description": "VTRL Optimizer high-performance power plan.",
+      "activeSchemeNameHints": ["VTRL Optimized", "VTRL Optimizer"]
+    },
+    {
+      "fileName": "Xilly.pow",
+      "displayName": "Xilly",
+      "description": "Xilly high-performance community power plan.",
+      "activeSchemeNameHints": ["Xilly Power", "Xilly"]
+    },
+    {
+      "fileName": "xos.pow",
+      "displayName": "XOS",
+      "description": "XOS / imribiy community power plan.",
+      "activeSchemeNameHints": ["imribiy Power Plan", "xos"]
+    },
+    {
+      "fileName": "Zoyata.pow",
+      "displayName": "Zoyata",
+      "description": "Zoyata low-latency ultimate performance power plan.",
+      "activeSchemeNameHints": ["Zoyata", "Low Latency"]
     }
   ]
 }

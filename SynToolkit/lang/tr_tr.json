@@ -240,7 +240,7 @@
   "ProcessExplorer": "Process Explorer Yükle",
   "ProcessExplorerDescription": "Microsoft Sysinternals Process Explorer aracını yükler",
   "VbsState": "Sanal Tabanlı Güvenlik (VBS)",
-  "VbsStateDescription": "SynergyOS'in varsayılan olarak kapattığı VBS, HVCI ve Credential Guard korumalarını açar. Yeniden başlatma gerektirir.",
+  "VbsStateDescription": "Sanallaştırma tabanlı güvenlik / Bellek Bütünlüğü’nü açar veya kapatır (SynergyOS ile eşlemek için). Bazı anti-cheat yazılımları VBS/HVCI’nin açık olmasını ister; kapatmak çekirdek düzeyindeki kötü amaçlı yazılımlara karşı korumayı azaltır. Yeniden başlatma gerekir.",
   "GiveAccessToMenu": "Sağ tık menüsüne \"Erişim Ver\" ekle",
   "GiveAccessToMenuDescription": "Dosya ve klasör sağ tık menüsüne 'Erişim ver' seçeneği ekler",
   "NetworkNavigationPane": "Sol Panelde Ağ Bölümü",

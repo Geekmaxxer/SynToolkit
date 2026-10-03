@@ -240,7 +240,7 @@
   "ProcessExplorer": "تثبيت Process Explorer",
   "ProcessExplorerDescription": "ثبّت Process Explorer من Microsoft Sysinternals",
   "VbsState": "حماية VBS",
-  "VbsStateDescription": "شغّل VBS وHVCI وCredential Guard والحمايات المرتبطة فيهم اللي SynergyOS بوقفها افتراضياً. لازم تعيد تشغيل الجهاز.",
+  "VbsStateDescription": "يشغّل أو يوقف الأمان المبني على الافتراضية / سلامة الذاكرة (عشان يطابق SynergyOS). بعض برامج مكافحة الغش تحتاج VBS/HVCI شغّال؛ إيقافه يقلل الحماية من برمجيات خبيثة على مستوى النواة. لازم تعيد تشغيل الجهاز.",
   "GiveAccessToMenu": "خيار \"Give access to\"",
   "GiveAccessToMenuDescription": "بضيف خيار \"Give access to\" بقائمة الكليك اليمين للملفات والمجلدات",
   "NetworkNavigationPane": "قسم الشبكة بمستكشف الملفات",
