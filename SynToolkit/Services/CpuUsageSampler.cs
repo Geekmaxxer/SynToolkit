@@ -9,9 +9,10 @@ namespace SynToolkit.Services
 
     /// <summary>
     /// Samples only Windows' aggregate CPU counters. It does not start a process, issue WMI
-    /// queries, or change any power setting, so it is safe to call from the Specs timer.
+    /// queries, or change any power setting. Initialize and sample on a worker thread:
+    /// registering PDH counters can take hundreds of milliseconds on the first call.
     /// </summary>
-    internal sealed class CpuUsageSampler
+    internal sealed class CpuUsageSampler : IDisposable
     {
         private const int ProcessorInformation = 11;
         private const uint PdhFmtDouble = 0x00000200;
@@ -22,8 +23,30 @@ namespace SynToolkit.Services
         private ulong? _previousIdleTime;
         private ulong? _previousKernelTime;
         private ulong? _previousUserTime;
+        private readonly object _gate = new();
+        private bool _disposed;
 
-        internal CpuLiveMetrics Sample() => new(ReadUtilizationPercent(), ReadLiveFrequencyMHz());
+        internal CpuLiveMetrics Sample()
+        {
+            lock (_gate)
+            {
+                ObjectDisposedException.ThrowIf(_disposed, this);
+                return new(ReadUtilizationPercent(), ReadLiveFrequencyMHz());
+            }
+        }
+
+        public void Dispose()
+        {
+            lock (_gate)
+            {
+                _disposed = true;
+                if (_performanceQuery != IntPtr.Zero)
+                {
+                    PdhCloseQuery(_performanceQuery);
+                    _performanceQuery = IntPtr.Zero;
+                }
+            }
+        }
 
         private uint? ReadUtilizationPercent()
         {

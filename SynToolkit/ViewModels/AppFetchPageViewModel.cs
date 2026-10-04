@@ -27,6 +27,8 @@ namespace SynToolkit.ViewModels
         private readonly IConfigurationService _xboxServicesConfigurationService;
         private readonly IReadOnlyList<FeaturedInstallerViewModel> _allFeaturedInstallers;
         private CancellationTokenSource? _installQueueCancellationTokenSource;
+        private bool _applyingInstallerStates;
+        private CancellationTokenSource? _catalogSearchCancellation;
 
         public event Action<int>? AvailableInstallerUpdateCountChanged;
 
@@ -56,7 +58,7 @@ namespace SynToolkit.ViewModels
             {
                 if (SetProperty(ref _catalogSearchText, value ?? string.Empty))
                 {
-                    ApplyCatalogFilter();
+                    _ = DebounceCatalogSearchAsync();
                 }
             }
         }
@@ -276,6 +278,7 @@ namespace SynToolkit.ViewModels
 
         private void ApplyCatalogFilter()
         {
+            _catalogSearchCancellation?.Cancel();
             string searchTerm = CatalogSearchText.Trim();
             FeaturedInstallers.Clear();
             foreach (FeaturedInstallerViewModel installer in _allFeaturedInstallers.Where(
@@ -302,6 +305,7 @@ namespace SynToolkit.ViewModels
 
         private void FeaturedInstaller_PropertyChanged(object? sender, PropertyChangedEventArgs eventArgs)
         {
+            if (_applyingInstallerStates) return;
             if (eventArgs.PropertyName == nameof(FeaturedInstallerViewModel.IsSelected))
             {
                 NotifySelectionChanged();
@@ -317,12 +321,46 @@ namespace SynToolkit.ViewModels
             }
         }
 
+        private async Task DebounceCatalogSearchAsync()
+        {
+            _catalogSearchCancellation?.Cancel();
+            using CancellationTokenSource source = new();
+            _catalogSearchCancellation = source;
+            try
+            {
+                await Task.Delay(150, source.Token);
+                if (ReferenceEquals(_catalogSearchCancellation, source))
+                {
+                    _catalogSearchCancellation = null;
+                    ApplyCatalogFilter();
+                }
+            }
+            catch (OperationCanceledException) { }
+            finally
+            {
+                if (ReferenceEquals(_catalogSearchCancellation, source))
+                    _catalogSearchCancellation = null;
+            }
+        }
+
         private void NotifySelectionChanged()
         {
             OnPropertyChanged(nameof(SelectedCount));
             OnPropertyChanged(nameof(SelectedSummary));
             OnPropertyChanged(nameof(InstallSelectedText));
             OnPropertyChanged(nameof(CanInstallSelected));
+        }
+
+        private void ApplyInstallerStateUpdates(Action update)
+        {
+            _applyingInstallerStates = true;
+            try { update(); }
+            finally
+            {
+                _applyingInstallerStates = false;
+                ApplyCatalogFilter();
+                NotifySelectionChanged();
+            }
         }
 
         [RelayCommand]
@@ -396,30 +434,33 @@ namespace SynToolkit.ViewModels
                     status => status.PackageIdentifier,
                     StringComparer.OrdinalIgnoreCase);
 
-                foreach (FeaturedInstallerViewModel installer in _allFeaturedInstallers)
+                ApplyInstallerStateUpdates(() =>
                 {
-                    if (installer.IsManualOnly)
+                    foreach (FeaturedInstallerViewModel installer in _allFeaturedInstallers)
                     {
-                        continue;
-                    }
+                        if (installer.IsManualOnly)
+                        {
+                            continue;
+                        }
 
-                    if (!statusesByIdentifier.TryGetValue(installer.PackageIdentifier, out CuratedPackageStatus? status))
-                    {
-                        installer.ApplyAvailabilityState(InstallerAvailabilityState.Unavailable);
-                        continue;
-                    }
+                        if (!statusesByIdentifier.TryGetValue(installer.PackageIdentifier, out CuratedPackageStatus? status))
+                        {
+                            installer.ApplyAvailabilityState(InstallerAvailabilityState.Unavailable);
+                            continue;
+                        }
 
-                    InstallerAvailabilityState availabilityState = !status.IsInstalled
-                        ? InstallerAvailabilityState.NotInstalled
-                        : status.IsUpdateAvailable
-                            ? InstallerAvailabilityState.UpdateAvailable
-                            : InstallerAvailabilityState.Installed;
-                    installer.ApplyAvailabilityState(
-                        availabilityState,
-                        status.InstalledVersion,
-                        status.AvailableVersion,
-                        status.IsUpdateCheckComplete);
-                }
+                        InstallerAvailabilityState availabilityState = !status.IsInstalled
+                            ? InstallerAvailabilityState.NotInstalled
+                            : status.IsUpdateAvailable
+                                ? InstallerAvailabilityState.UpdateAvailable
+                                : InstallerAvailabilityState.Installed;
+                        installer.ApplyAvailabilityState(
+                            availabilityState,
+                            status.InstalledVersion,
+                            status.AvailableVersion,
+                            status.IsUpdateCheckComplete);
+                    }
+                });
 
                 int installedCount = _allFeaturedInstallers.Count(installer =>
                     installer.AvailabilityState is InstallerAvailabilityState.Installed or
@@ -445,12 +486,15 @@ namespace SynToolkit.ViewModels
             catch (Exception exception)
             {
                 App.logger.Error(exception, "[Installers] Unable to refresh curated app status.");
-                foreach (FeaturedInstallerViewModel installer in _allFeaturedInstallers.Where(
-                    installer => !installer.IsManualOnly &&
-                        installer.AvailabilityState == InstallerAvailabilityState.Checking))
+                ApplyInstallerStateUpdates(() =>
                 {
-                    installer.ApplyAvailabilityState(InstallerAvailabilityState.Unavailable);
-                }
+                    foreach (FeaturedInstallerViewModel installer in _allFeaturedInstallers.Where(
+                        installer => !installer.IsManualOnly &&
+                            installer.AvailabilityState == InstallerAvailabilityState.Checking))
+                    {
+                        installer.ApplyAvailabilityState(InstallerAvailabilityState.Unavailable);
+                    }
+                });
 
                 InstallerStatusSummary = "Some app statuses could not be checked. Select Refresh to retry.";
             }

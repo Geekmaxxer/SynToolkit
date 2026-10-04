@@ -55,10 +55,11 @@ namespace SynToolkit.ViewModels
     /// Drives the Specs tab: a read-only snapshot of CPU, GPU, memory, storage, motherboard,
     /// and Windows identity via SystemSpecsService. Purely informational — makes no changes.
     /// </summary>
-    public partial class SpecsPageViewModel : ObservableObject
+    public partial class SpecsPageViewModel : ObservableObject, IDisposable
     {
         private readonly ISystemInformationService _systemInformationService;
         private readonly CpuUsageSampler _cpuUsageSampler = new();
+        private int _cpuSampleRunning;
         private decimal? _minimumObservedCpuFrequencyMHz;
         private decimal? _maximumObservedCpuFrequencyMHz;
         private bool _areMotherboardDetailsLoaded;
@@ -267,9 +268,27 @@ namespace SynToolkit.ViewModels
                 _areMotherboardDetailsLoaded = true;
             }
         }
-        public void RefreshCpuLiveMetrics()
+        public async Task RefreshCpuLiveMetricsAsync(CancellationToken cancellationToken)
         {
-            CpuLiveMetrics metrics = _cpuUsageSampler.Sample();
+            if (Interlocked.CompareExchange(ref _cpuSampleRunning, 1, 0) != 0) return;
+            try
+            {
+                CpuLiveMetrics metrics = await Task.Run(_cpuUsageSampler.Sample, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                ApplyCpuLiveMetrics(metrics);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception exception)
+            {
+                App.logger.Debug(exception, "[Specs] Live CPU counters were unavailable.");
+            }
+            finally { Volatile.Write(ref _cpuSampleRunning, 0); }
+        }
+
+        public void Dispose() => _cpuUsageSampler.Dispose();
+
+        private void ApplyCpuLiveMetrics(CpuLiveMetrics metrics)
+        {
             if (metrics.UtilizationPercent.HasValue)
             {
                 CpuUtilizationText = $"{metrics.UtilizationPercent.Value}%";

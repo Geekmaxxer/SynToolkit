@@ -81,82 +81,95 @@
                 </ListView.ItemTemplate>
             </ListView>
 
-            <ScrollViewer x:Name="SettingsScroll" Grid.Column="1">
-                <ItemsControl x:Name="GroupsList">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Margin="0,0,0,16">
-                                <TextBlock Margin="8,4,8,8" FontSize="16"
-                                           FontWeight="SemiBold" Text="{Binding Name}" />
-                                <ItemsControl ItemsSource="{Binding Rows}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Padding="8,9" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                                    BorderThickness="0,0,0,1">
-                                                <Grid ColumnSpacing="10">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="165" />
-                                                        <ColumnDefinition Width="165" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel Spacing="2">
-                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
-                                                                   TextWrapping="Wrap"
-                                                                   ToolTipService.ToolTip="{Binding SettingId}" />
-                                                        <TextBlock Text="{Binding Description}" MaxLines="2"
-                                                                   FontSize="12" TextWrapping="Wrap"
-                                                                   TextTrimming="CharacterEllipsis"
-                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                                        <TextBlock Text="{Binding RangeHint}" FontSize="12"
-                                                                   TextWrapping="Wrap"
-                                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Column="1" Spacing="3">
-                                                        <TextBlock Text="Plugged in" FontSize="12"
-                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                                        <ComboBox x:Name="AcChoiceBox" HorizontalAlignment="Stretch"
-                                                                  ItemsSource="{Binding Choices}" DisplayMemberPath="Label"
-                                                                  SelectedItem="{Binding AcChoice, Mode=TwoWay}"
-                                                                  Visibility="{Binding ChoiceVisibility}"
-                                                                  IsEnabled="{Binding HasAc}"
-                                                                  SelectionChanged="Choice_SelectionChanged" />
-                                                        <NumberBox x:Name="AcNumberBox" HorizontalAlignment="Stretch"
-                                                                   Value="{Binding AcNumber, Mode=TwoWay}"
-                                                                   Minimum="{Binding Minimum}" Maximum="{Binding Maximum}"
-                                                                   SmallChange="{Binding Increment}"
-                                                                   SpinButtonPlacementMode="Compact"
-                                                                   Visibility="{Binding NumberVisibility}"
-                                                                   IsEnabled="{Binding HasAc}"
-                                                                   LostFocus="Number_LostFocus" />
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Column="2" Spacing="3">
-                                                        <TextBlock Text="On battery" FontSize="12"
-                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                                        <ComboBox x:Name="DcChoiceBox" HorizontalAlignment="Stretch"
-                                                                  ItemsSource="{Binding Choices}" DisplayMemberPath="Label"
-                                                                  SelectedItem="{Binding DcChoice, Mode=TwoWay}"
-                                                                  Visibility="{Binding ChoiceVisibility}"
-                                                                  IsEnabled="{Binding HasDc}"
-                                                                  SelectionChanged="Choice_SelectionChanged" />
-                                                        <NumberBox x:Name="DcNumberBox" HorizontalAlignment="Stretch"
-                                                                   Value="{Binding DcNumber, Mode=TwoWay}"
-                                                                   Minimum="{Binding Minimum}" Maximum="{Binding Maximum}"
-                                                                   SmallChange="{Binding Increment}"
-                                                                   SpinButtonPlacementMode="Compact"
-                                                                   Visibility="{Binding NumberVisibility}"
-                                                                   IsEnabled="{Binding HasDc}"
-                                                                   LostFocus="Number_LostFocus" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+            <ListView x:Name="SettingsRowsList" Grid.Column="1"
+                AutomationProperties.Name="Power settings"
+                SelectionMode="None" IsItemClickEnabled="False" IsTabStop="False"
+                HorizontalContentAlignment="Stretch"
+                ScrollViewer.HorizontalScrollMode="Disabled"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate><ItemsStackPanel CacheLength="0.5" /></ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0" />
+                        <Setter Property="MinHeight" Value="0" />
+                        <Setter Property="IsTabStop" Value="False" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <StackPanel Margin="8,8,8,6" Orientation="Horizontal" Spacing="10"
+                                        Visibility="{Binding GroupHeaderVisibility}">
+                                <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding GroupName}" />
+                                <TextBlock VerticalAlignment="Center" Text="{Binding GroupCountLabel}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+                            <Border Padding="8,9" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="0,0,0,1">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="165" />
+                                        <ColumnDefinition Width="165" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                   TextWrapping="Wrap"
+                                                   ToolTipService.ToolTip="{Binding SettingId}" />
+                                        <TextBlock Text="{Binding Description}" MaxLines="2"
+                                                   FontSize="12" TextWrapping="Wrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <TextBlock Text="{Binding RangeHint}" FontSize="12"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="3">
+                                        <TextBlock Text="Plugged in" FontSize="12"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <ComboBox x:Name="AcChoiceBox" HorizontalAlignment="Stretch"
+                                                  ItemsSource="{Binding Choices}" DisplayMemberPath="Label"
+                                                  SelectedItem="{Binding AcChoice, Mode=OneWay}"
+                                                  Visibility="{Binding ChoiceVisibility}"
+                                                  IsEnabled="{Binding HasAc}"
+                                                  SelectionChanged="Choice_SelectionChanged" />
+                                        <NumberBox x:Name="AcNumberBox" HorizontalAlignment="Stretch"
+                                                   Value="{Binding AcNumber, Mode=OneWay}"
+                                                   Minimum="{Binding Minimum}" Maximum="{Binding Maximum}"
+                                                   SmallChange="{Binding Increment}"
+                                                   SpinButtonPlacementMode="Compact"
+                                                   Visibility="{Binding NumberVisibility}"
+                                                   IsEnabled="{Binding HasAc}"
+                                                   GotFocus="Number_GotFocus" LostFocus="Number_LostFocus" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Spacing="3">
+                                        <TextBlock Text="On battery" FontSize="12"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <ComboBox x:Name="DcChoiceBox" HorizontalAlignment="Stretch"
+                                                  ItemsSource="{Binding Choices}" DisplayMemberPath="Label"
+                                                  SelectedItem="{Binding DcChoice, Mode=OneWay}"
+                                                  Visibility="{Binding ChoiceVisibility}"
+                                                  IsEnabled="{Binding HasDc}"
+                                                  SelectionChanged="Choice_SelectionChanged" />
+                                        <NumberBox x:Name="DcNumberBox" HorizontalAlignment="Stretch"
+                                                   Value="{Binding DcNumber, Mode=OneWay}"
+                                                   Minimum="{Binding Minimum}" Maximum="{Binding Maximum}"
+                                                   SmallChange="{Binding Increment}"
+                                                   SpinButtonPlacementMode="Compact"
+                                                   Visibility="{Binding NumberVisibility}"
+                                                   IsEnabled="{Binding HasDc}"
+                                                   GotFocus="Number_GotFocus" LostFocus="Number_LostFocus" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </Grid>
 
         <Grid Grid.Row="5" ColumnSpacing="8">

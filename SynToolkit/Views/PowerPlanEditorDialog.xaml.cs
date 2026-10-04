@@ -3,6 +3,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Dispatching;
 using SynToolkit.Services;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace SynToolkit.Views
 {
-    internal sealed class PowerSettingEditRow
+    internal sealed class PowerSettingEditRow : PowerSettingListRow
     {
         public required PowerPlanSettingInspection Setting { get; init; }
         public required IReadOnlyList<PowerSettingChoice> Choices { get; init; }
@@ -24,12 +25,17 @@ namespace SynToolkit.Views
         public required bool HasDc { get; init; }
         public required uint? SavedAc { get; set; }
         public required uint? SavedDc { get; set; }
-        public PowerSettingChoice? AcChoice { get; set; }
-        public PowerSettingChoice? DcChoice { get; set; }
-        public double AcNumber { get; set; }
-        public double DcNumber { get; set; }
+        private PowerSettingChoice? _acChoice;
+        private PowerSettingChoice? _dcChoice;
+        private double _acNumber;
+        private double _dcNumber;
+        public PowerSettingChoice? AcChoice { get => _acChoice; set => SetProperty(ref _acChoice, value); }
+        public PowerSettingChoice? DcChoice { get => _dcChoice; set => SetProperty(ref _dcChoice, value); }
+        public double AcNumber { get => _acNumber; set => SetProperty(ref _acNumber, value); }
+        public double DcNumber { get => _dcNumber; set => SetProperty(ref _dcNumber, value); }
 
         public string Name => Setting.Name;
+        public override string GroupName => Setting.GroupName;
         public string Description => Setting.Description;
         public string SettingId => Setting.SettingId.ToString("D");
         public Visibility ChoiceVisibility => Choices.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -50,8 +56,6 @@ namespace SynToolkit.Views
         }
     }
 
-    internal sealed record PowerSettingEditGroup(string Name, IReadOnlyList<PowerSettingEditRow> Rows);
-
     public sealed partial class PowerPlanEditorDialog : ContentDialog
     {
         private readonly PowerPlanService _service;
@@ -64,12 +68,17 @@ namespace SynToolkit.Views
         private bool _isOpen;
         private bool _loading;
         private bool _updatingCategories;
+        private readonly DispatcherQueueTimer _searchTimer;
 
         public bool PlanChanged { get; private set; }
 
         public PowerPlanEditorDialog(PowerPlanService service, InstalledPowerPlan plan, bool autoSave)
         {
             InitializeComponent();
+            _searchTimer = DispatcherQueue.CreateTimer();
+            _searchTimer.Interval = TimeSpan.FromMilliseconds(150);
+            _searchTimer.IsRepeating = false;
+            _searchTimer.Tick += SearchTimer_Tick;
             _service = service;
             _schemeId = plan.SchemeId;
             _schemeName = plan.Name;
@@ -105,6 +114,11 @@ namespace SynToolkit.Views
         {
             _isOpen = false;
             _loadCancellation.Cancel();
+            _searchTimer.Stop();
+            _searchTimer.Tick -= SearchTimer_Tick;
+            SettingsRowsList.ItemsSource = null;
+            CategoryList.ItemsSource = null;
+            _rows.Clear();
         }
 
         private void Dialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
@@ -216,23 +230,30 @@ namespace SynToolkit.Views
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (_loading) return;
+            if (!_isOpen || _loading) return;
             if (!string.IsNullOrWhiteSpace(SearchBox.Text) && CategoryList.SelectedIndex > 0)
             {
                 _updatingCategories = true;
                 CategoryList.SelectedIndex = 0;
                 _updatingCategories = false;
             }
-            RenderRows();
+            _searchTimer.Stop();
+            _searchTimer.Start();
         }
 
         private void CategoryList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (!_loading && !_updatingCategories) RenderRows();
+            if (_isOpen && !_loading && !_updatingCategories) RenderRows();
+        }
+
+        private void SearchTimer_Tick(DispatcherQueueTimer sender, object args)
+        {
+            if (_isOpen && !_loading) RenderRows();
         }
 
         private void RenderRows()
         {
+            _searchTimer.Stop();
             string query = SearchBox.Text.Trim();
             IEnumerable<PowerSettingEditRow> matches = _rows;
             if (query.Length == 0 && CategoryList.SelectedItem is PowerSettingCategoryView { IsAll: false } category)
@@ -248,28 +269,42 @@ namespace SynToolkit.Views
                     row.SettingId.Contains(query, StringComparison.OrdinalIgnoreCase));
             }
             PowerSettingEditRow[] visible = matches.ToArray();
-            GroupsList.ItemsSource = visible.GroupBy(row => row.Setting.GroupName)
-                .Select(group => new PowerSettingEditGroup(group.Key, group.ToArray()))
-                .ToArray();
-            SettingsScroll.ChangeView(null, 0, null);
+            PowerSettingListRow.UpdateHeaders(visible);
+            SettingsRowsList.ItemsSource = visible;
+            if (visible.Length > 0) SettingsRowsList.ScrollIntoView(visible[0]);
             if (!_loading) StatusText.Text = $"{visible.Length} of {_rows.Count} settings";
         }
 
         private async void Choice_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading || sender is not ComboBox box ||
+            if (!_isOpen || _loading || sender is not ComboBox box ||
                 box.DataContext is not PowerSettingEditRow row) return;
+            // Recycled containers raise SelectionChanged while rebinding. Only accept
+            // a real choice belonging to this row, never a stale/null selection.
+            if (box.SelectedItem is not PowerSettingChoice choice ||
+                !row.Choices.Any(candidate => ReferenceEquals(candidate, choice))) return;
             bool onAc = box.Name == "AcChoiceBox";
-            if (onAc) row.AcChoice = box.SelectedItem as PowerSettingChoice;
-            else row.DcChoice = box.SelectedItem as PowerSettingChoice;
+            if (onAc) row.AcChoice = choice;
+            else row.DcChoice = choice;
             await HandleChangedValueAsync(row, onAc);
+        }
+
+        private void Number_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isOpen && !_loading && sender is NumberBox box &&
+                box.DataContext is PowerSettingEditRow row) box.Tag = row;
         }
 
         private async void Number_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (_loading || sender is not NumberBox box ||
-                box.DataContext is not PowerSettingEditRow row) return;
+            if (sender is not NumberBox box) return;
+            object? editedRow = box.Tag;
+            box.Tag = null;
+            if (!_isOpen || _loading || box.DataContext is not PowerSettingEditRow row ||
+                !ReferenceEquals(editedRow, row)) return;
             bool onAc = box.Name == "AcNumberBox";
+            // Commit only the row the user focused. Rebinding or range clamping
+            // during recycling must never edit another setting.
             if (onAc) row.AcNumber = box.Value;
             else row.DcNumber = box.Value;
             await HandleChangedValueAsync(row, onAc);

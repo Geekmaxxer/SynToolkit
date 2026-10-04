@@ -185,7 +185,6 @@ namespace SynToolkit.Views
     internal static class ImageSourceCache
     {
         private const int MaximumBundledSources = 32;
-        private const int MemoryPressureSourceLimit = 8;
         private static readonly Dictionary<string, LinkedListNode<CacheEntry>> BundledSources = new(StringComparer.OrdinalIgnoreCase);
         private static readonly LinkedList<CacheEntry> SourceUsage = new();
         private static readonly object CacheLock = new();
@@ -223,19 +222,6 @@ namespace SynToolkit.Views
                 }
 
                 return source;
-            }
-        }
-
-        internal static void TrimForMemoryPressure()
-        {
-            lock (CacheLock)
-            {
-                while (BundledSources.Count > MemoryPressureSourceLimit &&
-                    SourceUsage.Last is LinkedListNode<CacheEntry> oldestNode)
-                {
-                    SourceUsage.RemoveLast();
-                    BundledSources.Remove(oldestNode.Value.Path);
-                }
             }
         }
 

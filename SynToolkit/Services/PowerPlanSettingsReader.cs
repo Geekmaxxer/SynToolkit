@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using SynToolkit.Utils;
 
 namespace SynToolkit.Services
 {
@@ -65,6 +66,9 @@ namespace SynToolkit.Services
         private const uint AccessIndividualSetting = 18;
         private const string SosResourceName = "SynToolkit.PowerPlans.SOS.pow";
         private static readonly Guid NoSubgroupId = new("fea3413e-7e05-4911-9a71-700331f1c294");
+        private static readonly BoundedCache<(Guid Group, Guid Setting), PowerSettingValueEditor> EditorMetadata = new(512);
+        private static readonly BoundedCache<(Guid Group, Guid Setting), bool> RangedSettings = new(512);
+        private static readonly BoundedCache<(NativeTextKind Kind, Guid Group, Guid Setting, int Index), string?> NativeText = new(4096);
 
         public static PowerPlanInspection ReadFile(
             string filePath,
@@ -95,14 +99,32 @@ namespace SynToolkit.Services
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            int result = RegLoadAppKey(fullPath, out SafeRegistryHandle handle, KeyRead, 0, 0);
+            // RegLoadAppKey may update hive container metadata even with read-only keys.
+            // Use a private copy so inspecting a user's .pow cannot alter that file.
+            string privatePath = Path.Combine(Path.GetTempPath(), $"SynToolkit-Inspect-{Guid.NewGuid():N}.pow");
+            File.Copy(fullPath, privatePath);
+            try
+            {
+                return ReadHive(privatePath, Path.GetFileNameWithoutExtension(fullPath),
+                    currentSchemeId, cancellationToken);
+            }
+            finally
+            {
+                File.Delete(privatePath);
+            }
+        }
+
+        private static PowerPlanInspection ReadHive(string filePath, string fallbackName,
+            Guid? currentSchemeId, CancellationToken cancellationToken)
+        {
+            int result = RegLoadAppKey(filePath, out SafeRegistryHandle handle, KeyRead, 0, 0);
             if (result != 0)
             {
                 throw new Win32Exception(result, "Windows could not read this power-plan file.");
             }
 
             using RegistryKey hive = RegistryKey.FromHandle(handle);
-            string name = (hive.GetValue("FriendlyName") as string)?.Trim() ?? Path.GetFileNameWithoutExtension(fullPath);
+            string name = (hive.GetValue("FriendlyName") as string)?.Trim() ?? fallbackName;
             string description = (hive.GetValue("Description") as string)?.Trim() ?? string.Empty;
             var settings = new List<PowerPlanSettingInspection>();
 
@@ -375,6 +397,10 @@ namespace SynToolkit.Services
         }
 
         private static bool IsRangedSetting(Guid subgroupId, Guid settingId)
+            => RangedSettings.GetOrAdd((subgroupId, settingId),
+                () => ReadIsRangedSetting(subgroupId, settingId));
+
+        private static bool ReadIsRangedSetting(Guid subgroupId, Guid settingId)
         {
             uint min = 0, max = 0, increment = 0;
             return PowerReadValueMin(IntPtr.Zero, ref subgroupId, ref settingId, ref min) == ErrorSuccess &&
@@ -383,6 +409,10 @@ namespace SynToolkit.Services
         }
 
         public static PowerSettingValueEditor GetValueEditor(Guid subgroupId, Guid settingId)
+            => EditorMetadata.GetOrAdd((subgroupId, settingId),
+                () => ReadValueEditor(subgroupId, settingId));
+
+        private static PowerSettingValueEditor ReadValueEditor(Guid subgroupId, Guid settingId)
         {
             string units = ReadNativeText(NativeTextKind.Units, subgroupId, settingId) ?? string.Empty;
             List<PowerSettingChoice> choices = new();
@@ -413,7 +443,7 @@ namespace SynToolkit.Services
                 if (maximum < minimum) maximum = uint.MaxValue;
                 if (increment == 0) increment = 1;
             }
-            return new PowerSettingValueEditor(choices, minimum, maximum, increment, units, hasRange);
+            return new PowerSettingValueEditor(choices.ToArray(), minimum, maximum, increment, units, hasRange);
         }
 
         private static string FormatValue(
@@ -440,6 +470,11 @@ namespace SynToolkit.Services
 
         private static string? ReadNativeText(
             NativeTextKind kind, Guid subgroupId, Guid settingId, int possibleIndex = 0)
+            => NativeText.GetOrAdd((kind, subgroupId, settingId, possibleIndex),
+                () => ReadNativeTextCore(kind, subgroupId, settingId, possibleIndex));
+
+        private static string? ReadNativeTextCore(
+            NativeTextKind kind, Guid subgroupId, Guid settingId, int possibleIndex)
         {
             byte[] buffer = new byte[512];
             uint byteCount = (uint)buffer.Length;

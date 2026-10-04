@@ -30,7 +30,6 @@ namespace SynToolkit
         public List<IConfigurationItem> RootList { get; set; }
         private bool _isSynchronizingNavigationSelection;
         private bool _isNavigating;
-        private DispatcherQueueTimer _memoryBudgetTimer;
         private const int MaximumMainFrameHistoryEntries = 16;
 
         private const int DefaultWindowWidth = 1250;
@@ -101,8 +100,6 @@ namespace SynToolkit
             _ = RefreshNeedsAttentionBadgeAsync();
             Activated += OnMainWindowActivated;
             this.Closed += AppBehaviorHelper.HandleMainWindowClosed;
-            StartMemoryBudgetMonitor();
-            this.Closed += (_, _) => _memoryBudgetTimer?.Stop();
 
             SubscribeToConfigurationChanges();
         }
@@ -573,33 +570,7 @@ namespace SynToolkit
 
             App.UpdateDiscordPresence(GetDiscordPresenceState(App.CurrentCategory));
             MarkCurrentTabNewBadgeSeenIfNeeded();
-            ScheduleMemoryCleanupAfterNavigation();
             NavigateTo();
-        }
-
-        private static void ScheduleMemoryCleanupAfterNavigation()
-        {
-            if (MemoryPressureCleanup.TryScheduleAfterNavigation())
-            {
-                ImageSourceCache.TrimForMemoryPressure();
-            }
-        }
-
-        private void StartMemoryBudgetMonitor()
-        {
-            _memoryBudgetTimer = DispatcherQueue.CreateTimer();
-            _memoryBudgetTimer.Interval = TimeSpan.FromSeconds(15);
-            _memoryBudgetTimer.Tick += (_, _) => EnforceMemoryBudget();
-            _memoryBudgetTimer.Start();
-            EnforceMemoryBudget();
-        }
-
-        private static void EnforceMemoryBudget()
-        {
-            if (MemoryPressureCleanup.TryScheduleIfOverBudget())
-            {
-                ImageSourceCache.TrimForMemoryPressure();
-            }
         }
 
         private static string GetDiscordPresenceState(string category)

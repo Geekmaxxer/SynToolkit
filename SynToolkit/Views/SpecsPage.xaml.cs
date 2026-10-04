@@ -16,6 +16,7 @@ namespace SynToolkit.Views
         private readonly DispatcherTimer _cpuMonitoringTimer;
         private CancellationTokenSource _lifetimeCancellation = new();
         private bool _isCpuDetailsExpanded;
+        private CancellationTokenSource? _cpuMonitoringCancellation;
 
         public SpecsPage()
         {
@@ -33,14 +34,13 @@ namespace SynToolkit.Views
         private void CpuDetailsExpander_Expanded(object sender, EventArgs args)
         {
             _isCpuDetailsExpanded = true;
-            _viewModel.RefreshCpuLiveMetrics();
-            _cpuMonitoringTimer.Start();
+            StartCpuMonitoring();
         }
 
         private void CpuDetailsExpander_Collapsed(object sender, EventArgs args)
         {
             _isCpuDetailsExpanded = false;
-            _cpuMonitoringTimer.Stop();
+            StopCpuMonitoring();
         }
         private void MotherboardDetailsExpander_Expanded(object sender, EventArgs args)
         {
@@ -57,14 +57,13 @@ namespace SynToolkit.Views
             _ = LoadSpecsAsync(_lifetimeCancellation.Token);
             if (_isCpuDetailsExpanded)
             {
-                _viewModel.RefreshCpuLiveMetrics();
-                _cpuMonitoringTimer.Start();
+                StartCpuMonitoring();
             }
         }
 
         private void SpecsPage_Unloaded(object sender, RoutedEventArgs e)
         {
-            _cpuMonitoringTimer.Stop();
+            StopCpuMonitoring();
             _lifetimeCancellation.Cancel();
         }
 
@@ -79,6 +78,26 @@ namespace SynToolkit.Views
             }
         }
 
-        private void CpuMonitoringTimer_Tick(object? sender, object e) => _viewModel.RefreshCpuLiveMetrics();
+        private void StartCpuMonitoring()
+        {
+            StopCpuMonitoring();
+            _cpuMonitoringCancellation = new CancellationTokenSource();
+            _ = _viewModel.RefreshCpuLiveMetricsAsync(_cpuMonitoringCancellation.Token);
+            _cpuMonitoringTimer.Start();
+        }
+
+        private void StopCpuMonitoring()
+        {
+            _cpuMonitoringTimer.Stop();
+            _cpuMonitoringCancellation?.Cancel();
+            _cpuMonitoringCancellation?.Dispose();
+            _cpuMonitoringCancellation = null;
+        }
+
+        private void CpuMonitoringTimer_Tick(object? sender, object e)
+        {
+            if (_cpuMonitoringCancellation is { } source)
+                _ = _viewModel.RefreshCpuLiveMetricsAsync(source.Token);
+        }
     }
 }

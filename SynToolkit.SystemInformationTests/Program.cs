@@ -67,11 +67,34 @@ internal static class Program
         Run("GPU tab icon uses NVIDIA/AMD brands and falls back for Intel/unknown", GpuTabIconUsesVendorBrandsAndSafeFallback);
         Run("Primary GPU vendor prefers discrete NVIDIA then AMD then Intel", PrimaryGpuVendorPrefersDiscreteGpu);
         Run("HAGS classification distinguishes enabled, disabled, and unsupported", HagsClassificationDistinguishesStates);
+        Run("Metadata cache retains recent entries and stays bounded", MetadataCacheStaysBounded);
+        Run("Metadata cache handles concurrent readers and null values", MetadataCacheHandlesConcurrency);
 
         Console.WriteLine(_failures == 0
             ? "All SynToolkit service tests passed."
             : $"{_failures} SynToolkit service test(s) failed.");
         return _failures == 0 ? 0 : 1;
+    }
+
+    private static void MetadataCacheStaysBounded()
+    {
+        BoundedCache<int, string> cache = new(2);
+        cache.GetOrAdd(1, () => "one");
+        cache.GetOrAdd(2, () => "two");
+        Equal("one", cache.GetOrAdd(1, () => throw new Exception("Unexpected reload")), "Cached metadata must be reused.");
+        cache.GetOrAdd(3, () => "three");
+        Equal(2, cache.Count, "Capacity must remain bounded.");
+        Equal("reloaded", cache.GetOrAdd(2, () => "reloaded"), "The least recently used entry must be evicted.");
+        Throws<ArgumentOutOfRangeException>(() => new BoundedCache<int, int>(0), "Zero capacity must be rejected.");
+    }
+
+    private static void MetadataCacheHandlesConcurrency()
+    {
+        BoundedCache<int, string?> cache = new(8);
+        Parallel.For(0, 500, i => Equal($"value-{i % 20}", cache.GetOrAdd(i % 20, () => $"value-{i % 20}"), "Concurrent reads must return correct metadata."));
+        True(cache.Count <= 8, "Concurrent insertion must respect capacity.");
+        cache.GetOrAdd(-1, () => null);
+        True(cache.GetOrAdd(-1, () => throw new Exception("Unexpected null reload")) is null, "Unavailable native metadata should be cached too.");
     }
 
     private static void FragmentedOnboardMemoryChipsAreLabeled()

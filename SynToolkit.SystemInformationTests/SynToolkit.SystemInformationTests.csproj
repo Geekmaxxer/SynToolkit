@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\SynToolkit\Utils\BoundedCache.cs" Link="Utils\BoundedCache.cs" />
     <Compile Include="..\SynToolkit\Commands\AsyncCommandBase.cs" Link="Commands\AsyncCommandBase.cs" />
     <Compile Include="..\SynToolkit\Models\SystemInformationSnapshot.cs" Link="Models\SystemInformationSnapshot.cs" />
     <Compile Include="..\SynToolkit\Models\SystemSpecs.cs" Link="Models\SystemSpecs.cs" />

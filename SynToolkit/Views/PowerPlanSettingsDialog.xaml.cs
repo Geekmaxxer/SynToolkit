@@ -3,6 +3,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Dispatching;
 using SynToolkit.Services;
 using SynToolkit.Utils;
 using System;
@@ -17,8 +18,10 @@ namespace SynToolkit.Views
 {
     internal sealed record PowerPlanChoice(string DisplayName, string? FilePath, bool IsBuiltIn = false);
 
-    internal sealed class PowerSettingRowView
+    internal sealed class PowerSettingRowView : PowerSettingListRow
     {
+        public required PowerPlanSettingInspection Setting { get; init; }
+        public override string GroupName => Setting.GroupName;
         public required string Name { get; init; }
         public required string Description { get; init; }
         public required string SettingId { get; init; }
@@ -26,15 +29,18 @@ namespace SynToolkit.Views
         public required string CurrentDcLabel { get; init; }
         public required string SelectedAcLabel { get; init; }
         public required string SelectedDcLabel { get; init; }
-        public Visibility CurrentVisibility { get; init; }
-        public Visibility DifferenceVisibility { get; init; }
-    }
-
-    internal sealed class PowerSettingGroupView
-    {
-        public required string Name { get; init; }
-        public required string CountLabel { get; init; }
-        public required IReadOnlyList<PowerSettingRowView> Rows { get; init; }
+        private Visibility _currentVisibility;
+        private Visibility _differenceVisibility;
+        public Visibility CurrentVisibility
+        {
+            get => _currentVisibility;
+            set => SetProperty(ref _currentVisibility, value);
+        }
+        public Visibility DifferenceVisibility
+        {
+            get => _differenceVisibility;
+            set => SetProperty(ref _differenceVisibility, value);
+        }
     }
 
     internal sealed record PowerSettingCategoryView(string Name, int Count, bool IsAll = false);
@@ -49,6 +55,9 @@ namespace SynToolkit.Views
         private int _readVersion;
         private bool _isOpen;
         private bool _updatingCategories;
+        private PowerSettingRowView[] _rows = Array.Empty<PowerSettingRowView>();
+        private readonly SemaphoreSlim _readGate = new(1, 1);
+        private readonly DispatcherQueueTimer _searchTimer;
 
         public PowerPlanSettingsDialog(
             IReadOnlyList<BundledPowerPlan> bundledPlans,
@@ -59,6 +68,10 @@ namespace SynToolkit.Views
             bool startComparing = false)
         {
             InitializeComponent();
+            _searchTimer = DispatcherQueue.CreateTimer();
+            _searchTimer.Interval = TimeSpan.FromMilliseconds(150);
+            _searchTimer.IsRepeating = false;
+            _searchTimer.Tick += SearchTimer_Tick;
             bool lightTheme = Application.Current.RequestedTheme == ApplicationTheme.Light;
             Resources["ContentDialogSmokeFill"] = new AcrylicBrush
             {
@@ -127,6 +140,14 @@ namespace SynToolkit.Views
             _isOpen = false;
             _readVersion++;
             _readCancellation?.Cancel();
+            _readCancellation = null;
+            _searchTimer.Stop();
+            _searchTimer.Tick -= SearchTimer_Tick;
+            SettingsRowsList.ItemsSource = null;
+            CategoryList.ItemsSource = null;
+            PlanPicker.ItemsSource = null;
+            _inspection = null;
+            _rows = Array.Empty<PowerSettingRowView>();
         }
 
         private void CloseViewerButton_Click(object sender, RoutedEventArgs e)
@@ -142,7 +163,7 @@ namespace SynToolkit.Views
             }
         }
 
-        private async void CompareToggle_Toggled(object sender, RoutedEventArgs e)
+        private void CompareToggle_Toggled(object sender, RoutedEventArgs e)
         {
             if (!_isOpen)
             {
@@ -154,7 +175,7 @@ namespace SynToolkit.Views
             {
                 DifferencesOnlyBox.IsChecked = false;
             }
-            await LoadSelectionAsync();
+            RenderSettings();
         }
 
         private void DifferencesOnlyBox_Changed(object sender, RoutedEventArgs e)
@@ -171,10 +192,12 @@ namespace SynToolkit.Views
             {
                 if (!string.IsNullOrWhiteSpace(SettingsSearchBox.Text) && CategoryList.SelectedIndex > 0)
                 {
+                    _updatingCategories = true;
                     CategoryList.SelectedIndex = 0;
-                    return;
+                    _updatingCategories = false;
                 }
-                RenderSettings();
+                _searchTimer.Stop();
+                _searchTimer.Start();
             }
         }
 
@@ -184,6 +207,11 @@ namespace SynToolkit.Views
             {
                 RenderSettings();
             }
+        }
+
+        private void SearchTimer_Tick(DispatcherQueueTimer sender, object args)
+        {
+            if (_isOpen) RenderSettings();
         }
 
         private void BrowsePowButton_Click(object sender, RoutedEventArgs e)
@@ -212,7 +240,8 @@ namespace SynToolkit.Views
             int version = ++_readVersion;
             string? selectedCategory = (CategoryList.SelectedItem as PowerSettingCategoryView)?.Name;
             _inspection = null;
-            SettingsGroupsList.ItemsSource = null;
+            _rows = Array.Empty<PowerSettingRowView>();
+            SettingsRowsList.ItemsSource = null;
             SettingsPane.Visibility = Visibility.Collapsed;
             ReadErrorBar.IsOpen = false;
 
@@ -236,12 +265,37 @@ namespace SynToolkit.Views
 
             try
             {
-                PowerPlanInspection inspection = await Task.Run(() => choice.IsBuiltIn
-                    ? PowerPlanSettingsReader.ReadBuiltIn(currentId, token)
-                    : PowerPlanSettingsReader.ReadFile(choice.FilePath!, currentId, token), token);
+                // Cancel obsolete reads and serialize them so rapid selection cannot
+                // accumulate simultaneous registry hives or enumeration buffers.
+                await _readGate.WaitAsync(token);
+                PowerPlanInspection inspection;
+                PowerSettingRowView[] rows;
+                try
+                {
+                    (inspection, rows) = await Task.Run(() =>
+                    {
+                        PowerPlanInspection read = choice.IsBuiltIn
+                            ? PowerPlanSettingsReader.ReadBuiltIn(currentId, token)
+                            : PowerPlanSettingsReader.ReadFile(choice.FilePath!, currentId, token);
+                        PowerSettingRowView[] views = read.Settings.Select(setting => new PowerSettingRowView
+                        {
+                            Setting = setting,
+                            Name = setting.Name,
+                            Description = setting.Description,
+                            SettingId = setting.SettingId.ToString("D"),
+                            CurrentAcLabel = $"AC  {setting.CurrentAcText}",
+                            CurrentDcLabel = $"DC  {setting.CurrentDcText}",
+                            SelectedAcLabel = $"AC  {setting.AcText}",
+                            SelectedDcLabel = $"DC  {setting.DcText}"
+                        }).ToArray();
+                        return (read, views);
+                    }, token);
+                }
+                finally { _readGate.Release(); }
                 if (_isOpen && version == _readVersion && !token.IsCancellationRequested)
                 {
                     _inspection = inspection;
+                    _rows = rows;
                     PopulateCategories(selectedCategory);
                     RenderSettings();
                 }
@@ -297,6 +351,7 @@ namespace SynToolkit.Views
 
         private void RenderSettings()
         {
+            _searchTimer.Stop();
             if (_inspection is null)
             {
                 return;
@@ -307,7 +362,7 @@ namespace SynToolkit.Views
             CurrentColumnHeader.Visibility = comparing ? Visibility.Visible : Visibility.Collapsed;
             SelectedColumnHeader.Text = comparing ? "Selected plan" : "Plan value";
             string query = SettingsSearchBox.Text.Trim();
-            IEnumerable<PowerPlanSettingInspection> matches = _inspection.Settings;
+            IEnumerable<PowerSettingRowView> matches = _rows;
             if (query.Length == 0 && CategoryList.SelectedItem is PowerSettingCategoryView { IsAll: false } category)
             {
                 matches = matches.Where(setting =>
@@ -319,40 +374,26 @@ namespace SynToolkit.Views
                     setting.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                     setting.GroupName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                     setting.Description.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                    setting.SettingId.ToString("D").Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                    setting.SubgroupId.ToString("D").Contains(query, StringComparison.OrdinalIgnoreCase));
+                    setting.SettingId.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    setting.Setting.SubgroupId.ToString("D").Contains(query, StringComparison.OrdinalIgnoreCase));
             }
             if (differencesOnly)
             {
-                matches = matches.Where(setting => setting.IsDifferent);
+                matches = matches.Where(row => row.Setting.IsDifferent);
             }
 
-            PowerPlanSettingInspection[] visible = matches.ToArray();
-            IReadOnlyList<PowerSettingGroupView> groups = visible
-                .GroupBy(setting => setting.GroupName, StringComparer.CurrentCultureIgnoreCase)
-                .Select(group => new PowerSettingGroupView
-                {
-                    Name = group.Key,
-                    CountLabel = group.Count() == 1 ? "1 setting" : $"{group.Count()} settings",
-                    Rows = group.Select(setting => new PowerSettingRowView
-                    {
-                        Name = setting.Name,
-                        Description = setting.Description,
-                        SettingId = setting.SettingId.ToString("D"),
-                        CurrentAcLabel = $"AC  {setting.CurrentAcText}",
-                        CurrentDcLabel = $"DC  {setting.CurrentDcText}",
-                        SelectedAcLabel = $"AC  {setting.AcText}",
-                        SelectedDcLabel = $"DC  {setting.DcText}",
-                        CurrentVisibility = comparing ? Visibility.Visible : Visibility.Collapsed,
-                        DifferenceVisibility = comparing && setting.IsDifferent
-                            ? Visibility.Visible : Visibility.Collapsed
-                    }).ToArray()
-                }).ToArray();
-
-            SettingsGroupsList.ItemsSource = groups;
-            SettingsScrollViewer.ChangeView(null, 0, null);
+            PowerSettingRowView[] visible = matches.ToArray();
+            foreach (PowerSettingRowView row in visible)
+            {
+                row.CurrentVisibility = comparing ? Visibility.Visible : Visibility.Collapsed;
+                row.DifferenceVisibility = comparing && row.Setting.IsDifferent
+                    ? Visibility.Visible : Visibility.Collapsed;
+            }
+            PowerSettingListRow.UpdateHeaders(visible);
+            SettingsRowsList.ItemsSource = visible;
+            if (visible.Length > 0) SettingsRowsList.ScrollIntoView(visible[0]);
             SettingsPane.Visibility = Visibility.Visible;
-            SettingsScrollViewer.Visibility = visible.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+            SettingsRowsList.Visibility = visible.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
             NoResultsMessage.Visibility = visible.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
             EmptyMessage.Visibility = Visibility.Collapsed;
 
@@ -361,7 +402,7 @@ namespace SynToolkit.Views
             int unspecified = _inspection.Settings.Count(setting => setting.IsAbsentFromFile);
             ResultsText.Text = comparing
                 ? $"{visible.Length} of {total} settings · {changed} differ from {_currentSchemeName} · {unspecified} not in .pow"
-                : $"{visible.Length} of {total} settings · {groups.Count} categories · {unspecified} not in .pow";
+                : $"{visible.Length} of {total} settings · {visible.Select(row => row.GroupName).Distinct().Count()} categories · {unspecified} not in .pow";
         }
     }
 }
