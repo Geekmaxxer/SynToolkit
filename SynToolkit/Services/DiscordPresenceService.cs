@@ -1,5 +1,6 @@
 using DiscordRPC;
 using NLog;
+using SynToolkit.Utils;
 using System;
 
 namespace SynToolkit.Services
@@ -61,7 +62,7 @@ namespace SynToolkit.Services
                         new Button
                         {
                             Label = "SynToolkit",
-                            Url = "https://github.com/kwanteks/synergyos"
+                            Url = CommunityLinks.SynergyOsRepoUrl
                         }
                     }
                 };

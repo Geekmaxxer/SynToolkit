@@ -15,9 +15,7 @@ using System.Configuration;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Appointments;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.System;
 
 namespace SynToolkit.Views
 {
@@ -79,7 +77,7 @@ namespace SynToolkit.Views
                 App.logger.Error($"Failed to load SteamGridDB API key: {ex.Message}");
                 SteamGridDbApiKeyBox.Text = string.Empty;
             }
-            
+
             try
             {
                 this.DataContext = new SettingsPageViewModel();
@@ -88,9 +86,14 @@ namespace SynToolkit.Views
             {
                 App.logger.Error($"Failed to create SettingsPageViewModel: {ex.Message}");
             }
-            
+
             LoadText();
+            LoadPreferredGitHubRepository();
+            ApplyPreferredGitHubRepositoryUi();
             LoadSystemInformation();
+
+            SynergyOsGitHubLink.NavigateUri = new Uri(CommunityLinks.SynergyOsRepoUrl);
+            DiscordCommunityLink.NavigateUri = new Uri(CommunityLinks.DiscordInviteUrl);
 
             Loaded += SettingsPage_Loaded;
             Unloaded += SettingsPage_Unloaded;
@@ -126,6 +129,10 @@ namespace SynToolkit.Views
                 SteamGridDbCard.Header = App.GetValueFromItemList("Settings_SteamGridDb");
                 SteamGridDbCard.Description = App.GetValueFromItemList("Settings_SteamGridDbDesc");
                 SteamGridDbApiKeyBox.PlaceholderText = App.GetValueFromItemList("Settings_SteamGridDbPlaceholder");
+                DefaultGitHubRepoCard.Header = App.GetValueFromItemList("Settings_DefaultGitHubRepo");
+                DefaultGitHubRepoCard.Description = App.GetValueFromItemList("Settings_DefaultGitHubRepoDesc");
+                DefaultGitHubRepoSynToolkitItem.Content = App.GetValueFromItemList("Settings_DefaultGitHubRepo_SynToolkit");
+                DefaultGitHubRepoSynergyOsItem.Content = App.GetValueFromItemList("Settings_DefaultGitHubRepo_SynergyOs");
                 AboutHeader.Text = App.GetValueFromItemList("About");
                 toCloneRepoCard.Header = App.GetValueFromItemList("CloneRepoCard");
                 bugRequestCard.Header = App.GetValueFromItemList("BugReportCard");
@@ -230,6 +237,41 @@ namespace SynToolkit.Views
             }
         }
 
+        private void LoadPreferredGitHubRepository()
+        {
+            PreferredGitHubRepository preferred = PreferredGitHubRepositorySettings.Get();
+            DefaultGitHubRepoCombo.SelectionChanged -= DefaultGitHubRepoCombo_SelectionChanged;
+            DefaultGitHubRepoCombo.SelectedItem = preferred == PreferredGitHubRepository.SynergyOS
+                ? DefaultGitHubRepoSynergyOsItem
+                : DefaultGitHubRepoSynToolkitItem;
+            DefaultGitHubRepoCombo.SelectionChanged += DefaultGitHubRepoCombo_SelectionChanged;
+        }
+
+        private void ApplyPreferredGitHubRepositoryUi()
+        {
+            PreferredGitHubRepository preferred = PreferredGitHubRepositorySettings.Get();
+            gitCloneTextBlock.Text = CommunityLinks.GetCloneCommand(preferred);
+        }
+
+        private void DefaultGitHubRepoCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DefaultGitHubRepoCombo.SelectedItem is not ComboBoxItem item || item.Tag is not string tag)
+            {
+                return;
+            }
+
+            PreferredGitHubRepository preferred = PreferredGitHubRepositorySettings.Parse(tag);
+            try
+            {
+                PreferredGitHubRepositorySettings.Set(preferred);
+                ApplyPreferredGitHubRepositoryUi();
+            }
+            catch (Exception ex)
+            {
+                App.logger.Error($"Failed to save preferred GitHub repository: {ex.Message}");
+            }
+        }
+
         private void toCloneRepoCard_Click(object sender, RoutedEventArgs e)
         {
             DataPackage package = new DataPackage();
@@ -239,7 +281,7 @@ namespace SynToolkit.Views
 
         private async void bugRequestCard_Click(object sender, RoutedEventArgs e)
         {
-            await Launcher.LaunchUriAsync(new Uri("https://github.com/kwanteks/synergyos/issues/new"));
+            await CommunityLinks.LaunchPreferredNewIssueAsync();
         }
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)

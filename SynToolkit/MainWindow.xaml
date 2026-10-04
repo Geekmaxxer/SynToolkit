@@ -77,6 +77,7 @@
             IsSettingsVisible="False"
             IsTabStop="False"
             IsTitleBarAutoPaddingEnabled="False"
+            OpenPaneLength="340"
             SelectionChanged="NavigationViewControl_SelectionChanged">
             <!--Main Content-->
             <NavigationView.Content>
@@ -93,7 +94,7 @@
                         Background="#30313E"
                         IsOpen="False">
                         <InfoBar.ActionButton>
-                            <HyperlinkButton x:Name="LearnMoreBtn" NavigateUri="https://github.com/kwanteks/synergyos/releases/latest" />
+                            <HyperlinkButton x:Name="LearnMoreBtn" NavigateUri="https://github.com/Synergy-Tweaks/SynergyOS/releases/latest" />
                         </InfoBar.ActionButton>
                     </InfoBar>
                 </Grid>
@@ -235,10 +236,18 @@
                     <NavigationViewItem.Icon>
                         <ImageIcon Source="ms-appx:///assets/Icons/UserAccountAdjustment.png" />
                     </NavigationViewItem.Icon>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock x:Name="AdjustmentsText" VerticalAlignment="Center" />
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            x:Name="AdjustmentsText"
+                            VerticalAlignment="Center"
+                            TextTrimming="CharacterEllipsis" />
                         <Border
                             x:Name="AdjustmentsNewBadgeBorder"
+                            Grid.Column="1"
                             Padding="6,2"
                             VerticalAlignment="Center"
                             Background="{ThemeResource SystemAccentColorLight2}"
@@ -250,7 +259,7 @@
                                 Foreground="White"
                                 Text="NEW" />
                         </Border>
-                    </StackPanel>
+                    </Grid>
                 </NavigationViewItem>
                 <NavigationViewItem x:Name="Gpu" Tag="SynToolkit.Views.GpuPage">
                     <NavigationViewItem.Icon>

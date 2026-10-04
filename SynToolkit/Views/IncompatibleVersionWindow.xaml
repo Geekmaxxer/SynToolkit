@@ -22,6 +22,6 @@
             x:Name="ReleasesLink"
             HorizontalAlignment="Center"
             FontSize="20"
-            NavigateUri="https://github.com/kwanteks/synergyos/releases" />
+            NavigateUri="https://github.com/Synergy-Tweaks/SynergyOS/releases" />
     </StackPanel>
 </Window>

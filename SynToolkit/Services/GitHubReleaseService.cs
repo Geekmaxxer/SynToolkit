@@ -13,8 +13,8 @@ namespace SynToolkit.Services
     public sealed class GitHubReleaseService
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private const string ReleasesApiUrl = "https://api.github.com/repos/synergy-tweaks/synergyos/releases";
-        private const string ReleasesPageUrl = "https://github.com/synergy-tweaks/synergyos/releases";
+        private const string ReleasesApiUrl = "https://api.github.com/repos/Synergy-Tweaks/SynergyOS/releases";
+        private const string ReleasesPageUrl = "https://github.com/Synergy-Tweaks/SynergyOS/releases";
         private static readonly HttpClient Client = CreateHttpClient();
 
         public static string ReleasesUrl => ReleasesPageUrl;

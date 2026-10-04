@@ -80,6 +80,19 @@
                             </ComboBox.ItemTemplate>
                         </ComboBox>
                     </controls:SettingsCard>
+                    <!--  Default GitHub repository for generic Settings links  -->
+                    <controls:SettingsCard x:Name="DefaultGitHubRepoCard" Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE943;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ComboBox
+                            x:Name="DefaultGitHubRepoCombo"
+                            Width="200"
+                            SelectionChanged="DefaultGitHubRepoCombo_SelectionChanged">
+                            <ComboBoxItem x:Name="DefaultGitHubRepoSynToolkitItem" Tag="SynToolkit" />
+                            <ComboBoxItem x:Name="DefaultGitHubRepoSynergyOsItem" Tag="SynergyOS" />
+                        </ComboBox>
+                    </controls:SettingsCard>
                     <!--  Update settings  -->
                     <controls:SettingsCard x:Name="Update" Style="{StaticResource ConfigurationSettingsCardTemplate}">
                         <controls:SettingsCard.HeaderIcon>
@@ -136,8 +149,7 @@
                                     x:Name="gitCloneTextBlock"
                                     FontFamily="Consolas"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    IsTextSelectionEnabled="True"
-                                    Text="git clone https://github.com/kwanteks/synergyos" />
+                                    IsTextSelectionEnabled="True" />
                                 <controls:SettingsCard.ActionIcon>
                                     <FontIcon Glyph="&#xE8C8;" />
                                 </controls:SettingsCard.ActionIcon>
@@ -164,8 +176,12 @@
                                 HorizontalContentAlignment="Left"
                                 ContentAlignment="Vertical">
                                 <StackPanel Margin="-12,0,0,0" Orientation="Vertical">
-                                    <HyperlinkButton Content="SynergyOS GitHub" NavigateUri="https://github.com/kwanteks/synergyos" />
-                                    <HyperlinkButton Content="Discord Community" NavigateUri="https://discord.gg/kwanteks" />
+                                    <HyperlinkButton
+                                        x:Name="SynergyOsGitHubLink"
+                                        Content="SynergyOS GitHub" />
+                                    <HyperlinkButton
+                                        x:Name="DiscordCommunityLink"
+                                        Content="Discord Community" />
                                 </StackPanel>
                             </controls:SettingsCard>
                             <controls:SettingsCard

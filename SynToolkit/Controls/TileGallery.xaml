@@ -115,13 +115,27 @@
     <Grid>
         <ScrollViewer
             x:Name="scroller"
-            HorizontalScrollBarVisibility="Hidden"
+            BringIntoViewOnFocusChange="True"
+            HorizontalScrollBarVisibility="Auto"
             HorizontalScrollMode="Enabled"
+            HorizontalSnapPointsAlignment="Near"
+            HorizontalSnapPointsType="Mandatory"
+            IsTabStop="True"
+            IsVerticalScrollChainingEnabled="True"
+            KeyDown="scroller_KeyDown"
+            PointerWheelChanged="scroller_PointerWheelChanged"
             SizeChanged="scroller_SizeChanged"
+            VerticalScrollBarVisibility="Disabled"
             VerticalScrollMode="Disabled"
-            ViewChanging="scroller_ViewChanging">
-            <Grid x:Name="ContentGrid" Margin="36,0,36,0">
-                <StackPanel Orientation="Horizontal" Spacing="12">
+            ViewChanged="scroller_ViewChanged"
+            ViewChanging="scroller_ViewChanging"
+            ZoomMode="Disabled">
+            <!--  Vertical padding keeps tile hover/focus chrome from being clipped by the ScrollViewer.  -->
+            <Grid x:Name="ContentGrid" Margin="36,12,36,16">
+                <StackPanel
+                    x:Name="TilesPanel"
+                    Orientation="Horizontal"
+                    Spacing="12">
                     <local:HeaderTile
                         x:Name="UpdateNotesTile"
                         AutomationProperties.HelpText="Open local release notes for SynToolkit 1.7.0"
@@ -134,16 +148,29 @@
                                 Source="ms-appx:///assets/Icons/Update.png" />
                         </local:HeaderTile.Source>
                     </local:HeaderTile>
-                    <local:HeaderTile
-                        x:Name="DocumentationTile"            
-                        Link="https://www.youtube.com/@Kwanteks">
+                    <local:HeaderTile x:Name="DocumentationTile">
                         <local:HeaderTile.Source>
                             <Image Source="..\assets\logo\Kwanteks.png" />
                         </local:HeaderTile.Source>
                     </local:HeaderTile>
-                    <local:HeaderTile
-                        x:Name="GithubTile"
-                        Link="https://github.com/kwanteks/synergyos">
+                    <local:HeaderTile x:Name="DiscordTile">
+                        <local:HeaderTile.Source>
+                            <Image Source="..\assets\logo\discord-mark-blue.png" />
+                        </local:HeaderTile.Source>
+                    </local:HeaderTile>
+                    <local:HeaderTile x:Name="SynergyOsTile">
+                        <local:HeaderTile.Source>
+                            <PathIcon Data="{StaticResource GitHubIconPath}" Foreground="{ThemeResource TextFillColorPrimaryBrush}">
+                                <PathIcon.RenderTransform>
+                                    <CompositeTransform
+                                        ScaleX="2.05"
+                                        ScaleY="2.05"
+                                        TranslateX="-20" />
+                                </PathIcon.RenderTransform>
+                            </PathIcon>
+                        </local:HeaderTile.Source>
+                    </local:HeaderTile>
+                    <local:HeaderTile x:Name="SynToolkitRepoTile">
                         <local:HeaderTile.Source>
                             <PathIcon Data="{StaticResource GitHubIconPath}" Foreground="{ThemeResource TextFillColorPrimaryBrush}">
                                 <PathIcon.RenderTransform>
@@ -156,10 +183,13 @@
                         </local:HeaderTile.Source>
                     </local:HeaderTile>
                     <local:HeaderTile
-                        x:Name="DiscordTile"
-                        Link="https://discord.gg/kwanteks">
+                        x:Name="ReportBugTile"
+                        Click="ReportBugTile_Click">
                         <local:HeaderTile.Source>
-                            <Image Source="..\assets\logo\discord-mark-blue.png" />
+                            <FontIcon
+                                FontSize="40"
+                                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                Glyph="&#xEBE8;" />
                         </local:HeaderTile.Source>
                     </local:HeaderTile>
                 </StackPanel>
@@ -186,7 +216,8 @@
             AutomationProperties.Name="Scroll right"
             Click="ScrollForwardBtn_Click"
             Style="{StaticResource ScrollButtonStyle}"
-            ToolTipService.ToolTip="Scroll right">
+            ToolTipService.ToolTip="Scroll right"
+            Visibility="Collapsed">
             <FontIcon FontSize="{ThemeResource FlipViewButtonFontSize}" Glyph="&#xEDDA;" />
         </Button>
 
@@ -194,7 +225,7 @@
             x:Name="UpdateNotesDialog"
             CloseButtonText="Close"
             DefaultButton="Close"
-            Title="SynToolkit 1.7.0 update notes">
+            Title="SynToolkit 1.7.0 Update Notes">
             <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="500" Spacing="18">
                     <StackPanel Spacing="4">
@@ -207,6 +238,42 @@
                             Text="A combined release with installer improvements, system attention checks, recovery tools, and update reliability fixes."
                             TextWrapping="Wrap" />
                     </StackPanel>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE8F1;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Home tile gallery upgrades" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="The Home row now includes SynergyOS and SynToolkit repo tiles plus Report a Bug, with horizontal scrolling, snap alignment, and edge chevrons when tiles overflow."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE713;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Choose your default GitHub repo" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Settings lets you pick whether generic GitHub actions open SynToolkit or SynergyOS. The Home repo tiles always open their own repositories."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
 
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>

@@ -7,7 +7,7 @@ namespace SynToolkit.Utils
     public static class CompatibilityHelper
     {
         public const int MinimumWindowsBuild = 17763;
-        public const string SynergyOsReleasesUrl = "https://github.com/kwanteks/synergyos/releases";
+        public const string SynergyOsReleasesUrl = CommunityLinks.SynergyOsReleasesUrl;
 
         private const string OemInformationPath = @"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation";
         private const string SynergyOsOemManufacturer = "Kwanteks";
