@@ -577,7 +577,7 @@
   "NeedsAttention_Subtitle": "Verifica drivers e aplicativos desatualizados ou ausentes, versão antiga do SynToolkit, ausência de ponto de restauração e relógio do Windows fora de sincronia.",
   "NeedsAttention_Refresh": "Atualizar",
   "NeedsAttention_AllClear": "Tudo certo",
-  "NeedsAttention_AllClearDescription": "Nenhuma verificação precisa da sua atenção agora.",
+  "NeedsAttention_AllClearDescription": "Confira novamente mais tarde.",
   "NeedsAttention_RefreshFailed": "Não foi possível atualizar a página Requer atenção. Tente novamente em instantes.",
   "NeedsAttention_ActionFailed": "A ação não foi concluída. Tente novamente.",
   "NeedsAttention_ReviewNow": "Revisar agora",

@@ -577,7 +577,7 @@
   "NeedsAttention_Subtitle": "Vérifie les pilotes et applications obsolètes ou manquants, une ancienne version de SynToolkit, l'absence de point de restauration et une horloge Windows désynchronisée.",
   "NeedsAttention_Refresh": "Actualiser",
   "NeedsAttention_AllClear": "Tout est en ordre",
-  "NeedsAttention_AllClearDescription": "Aucune vérification ne nécessite votre attention pour le moment.",
+  "NeedsAttention_AllClearDescription": "Revenez vérifier plus tard.",
   "NeedsAttention_RefreshFailed": "La page Nécessite votre attention n'a pas pu être actualisée. Réessayez dans un instant.",
   "NeedsAttention_ActionFailed": "Cette action n'a pas abouti. Veuillez réessayer.",
   "NeedsAttention_ReviewNow": "Vérifier maintenant",

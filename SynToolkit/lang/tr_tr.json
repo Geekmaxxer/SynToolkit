@@ -577,7 +577,7 @@
   "NeedsAttention_Subtitle": "Eski veya eksik sürücüleri ve uygulamaları, eski SynToolkit sürümünü, geri yükleme noktası olmamasını ve eşitlenmemiş Windows saatini denetler.",
   "NeedsAttention_Refresh": "Yenile",
   "NeedsAttention_AllClear": "Her şey yolunda",
-  "NeedsAttention_AllClearDescription": "Şu anda hiçbir denetim dikkatinizi gerektirmiyor.",
+  "NeedsAttention_AllClearDescription": "Daha sonra tekrar kontrol edin.",
   "NeedsAttention_RefreshFailed": "Dikkat gerekiyor bölümü yenilenemedi. Biraz sonra tekrar deneyin.",
   "NeedsAttention_ActionFailed": "İşlem tamamlanamadı. Lütfen tekrar deneyin.",
   "NeedsAttention_ReviewNow": "Şimdi incele",

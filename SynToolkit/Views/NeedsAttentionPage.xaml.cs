@@ -53,6 +53,7 @@ public sealed partial class NeedsAttentionPage : Page
         LoadingRing.Visibility = Visibility.Visible;
         RefreshButton.IsEnabled = false;
         ActionInfoBar.IsOpen = false;
+        AllClearPanel.Visibility = Visibility.Collapsed;
 
         try
         {
@@ -60,7 +61,10 @@ public sealed partial class NeedsAttentionPage : Page
                 forceRefresh,
                 _lifetimeCancellation.Token);
             AttentionItemsControl.ItemsSource = snapshot.Items;
-            AllClearInfoBar.IsOpen = snapshot.Items.Count == 0;
+            bool hasItems = snapshot.Items.Count > 0;
+            AllClearPanel.Visibility = hasItems ? Visibility.Collapsed : Visibility.Visible;
+            AttentionItemsControl.Visibility = hasItems ? Visibility.Visible : Visibility.Collapsed;
+            AttentionHeaderIcon.Visibility = hasItems ? Visibility.Visible : Visibility.Collapsed;
             (App.m_window as MainWindow)?.UpdateNeedsAttentionBadge(snapshot.Items.Count);
             (App.m_window as MainWindow)?.UpdateInstallerUpdateBadge(snapshot.Items.Count(item =>
                 item.Action == NeedsAttentionAction.OpenInstaller));

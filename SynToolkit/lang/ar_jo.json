@@ -577,7 +577,7 @@
   "NeedsAttention_Subtitle": "يفحص برامج التشغيل والتطبيقات القديمة أو المفقودة، وإصدار SynToolkit القديم، وعدم وجود نقطة استعادة، وعدم تزامن ساعة Windows.",
   "NeedsAttention_Refresh": "تحديث",
   "NeedsAttention_AllClear": "كل شيء سليم",
-  "NeedsAttention_AllClearDescription": "لا توجد أي فحوصات تتطلب انتباهك الآن.",
+  "NeedsAttention_AllClearDescription": "تحقق مرة أخرى لاحقًا.",
   "NeedsAttention_RefreshFailed": "تعذر تحديث قسم يتطلب الانتباه. حاول مرة أخرى بعد قليل.",
   "NeedsAttention_ActionFailed": "لم تكتمل هذه العملية. يرجى المحاولة مرة أخرى.",
   "NeedsAttention_ReviewNow": "مراجعة الآن",

@@ -577,7 +577,7 @@
   "NeedsAttention_Subtitle": "检查过期或缺失的驱动程序和应用、旧版 SynToolkit、没有还原点以及未同步的 Windows 时钟。",
   "NeedsAttention_Refresh": "刷新",
   "NeedsAttention_AllClear": "一切正常",
-  "NeedsAttention_AllClearDescription": "目前没有需要您注意的检查项。",
+  "NeedsAttention_AllClearDescription": "稍后再来查看。",
   "NeedsAttention_RefreshFailed": "无法刷新需要注意页面。请稍后重试。",
   "NeedsAttention_ActionFailed": "该操作未完成。请重试。",
   "NeedsAttention_ReviewNow": "立即查看",

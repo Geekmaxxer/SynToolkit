@@ -578,7 +578,7 @@
   "NeedsAttention_Subtitle": "ตรวจสอบไดรเวอร์และแอปที่ล้าสมัยหรือขาดหาย เวอร์ชัน SynToolkit ที่เก่า ไม่มีจุดคืนค่า และเวลา Windows ไม่ตรงกัน",
   "NeedsAttention_Refresh": "รีเฟรช",
   "NeedsAttention_AllClear": "เรียบร้อยทั้งหมด",
-  "NeedsAttention_AllClearDescription": "ไม่มีรายการใดที่ต้องตรวจสอบในขณะนี้",
+  "NeedsAttention_AllClearDescription": "กลับมาตรวจสอบภายหลัง",
   "NeedsAttention_RefreshFailed": "ไม่สามารถรีเฟรชส่วนต้องตรวจสอบได้ โปรดลองใหม่ในอีกสักครู่",
   "NeedsAttention_ActionFailed": "การดำเนินการนั้นไม่สำเร็จ โปรดลองอีกครั้ง",
   "NeedsAttention_ReviewNow": "ตรวจสอบตอนนี้",

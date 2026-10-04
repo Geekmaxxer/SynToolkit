@@ -577,7 +577,7 @@
   "NeedsAttention_Subtitle": "Kiểm tra trình điều khiển và ứng dụng lỗi thời hoặc bị thiếu, phiên bản SynToolkit cũ, không có điểm khôi phục và đồng hồ Windows không đồng bộ.",
   "NeedsAttention_Refresh": "Làm mới",
   "NeedsAttention_AllClear": "Mọi thứ đều ổn",
-  "NeedsAttention_AllClearDescription": "Hiện tại không có kiểm tra nào cần bạn chú ý.",
+  "NeedsAttention_AllClearDescription": "Hãy kiểm tra lại sau.",
   "NeedsAttention_RefreshFailed": "Không thể làm mới mục Cần chú ý. Hãy thử lại sau một lúc.",
   "NeedsAttention_ActionFailed": "Không thể hoàn tất thao tác đó. Vui lòng thử lại.",
   "NeedsAttention_ReviewNow": "Xem lại ngay",

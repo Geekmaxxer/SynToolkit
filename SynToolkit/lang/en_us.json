@@ -605,7 +605,7 @@
   "NeedsAttention_Subtitle": "Checks for out-of-date/missing drivers and apps, old SynToolkit version, no restore point, and out-of-sync Windows time.",
   "NeedsAttention_Refresh": "Refresh",
   "NeedsAttention_AllClear": "All clear",
-  "NeedsAttention_AllClearDescription": "No checks need your attention right now.",
+  "NeedsAttention_AllClearDescription": "Check back later.",
   "NeedsAttention_RefreshFailed": "Needs Attention could not refresh. Try again in a moment.",
   "NeedsAttention_ActionFailed": "That action did not complete. Please try again.",
   "NeedsAttention_ReviewNow": "Review now",

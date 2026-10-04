@@ -577,7 +577,7 @@
   "NeedsAttention_Subtitle": "古いまたは不足しているドライバーとアプリ、古い SynToolkit バージョン、復元ポイントの不在、同期されていない Windows の時計を確認します。",
   "NeedsAttention_Refresh": "更新",
   "NeedsAttention_AllClear": "問題はありません",
-  "NeedsAttention_AllClearDescription": "現在、注意が必要なチェックはありません。",
+  "NeedsAttention_AllClearDescription": "後でもう一度確認してください。",
   "NeedsAttention_RefreshFailed": "要確認を更新できませんでした。しばらくしてからもう一度お試しください。",
   "NeedsAttention_ActionFailed": "操作を完了できませんでした。もう一度お試しください。",
   "NeedsAttention_ReviewNow": "今すぐ確認",

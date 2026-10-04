@@ -26,6 +26,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <FontIcon
+                    x:Name="AttentionHeaderIcon"
                     Width="44"
                     Height="44"
                     VerticalAlignment="Center"
@@ -61,20 +62,40 @@
                 IsActive="True" />
 
             <InfoBar
-                x:Name="AllClearInfoBar"
-                IsClosable="False"
-                IsOpen="False"
-                Message="No checks need your attention right now."
-                Severity="Success"
-                Title="All clear"
-                local:LocalizedText.MessageKey="NeedsAttention_AllClearDescription"
-                local:LocalizedText.TitleKey="NeedsAttention_AllClear" />
-
-            <InfoBar
                 x:Name="ActionInfoBar"
                 IsClosable="True"
                 IsOpen="False"
                 Severity="Informational" />
+
+            <StackPanel
+                x:Name="AllClearPanel"
+                Margin="0,72,0,48"
+                HorizontalAlignment="Center"
+                MaxWidth="320"
+                Spacing="12"
+                Visibility="Collapsed">
+                <Image
+                    Width="48"
+                    Height="48"
+                    HorizontalAlignment="Center"
+                    Source="ms-appx:///assets/Icons/AttentionCheckmark.png"
+                    Stretch="Uniform"
+                    AutomationProperties.AccessibilityView="Raw" />
+                <TextBlock
+                    FontSize="24"
+                    FontWeight="SemiBold"
+                    Text="All clear"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap"
+                    AutomationProperties.HeadingLevel="Level2"
+                    local:LocalizedText.TextKey="NeedsAttention_AllClear" />
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="Check back later."
+                    TextAlignment="Center"
+                    TextWrapping="Wrap"
+                    local:LocalizedText.TextKey="NeedsAttention_AllClearDescription" />
+            </StackPanel>
 
             <ItemsControl x:Name="AttentionItemsControl">
                 <ItemsControl.ItemTemplate>

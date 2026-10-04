@@ -577,7 +577,7 @@
   "NeedsAttention_Subtitle": "Проверяет устаревшие или отсутствующие драйверы и приложения, старую версию SynToolkit, отсутствие точки восстановления и несинхронизированные часы Windows.",
   "NeedsAttention_Refresh": "Обновить",
   "NeedsAttention_AllClear": "Всё в порядке",
-  "NeedsAttention_AllClearDescription": "Сейчас ни одна проверка не требует вашего внимания.",
+  "NeedsAttention_AllClearDescription": "Проверьте позже.",
   "NeedsAttention_RefreshFailed": "Не удалось обновить раздел Требует внимания. Повторите попытку через некоторое время.",
   "NeedsAttention_ActionFailed": "Не удалось завершить действие. Повторите попытку.",
   "NeedsAttention_ReviewNow": "Проверить сейчас",

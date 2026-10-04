@@ -577,7 +577,7 @@
   "NeedsAttention_Subtitle": "Kontrollerar föråldrade eller saknade drivrutiner och appar, en gammal SynToolkit-version, ingen återställningspunkt och en osynkroniserad Windows-klocka.",
   "NeedsAttention_Refresh": "Uppdatera",
   "NeedsAttention_AllClear": "Allt är klart",
-  "NeedsAttention_AllClearDescription": "Inga kontroller behöver din uppmärksamhet just nu.",
+  "NeedsAttention_AllClearDescription": "Titta tillbaka senare.",
   "NeedsAttention_RefreshFailed": "Behöver åtgärdas kunde inte uppdateras. Försök igen om en stund.",
   "NeedsAttention_ActionFailed": "Åtgärden slutfördes inte. Försök igen.",
   "NeedsAttention_ReviewNow": "Granska nu",

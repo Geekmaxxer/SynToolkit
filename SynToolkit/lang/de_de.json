@@ -577,7 +577,7 @@
   "NeedsAttention_Subtitle": "Prüft auf veraltete oder fehlende Treiber und Apps, eine alte SynToolkit-Version, keinen Wiederherstellungspunkt und eine nicht synchronisierte Windows-Uhr.",
   "NeedsAttention_Refresh": "Aktualisieren",
   "NeedsAttention_AllClear": "Alles in Ordnung",
-  "NeedsAttention_AllClearDescription": "Zurzeit erfordern keine Prüfungen Ihre Aufmerksamkeit.",
+  "NeedsAttention_AllClearDescription": "Schau später wieder vorbei.",
   "NeedsAttention_RefreshFailed": "Die Überprüfung konnte nicht aktualisiert werden. Versuchen Sie es gleich noch einmal.",
   "NeedsAttention_ActionFailed": "Diese Aktion wurde nicht abgeschlossen. Bitte versuchen Sie es erneut.",
   "NeedsAttention_ReviewNow": "Jetzt prüfen",
