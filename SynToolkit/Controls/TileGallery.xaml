@@ -235,7 +235,7 @@
                             Text="SynToolkit 1.7.0" />
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="A combined release with installer improvements, system attention checks, recovery tools, and update reliability fixes."
+                            Text="A combined release with a refreshed Home tile row, Power Plans browsing and editing, wallpaper customization, clearer community links, installer improvements, system attention checks, recovery tools, and update reliability fixes."
                             TextWrapping="Wrap" />
                     </StackPanel>
 
@@ -249,10 +249,64 @@
                             Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                             Glyph="&#xE8F1;" />
                         <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="Home tile gallery upgrades" />
+                            <TextBlock FontWeight="SemiBold" Text="Refreshed Home tiles" />
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="The Home row now includes SynergyOS and SynToolkit repo tiles plus Report a Bug, with horizontal scrolling, snap alignment, and edge chevrons when tiles overflow."
+                                Text="The Home row now opens with Update Notes, Support Kwanteks, and Discord, then SynergyOS and SynToolkit repo tiles, plus Report a Bug. Overflowing tiles scroll horizontally with snap alignment and edge chevrons."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE945;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Power Plans" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Browse every power setting in your current .pow, review the preinstalled plans, and create your own custom plan when you want something tailored."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE91B;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Wallpapers" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Browse the bundled SynergyOS wallpapers, apply them with your preferred desktop fit, add and name your own images, and use the same fitting options for the lock screen."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xEBE8;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Report a Bug from Home" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Choose whether to open a SynToolkit or SynergyOS issue template in your browser, so feedback lands in the right repository."
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </Grid>
@@ -270,7 +324,25 @@
                             <TextBlock FontWeight="SemiBold" Text="Choose your default GitHub repo" />
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Settings lets you pick whether generic GitHub actions open SynToolkit or SynergyOS. The Home repo tiles always open their own repositories."
+                                Text="In Settings, pick whether clone and bug-report actions open SynToolkit or SynergyOS. Home repo tiles always open their own repositories."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                            Glyph="&#xE8D4;" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock FontWeight="SemiBold" Text="Clearer labels and Discord invite" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Sidebar and Home titles use consistent Title Case (including Needs Attention and Update Notes), and Discord now uses the dsc.gg/kwanteks invite across the app."
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </Grid>
@@ -487,24 +559,6 @@
                             <TextBlock
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 Text="English, Spanish, French, Portuguese, Russian, Swedish, Chinese, Vietnamese, Japanese, Korean, Arabic, Turkish, and German now cover the newer Toolkit pages and installer content."
-                                TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="28" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <FontIcon
-                            FontSize="16"
-                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                            Glyph="&#xE790;" />
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock FontWeight="SemiBold" Text="Desktop customization" />
-                            <TextBlock
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Add custom wallpapers, name them, choose the desktop fit, and apply the same fitting options to lock screen images."
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </Grid>
