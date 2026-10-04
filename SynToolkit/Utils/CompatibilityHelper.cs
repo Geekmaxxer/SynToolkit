@@ -15,6 +15,14 @@ namespace SynToolkit.Utils
         // SynergyOS installs may use either the short SOS marker or the full name.
         private static readonly string[] SynergyOsOemModels = ["SOS 11", "SYNERGYOS"];
 
+        // Written by the SynergyOS playbook as OEMInformation\SupportURL.
+        // Accept the current dsc.gg invite plus the legacy discord.gg form.
+        private static readonly string[] SynergyOsSupportUrls =
+        [
+            CommunityLinks.DiscordInviteUrl,
+            "https://discord.gg/kwanteks"
+        ];
+
         /// <summary>
         /// SynToolkit requires 64-bit Windows 10 version 1809 or newer.
         /// </summary>
@@ -25,15 +33,18 @@ namespace SynToolkit.Utils
         /// <summary>
         /// SynToolkit requires a SynergyOS installation identified by the OEM
         /// registry markers written by the SynergyOS playbook:
-        /// Model = SOS 11 (or SYNERGYOS), Manufacturer = Kwanteks.
+        /// Model = SOS 11 (or SYNERGYOS), Manufacturer = Kwanteks,
+        /// SupportURL = https://dsc.gg/kwanteks (or legacy discord.gg/kwanteks).
         /// </summary>
         public static bool IsSynergyOsCompatible()
         {
             string? model = ReadRegistryString(OemInformationPath, "Model");
             string? manufacturer = ReadRegistryString(OemInformationPath, "Manufacturer");
+            string? supportUrl = ReadRegistryString(OemInformationPath, "SupportURL");
 
             return IsSynergyOsModel(model)
-                && IsRegistryMatch(manufacturer, SynergyOsOemManufacturer);
+                && IsRegistryMatch(manufacturer, SynergyOsOemManufacturer)
+                && IsSynergyOsSupportUrl(supportUrl);
         }
 
         private static bool IsSynergyOsModel(string? actual) =>
@@ -41,6 +52,19 @@ namespace SynToolkit.Utils
             && Array.Exists(
                 SynergyOsOemModels,
                 expected => actual.Trim().Equals(expected, StringComparison.OrdinalIgnoreCase));
+
+        private static bool IsSynergyOsSupportUrl(string? actual)
+        {
+            if (string.IsNullOrWhiteSpace(actual))
+            {
+                return false;
+            }
+
+            string normalized = actual.Trim().TrimEnd('/');
+            return Array.Exists(
+                SynergyOsSupportUrls,
+                expected => normalized.Equals(expected.TrimEnd('/'), StringComparison.OrdinalIgnoreCase));
+        }
 
         private static bool IsRegistryMatch(string? actual, string expected) =>
             !string.IsNullOrWhiteSpace(actual)
