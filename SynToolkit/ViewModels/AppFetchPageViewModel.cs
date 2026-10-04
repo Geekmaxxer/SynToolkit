@@ -61,10 +61,19 @@ namespace SynToolkit.ViewModels
             }
         }
 
-        public string CatalogResultsSummary =>
-            $"{FeaturedInstallers.Count} of {_allFeaturedInstallers.Count} apps shown";
+        public string CatalogResultsSummary => ShowSelectedOnly
+            ? $"{FeaturedInstallers.Count} selected app{(FeaturedInstallers.Count == 1 ? string.Empty : "s")} shown"
+            : $"{FeaturedInstallers.Count} of {_allFeaturedInstallers.Count} apps shown";
 
         public bool HasNoCatalogResults => FeaturedInstallers.Count == 0;
+
+        public string CatalogEmptyTitle => ShowSelectedOnly
+            ? App.GetValueFromItemList("Installer_SelectedOnlyEmptyTitle")
+            : App.GetValueFromItemList("AppFetchPageTextD073A8F13879");
+
+        public string CatalogEmptyDescription => ShowSelectedOnly
+            ? App.GetValueFromItemList("Installer_SelectedOnlyEmptyBody")
+            : App.GetValueFromItemList("AppFetchPageText960727FF28C2");
 
         public int SelectedCount => _allFeaturedInstallers.Count(item => item.IsSelected);
 
@@ -91,6 +100,13 @@ namespace SynToolkit.ViewModels
 
         [ObservableProperty]
         public partial string SelectedAvailabilityFilter { get; set; } = App.GetValueFromItemList("Installer_FilterAll");
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CatalogResultsSummary))]
+        [NotifyPropertyChangedFor(nameof(HasNoCatalogResults))]
+        [NotifyPropertyChangedFor(nameof(CatalogEmptyTitle))]
+        [NotifyPropertyChangedFor(nameof(CatalogEmptyDescription))]
+        public partial bool ShowSelectedOnly { get; set; }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CanInstallSelected))]
@@ -256,12 +272,15 @@ namespace SynToolkit.ViewModels
 
         partial void OnSelectedAvailabilityFilterChanged(string value) => ApplyCatalogFilter();
 
+        partial void OnShowSelectedOnlyChanged(bool value) => ApplyCatalogFilter();
+
         private void ApplyCatalogFilter()
         {
             string searchTerm = CatalogSearchText.Trim();
             FeaturedInstallers.Clear();
             foreach (FeaturedInstallerViewModel installer in _allFeaturedInstallers.Where(
-                installer => (SelectedCategory == "All" || installer.Category == SelectedCategory) &&
+                installer => (!ShowSelectedOnly || installer.IsSelected) &&
+                    (SelectedCategory == "All" || installer.Category == SelectedCategory) &&
                     (SelectedAvailabilityFilter == AvailabilityFilters[0] ||
                         (SelectedAvailabilityFilter == AvailabilityFilters[1] && installer.AvailabilityState is InstallerAvailabilityState.Installed or InstallerAvailabilityState.UpdateAvailable) ||
                         (SelectedAvailabilityFilter == AvailabilityFilters[2] && installer.AvailabilityState == InstallerAvailabilityState.NotInstalled) ||
@@ -277,6 +296,8 @@ namespace SynToolkit.ViewModels
 
             OnPropertyChanged(nameof(CatalogResultsSummary));
             OnPropertyChanged(nameof(HasNoCatalogResults));
+            OnPropertyChanged(nameof(CatalogEmptyTitle));
+            OnPropertyChanged(nameof(CatalogEmptyDescription));
         }
 
         private void FeaturedInstaller_PropertyChanged(object? sender, PropertyChangedEventArgs eventArgs)
@@ -284,6 +305,11 @@ namespace SynToolkit.ViewModels
             if (eventArgs.PropertyName == nameof(FeaturedInstallerViewModel.IsSelected))
             {
                 NotifySelectionChanged();
+                // Keep the selected-only view live: unchecked apps drop out immediately.
+                if (ShowSelectedOnly)
+                {
+                    ApplyCatalogFilter();
+                }
             }
             else if (eventArgs.PropertyName == nameof(FeaturedInstallerViewModel.AvailabilityState))
             {
@@ -302,10 +328,42 @@ namespace SynToolkit.ViewModels
         [RelayCommand]
         private void SelectEssentials()
         {
+            int selected = 0;
+            int skipped = 0;
+
             foreach (FeaturedInstallerViewModel installer in _allFeaturedInstallers)
             {
-                installer.IsSelected = installer.IsEssential && installer.CanSelect;
+                if (!installer.IsEssential)
+                {
+                    continue;
+                }
+
+                if (installer.CanSelect)
+                {
+                    installer.IsSelected = true;
+                    selected++;
+                }
+                else
+                {
+                    skipped++;
+                }
             }
+
+            ShowSelectedOnly = true;
+
+            if (skipped > 0)
+            {
+                App.logger.Info(
+                    "[Installer] Add Essentials selected {Selected} app(s); skipped {Skipped} essential(s) that are already installed or unavailable.",
+                    selected,
+                    skipped);
+            }
+        }
+
+        [RelayCommand]
+        private void ShowAllApps()
+        {
+            ShowSelectedOnly = false;
         }
 
         [RelayCommand]

@@ -182,6 +182,11 @@
                                 Command="{Binding SelectEssentialsCommand}"
                                 Content="Add essentials" local:LocalizedText.ContentKey="AppFetchPageContent228F711511BB" />
                             <Button
+                                Command="{Binding ShowAllAppsCommand}"
+                                Content="Show all"
+                                Visibility="{Binding ShowSelectedOnly, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                local:LocalizedText.ContentKey="Installer_ShowAll" />
+                            <Button
                                 Command="{Binding ClearInstallerSelectionCommand}"
                                 Content="Clear queue" local:LocalizedText.ContentKey="AppFetchPageContentABEB855B4156" />
                         </StackPanel>
@@ -538,12 +543,18 @@
                         HorizontalAlignment="Center"
                         FontSize="18"
                         FontWeight="SemiBold"
-                        Text="No apps found" local:LocalizedText.TextKey="AppFetchPageTextD073A8F13879" />
+                        Text="{Binding CatalogEmptyTitle, Mode=OneWay}" />
                     <TextBlock
                         HorizontalAlignment="Center"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="Try another name or switch the category to All." local:LocalizedText.TextKey="AppFetchPageText960727FF28C2"
+                        Text="{Binding CatalogEmptyDescription, Mode=OneWay}"
                         TextWrapping="Wrap" />
+                    <Button
+                        HorizontalAlignment="Center"
+                        Command="{Binding ShowAllAppsCommand}"
+                        Content="Show all"
+                        Visibility="{Binding ShowSelectedOnly, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                        local:LocalizedText.ContentKey="Installer_ShowAll" />
                 </StackPanel>
             </Border>
 

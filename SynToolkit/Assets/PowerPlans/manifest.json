@@ -133,6 +133,12 @@
       "activeSchemeNameHints": ["Jackpot2026", "JackpotOS"]
     },
     {
+      "fileName": "JDN.pow",
+      "displayName": "JDN",
+      "description": "JDN community power plan.",
+      "activeSchemeNameHints": ["JDN community plan.", "JDN"]
+    },
+    {
       "fileName": "Kaisen.pow",
       "displayName": "Kaisen",
       "description": "Kaisen V5 low-latency performance-tuned power configuration.",
@@ -163,18 +169,6 @@
       "activeSchemeNameHints": ["Lawliet's power plan"]
     },
     {
-      "fileName": "LLG.pow",
-      "displayName": "LLG",
-      "description": "Low Latency Gaming community power plan.",
-      "activeSchemeNameHints": ["LLG"]
-    },
-    {
-      "fileName": "LLG-CΞRT1F1ΞD.pow",
-      "displayName": "LLG Certified",
-      "description": "LLG certified performance power plan.",
-      "activeSchemeNameHints": ["LLG-CΞRT1F1ΞD", "LLG"]
-    },
-    {
       "fileName": "LLG-CΞRT1F1ΞD-FOR-NON-K-CPUs.pow",
       "displayName": "LLG Certified (Non-K CPUs)",
       "description": "LLG certified plan tuned for non-K CPUs.",
@@ -185,6 +179,18 @@
       "displayName": "LLG Certified (Parking + E-Cores Fix)",
       "description": "LLG certified plan with core parking and E-cores fixes.",
       "activeSchemeNameHints": ["LLG-CΞRT1F1ΞD-FOR-PARKING+E-CORES-FIX", "PARKING", "E-CORES"]
+    },
+    {
+      "fileName": "LLG-CΞRT1F1ΞD.pow",
+      "displayName": "LLG Certified",
+      "description": "LLG certified performance power plan.",
+      "activeSchemeNameHints": ["LLG-CΞRT1F1ΞD", "LLG"]
+    },
+    {
+      "fileName": "LLG.pow",
+      "displayName": "LLG",
+      "description": "Low Latency Gaming community power plan.",
+      "activeSchemeNameHints": ["LLG"]
     },
     {
       "fileName": "Lumin Pro Powerplan.pow",
@@ -221,6 +227,12 @@
       "displayName": "NovaOS",
       "description": "NovaOS plan optimized for responsiveness and throughput.",
       "activeSchemeNameHints": ["NovaOS"]
+    },
+    {
+      "fileName": "NOVERSE-Performance.pow",
+      "displayName": "Noverse Performance",
+      "description": "Noverse high-performance power plan.",
+      "activeSchemeNameHints": ["Noverse Performance", "NOVERSE"]
     },
     {
       "fileName": "OverTweak AMD.pow",
@@ -287,6 +299,12 @@
       "displayName": "XOS",
       "description": "XOS / imribiy community power plan.",
       "activeSchemeNameHints": ["imribiy Power Plan", "xos"]
+    },
+    {
+      "fileName": "Yuki High-Performance.pow",
+      "displayName": "Yuki High-Performance",
+      "description": "Yuki high-performance community power plan.",
+      "activeSchemeNameHints": ["Yuki High-Performance", "Yuki"]
     },
     {
       "fileName": "Zoyata.pow",
