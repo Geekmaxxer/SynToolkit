@@ -56,7 +56,7 @@
                 Margin="0,0,36,18"
                 IsClosable="False"
                 IsOpen="False"
-                Message="Power-plan changes are disabled in this session. Restart SynToolkit as administrator to import, activate, restore, or remove plans." local:LocalizedText.MessageKey="PowerPlansPageMessage159CDB6E910C"
+                Message="Power-plan changes are disabled in this session. Restart SynToolkit as administrator to create, edit, import, activate, restore, or remove plans." local:LocalizedText.MessageKey="PowerPlansPageMessage159CDB6E910C"
                 Severity="Warning"
                 Title="Administrator access required" local:LocalizedText.TitleKey="PowerPlansPageTitle34B02AE972E2" />
 
@@ -74,14 +74,6 @@
                 Severity="Informational"
                 Title="Safe, explicit import" local:LocalizedText.TitleKey="PowerPlansPageTitleBC4F98976E4B" />
 
-            <TextBlock
-                Margin="0,0,36,18"
-                FontSize="12"
-                Foreground="{ThemeResource TextFillColorTertiaryBrush}">
-                <Run Text="Want to create your own?" />
-                <Hyperlink NavigateUri="https://www.youtube.com/watch?v=GJ3omzm-CYU">Watch the tutorial →</Hyperlink>
-            </TextBlock>
-
             <TextBlock Style="{StaticResource CategoryTitle}" Text="Currently active" local:LocalizedText.TextKey="PowerPlansPageText586894BC9EF1" />
             <controls:SettingsCard
                 Header="Current power plan" local:LocalizedText.HeaderKey="PowerPlansPageHeader9EF26DE51104"
@@ -93,6 +85,7 @@
                 <Grid MinWidth="245">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Spacing="2">
@@ -114,9 +107,13 @@
                             Text="No previous plan has been recorded." local:LocalizedText.TextKey="PowerPlansPageText49DC49CF4885"
                             TextWrapping="Wrap" />
                     </StackPanel>
+                    <Button x:Name="EditCurrentPlanButton" Grid.Column="1"
+                            Margin="12,0,0,0" VerticalAlignment="Center"
+                            Content="Edit settings" Click="EditCurrentPlanButton_Click"
+                            ToolTipService.ToolTip="Edit the current power plan or save a copy" />
                     <ProgressRing
                         x:Name="StatusProgressRing"
-                        Grid.Column="1"
+                        Grid.Column="2"
                         Width="18"
                         Height="18"
                         Margin="16,0,0,0"
@@ -161,6 +158,16 @@
             </controls:SettingsExpander>
 
             <TextBlock Style="{StaticResource CategoryTitle}" Text="Manage plans" local:LocalizedText.TextKey="PowerPlansPageTextC5BE90F1D6A5" />
+            <controls:SettingsCard
+                Header="Create a plan"
+                Description="Copy an installed power plan, give it a name, then edit its settings. The new plan becomes active."
+                Style="{StaticResource ConfigurationSettingsCardTemplate}">
+                <controls:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE710;" />
+                </controls:SettingsCard.HeaderIcon>
+                <Button x:Name="CreatePlanButton" Click="CreatePlanButton_Click"
+                        Content="Create plan" />
+            </controls:SettingsCard>
             <Border
                 x:Name="BuiltInPlanActiveBorder"
                 Margin="0,0,36,10"

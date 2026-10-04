@@ -227,7 +227,7 @@ namespace SynToolkit.Views
             CancellationTokenSource source = new();
             _readCancellation = source;
             CancellationToken token = source.Token;
-            Guid? currentId = CompareToggle.IsOn ? _currentSchemeId : null;
+            Guid? currentId = _currentSchemeId;
             LoadingRing.IsActive = true;
             LoadingRing.Visibility = Visibility.Visible;
             EmptyMessage.Text = "Reading power settings…";
@@ -358,9 +358,10 @@ namespace SynToolkit.Views
 
             int total = _inspection.Settings.Count;
             int changed = comparing ? _inspection.Settings.Count(setting => setting.IsDifferent) : 0;
+            int unspecified = _inspection.Settings.Count(setting => setting.IsAbsentFromFile);
             ResultsText.Text = comparing
-                ? $"{visible.Length} of {total} settings · {changed} differ from {_currentSchemeName}"
-                : $"{visible.Length} of {total} settings · {groups.Count} categories";
+                ? $"{visible.Length} of {total} settings · {changed} differ from {_currentSchemeName} · {unspecified} not in .pow"
+                : $"{visible.Length} of {total} settings · {groups.Count} categories · {unspecified} not in .pow";
         }
     }
 }

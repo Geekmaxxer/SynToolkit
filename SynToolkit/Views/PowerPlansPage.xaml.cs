@@ -199,6 +199,122 @@ namespace SynToolkit.Views
         private async void ComparePlansButton_Click(object sender, RoutedEventArgs e) =>
             await ShowPowerPlanSettingsDialogAsync(startComparing: true);
 
+        private async void EditCurrentPlanButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_snapshot?.ActiveSchemeId is not Guid schemeId) return;
+            await ShowPowerPlanEditorAsync(new InstalledPowerPlan(
+                schemeId, _snapshot.ActiveSchemeName), autoSave: false);
+        }
+
+        private async void CreatePlanButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                IReadOnlyList<InstalledPowerPlan> plans =
+                    await _powerPlanService.GetInstalledPlansAsync(_lifetimeCancellation.Token);
+                if (!_isPageLoaded) return;
+                if (plans.Count == 0)
+                {
+                    ShowResult("No base plans", "Windows has no installed plan to copy.", InfoBarSeverity.Error);
+                    return;
+                }
+
+                ComboBox basePicker = new()
+                {
+                    Header = "Copy from",
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    DisplayMemberPath = nameof(InstalledPowerPlan.Name),
+                    ItemsSource = plans
+                };
+                basePicker.SelectedItem = plans.FirstOrDefault(plan =>
+                    plan.SchemeId == _snapshot?.ActiveSchemeId) ?? plans[0];
+                TextBox nameBox = new()
+                {
+                    Header = "New plan name",
+                    PlaceholderText = "My power plan",
+                    MaxLength = 80
+                };
+                StackPanel fields = new() { Spacing = 14, MinWidth = 320 };
+                fields.Children.Add(new TextBlock
+                {
+                    Text = "The base plan is copied. Your new plan becomes active, and edits save automatically.",
+                    TextWrapping = TextWrapping.Wrap
+                });
+                fields.Children.Add(basePicker);
+                fields.Children.Add(nameBox);
+                ContentDialog dialog = new()
+                {
+                    XamlRoot = XamlRoot,
+                    Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+                    Title = "Create a power plan",
+                    Content = fields,
+                    PrimaryButtonText = "Create plan",
+                    CloseButtonText = "Cancel",
+                    DefaultButton = ContentDialogButton.Primary,
+                    IsPrimaryButtonEnabled = false
+                };
+                nameBox.TextChanged += (_, _) =>
+                    dialog.IsPrimaryButtonEnabled = !string.IsNullOrWhiteSpace(nameBox.Text);
+                if (await dialog.ShowAsync() != ContentDialogResult.Primary ||
+                    basePicker.SelectedItem is not InstalledPowerPlan source) return;
+
+                int lifetimeVersion = _lifetimeVersion;
+                CancellationToken token = _lifetimeCancellation.Token;
+                SetBusy(true);
+                InstalledPowerPlan created;
+                try
+                {
+                    created = await _powerPlanService.DuplicatePlanAsync(
+                        source.SchemeId, nameBox.Text, activate: true, cancellationToken: token);
+                    if (IsCurrentLifetime(lifetimeVersion, token))
+                    {
+                        await RefreshStatusAsync(token, lifetimeVersion, showErrors: false);
+                    }
+                }
+                finally
+                {
+                    if (IsCurrentLifetime(lifetimeVersion, token)) SetBusy(false);
+                }
+                if (IsCurrentLifetime(lifetimeVersion, token))
+                {
+                    ShowResult("Plan created", $"{created.Name} is active. Changes in its editor save automatically.",
+                        InfoBarSeverity.Success);
+                    await ShowPowerPlanEditorAsync(created, autoSave: true);
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception exception)
+            {
+                App.logger.Error(exception, "Could not create a power plan.");
+                if (_isPageLoaded) ShowResult("Could not create plan", exception.Message, InfoBarSeverity.Error);
+            }
+        }
+
+        private async Task ShowPowerPlanEditorAsync(InstalledPowerPlan plan, bool autoSave)
+        {
+            if (!_isPageLoaded) return;
+            PowerPlanEditorDialog editor = new(_powerPlanService, plan, autoSave)
+            {
+                XamlRoot = XamlRoot,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
+            };
+            try
+            {
+                await editor.ShowAsync();
+                if (editor.PlanChanged && _isPageLoaded)
+                {
+                    int lifetimeVersion = _lifetimeVersion;
+                    CancellationToken token = _lifetimeCancellation.Token;
+                    await RefreshStatusAsync(token, lifetimeVersion, showErrors: true);
+                }
+            }
+            catch (Exception exception)
+            {
+                App.logger.Error(exception, "Power-plan editor could not be opened.");
+                if (_isPageLoaded) ShowResult("Editor unavailable", exception.Message, InfoBarSeverity.Error);
+            }
+        }
+
         private async Task ShowPowerPlanSettingsDialogAsync(
             string? initialFilePath = null,
             bool initialBuiltIn = false,
@@ -703,6 +819,8 @@ namespace SynToolkit.Views
             ComparePlansButton.IsEnabled = !_isBusy &&
                 !_isBundledPlanOperationInProgress &&
                 _snapshot?.ActiveSchemeId is not null;
+            EditCurrentPlanButton.IsEnabled = canMutate && _snapshot?.ActiveSchemeId is not null;
+            CreatePlanButton.IsEnabled = canMutate;
             ImportBuiltInButton.IsEnabled = canMutate && !hasConflict;
             ImportCustomButton.IsEnabled = canMutate;
             ActivateBuiltInButton.IsEnabled = canMutate && !hasConflict && _snapshot?.IsSynToolkitPlanInstalled == true && _snapshot.IsSynToolkitPlanActive == false;

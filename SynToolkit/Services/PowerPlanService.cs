@@ -26,6 +26,11 @@ namespace SynToolkit.Services
 
     public sealed record PowerPlanImportResult(Guid SchemeId, string SchemeName);
 
+    public sealed record InstalledPowerPlan(Guid SchemeId, string Name);
+
+    public sealed record PowerPlanValueChange(
+        Guid SubgroupId, Guid SettingId, bool OnAc, uint PreviousValue, uint Value);
+
     public sealed record BundledPowerPlan(
         string FileName,
         string DisplayName,
@@ -42,6 +47,13 @@ namespace SynToolkit.Services
     {
         public static readonly Guid SynToolkitSchemeId = Guid.Parse("dab60367-53fe-4fbc-825e-521d80b4dbe1");
         public static readonly Guid BalancedSchemeId = Guid.Parse("381b4222-f694-41f0-9685-ff5bb260df2e");
+        public static readonly Guid HighPerformanceSchemeId = Guid.Parse("8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c");
+        public static readonly Guid PowerSaverSchemeId = Guid.Parse("a1841308-3541-4fab-bc81-f71556f20b4a");
+        public static readonly Guid UltimatePerformanceSchemeId = Guid.Parse("e9a42b02-d5df-448d-aa00-03f14749eb61");
+
+        public static bool IsWindowsDefaultScheme(Guid schemeId) =>
+            schemeId == BalancedSchemeId || schemeId == HighPerformanceSchemeId ||
+            schemeId == PowerSaverSchemeId || schemeId == UltimatePerformanceSchemeId;
 
         private const string BuiltInSchemeName = "SynToolkit SOS Performance";
         private const string LegacyBuiltInSchemeName = "SynToolkit Performance";
@@ -202,6 +214,163 @@ namespace SynToolkit.Services
                 hasConflict,
                 previousSchemeId,
                 previousScheme?.Name);
+        }
+
+        public async Task<IReadOnlyList<InstalledPowerPlan>> GetInstalledPlansAsync(
+            CancellationToken cancellationToken = default) =>
+            (await GetInstalledSchemesAsync(cancellationToken))
+                .Select(scheme => new InstalledPowerPlan(scheme.Id, scheme.Name))
+                .OrderBy(scheme => scheme.Name, StringComparer.CurrentCultureIgnoreCase)
+                .ToArray();
+
+        public async Task<PowerPlanInspection> ReadInstalledPlanAsync(
+            Guid schemeId, CancellationToken cancellationToken = default)
+        {
+            InstalledPowerPlan plan = (await GetInstalledPlansAsync(cancellationToken))
+                .FirstOrDefault(item => item.SchemeId == schemeId)
+                ?? throw new InvalidOperationException("The power plan is no longer installed.");
+            return await Task.Run(() => PowerPlanSettingsReader.ReadInstalledScheme(
+                schemeId, plan.Name, cancellationToken), cancellationToken);
+        }
+
+        public async Task<InstalledPowerPlan> DuplicatePlanAsync(
+            Guid sourceSchemeId, string name, bool activate,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureCanMutate("create a power plan");
+            string safeName = ValidatePlanName(name);
+            await OperationLock.WaitAsync(cancellationToken);
+            Guid newSchemeId = Guid.NewGuid();
+            bool created = false;
+            try
+            {
+                IReadOnlyList<PowerSchemeInfo> schemes = await GetInstalledSchemesAsync(cancellationToken);
+                if (!schemes.Any(scheme => scheme.Id == sourceSchemeId))
+                {
+                    throw new InvalidOperationException("The base power plan is no longer installed.");
+                }
+
+                await RunCheckedAsync(cancellationToken, "duplicate the power plan",
+                    "/duplicatescheme", sourceSchemeId.ToString("D"), newSchemeId.ToString("D"));
+                created = true;
+                await RunCheckedAsync(cancellationToken, "name the new power plan",
+                    "/changename", newSchemeId.ToString("D"), safeName);
+                if (activate)
+                {
+                    await RunCheckedAsync(cancellationToken, "activate the new power plan",
+                        "/setactive", newSchemeId.ToString("D"));
+                    await VerifyActiveSchemeAsync(newSchemeId, cancellationToken);
+                }
+                return new InstalledPowerPlan(newSchemeId, safeName);
+            }
+            catch
+            {
+                if (created)
+                {
+                    try
+                    {
+                        await RunCheckedAsync(CancellationToken.None, "remove an incomplete power plan",
+                            "/delete", newSchemeId.ToString("D"));
+                    }
+                    catch (Exception exception)
+                    {
+                        App.logger.Warn(exception, "Could not remove incomplete power plan {SchemeId}.", newSchemeId);
+                    }
+                }
+                throw;
+            }
+            finally
+            {
+                OperationLock.Release();
+            }
+        }
+
+        public async Task SavePlanValuesAsync(
+            Guid schemeId, IReadOnlyList<PowerPlanValueChange> changes,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureCanMutate("save power-plan settings");
+            if (IsWindowsDefaultScheme(schemeId))
+            {
+                throw new InvalidOperationException(
+                    "Windows default plans cannot be changed here. Use Save as to make your own copy.");
+            }
+            if (changes.Count == 0) return;
+
+            await OperationLock.WaitAsync(cancellationToken);
+            List<PowerPlanValueChange> applied = new();
+            try
+            {
+                if (!await IsSchemeInstalledAsync(schemeId, cancellationToken))
+                {
+                    throw new InvalidOperationException("The power plan is no longer installed.");
+                }
+                foreach (PowerPlanValueChange change in changes)
+                {
+                    if (change.Value == change.PreviousValue) continue;
+                    await WritePlanValueAsync(schemeId, change, cancellationToken);
+                    applied.Add(change);
+                }
+                PowerPlanSnapshot state = await GetStateAsync(cancellationToken);
+                if (state.ActiveSchemeId == schemeId)
+                {
+                    await RunCheckedAsync(cancellationToken, "refresh the active power plan",
+                        "/setactive", schemeId.ToString("D"));
+                }
+            }
+            catch
+            {
+                foreach (PowerPlanValueChange change in applied.AsEnumerable().Reverse())
+                {
+                    try
+                    {
+                        await WritePlanValueAsync(schemeId,
+                            change with { Value = change.PreviousValue }, CancellationToken.None);
+                    }
+                    catch (Exception exception)
+                    {
+                        App.logger.Error(exception, "Could not roll back a power setting in {SchemeId}.", schemeId);
+                    }
+                }
+                if (applied.Count > 0)
+                {
+                    try
+                    {
+                        PowerPlanSnapshot state = await GetStateAsync(CancellationToken.None);
+                        if (state.ActiveSchemeId == schemeId)
+                        {
+                            await RunCheckedAsync(CancellationToken.None,
+                                "restore the active power plan", "/setactive", schemeId.ToString("D"));
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        App.logger.Error(exception, "Could not refresh rolled-back power plan {SchemeId}.", schemeId);
+                    }
+                }
+                throw;
+            }
+            finally
+            {
+                OperationLock.Release();
+            }
+        }
+
+        private Task WritePlanValueAsync(Guid schemeId, PowerPlanValueChange change,
+            CancellationToken cancellationToken) =>
+            RunCheckedAsync(cancellationToken, "save a power setting",
+                change.OnAc ? "/setacvalueindex" : "/setdcvalueindex",
+                schemeId.ToString("D"), change.SubgroupId.ToString("D"),
+                change.SettingId.ToString("D"), change.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+        private static string ValidatePlanName(string name)
+        {
+            string trimmed = name.Trim();
+            if (trimmed.Length is < 1 or > 80 || trimmed.Any(char.IsControl))
+            {
+                throw new ArgumentException("Enter a power-plan name between 1 and 80 characters.", nameof(name));
+            }
+            return trimmed;
         }
 
         public async Task ImportBuiltInPlanAsync(CancellationToken cancellationToken = default)

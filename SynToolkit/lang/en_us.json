@@ -439,7 +439,7 @@
   "AppFetchPageContent33AFBAF2F078": "Cancel",
   "PowerPlansPageText2EC4CBA35614": "Power Plans",
   "PowerPlansPageTextA41C747FB104": "Import and manage Windows power plans directly from SynToolkit. Nothing is changed during setup.",
-  "PowerPlansPageMessage159CDB6E910C": "Power-plan changes are disabled in this session. Restart SynToolkit as administrator to import, activate, restore, or remove plans.",
+  "PowerPlansPageMessage159CDB6E910C": "Power-plan changes are disabled in this session. Restart SynToolkit as administrator to create, edit, import, activate, restore, or remove plans.",
   "PowerPlansPageTitle34B02AE972E2": "Administrator access required",
   "PowerPlansPageMessage43FB7E05A3A7": "The supplied SOS.pow settings are preserved exactly. SynToolkit imports and activates it only when you choose Activate, and records your current plan for recovery.",
   "PowerPlansPageTitleBC4F98976E4B": "Safe, explicit import",
