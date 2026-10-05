@@ -139,6 +139,12 @@
       "activeSchemeNameHints": ["IIIEXOIII LOW LATENCY"]
     },
     {
+      "fileName": "Intel Core Ultimate Performance Win11.pow",
+      "displayName": "Intel Core Ultimate Performance Win11",
+      "description": "Ultimate performance plan optimized for Intel Core 11/12/13th gen on higher-end PCs.",
+      "activeSchemeNameHints": ["Intel Core", "Ultimate Performance Win11", "Ultimate Performance Win11 v1"]
+    },
+    {
       "fileName": "IrisOS.pow",
       "displayName": "IrisOS",
       "description": "IrisOS low-latency power plan.",

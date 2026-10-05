@@ -25,6 +25,30 @@ namespace SynToolkit.Services
     }
 
     /// <summary>
+    /// Stable category IDs for Needs Attention checks. Ignoring is stored per ID so a future
+    /// check is never suppressed until the user explicitly ignores that new ID.
+    /// </summary>
+    internal static class NeedsAttentionCheckIds
+    {
+        public const string Drivers = "drivers";
+        public const string Apps = "apps";
+        public const string SynToolkitVersion = "syntoolkit_version";
+        public const string RestorePoint = "restore_point";
+        public const string WindowsTime = "windows_time";
+        public const string LowDisk = "low_disk";
+
+        public static IReadOnlyList<string> All { get; } =
+        [
+            Drivers,
+            Apps,
+            SynToolkitVersion,
+            RestorePoint,
+            WindowsTime,
+            LowDisk,
+        ];
+    }
+
+    /// <summary>
     /// Converts a chosen ignore duration into the UTC instant a warning becomes visible again.
     /// Kept free of Windows/app dependencies so it can be covered by the service test runner.
     /// </summary>
