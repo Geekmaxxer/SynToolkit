@@ -2,6 +2,7 @@ using SynToolkit.Models;
 using SynToolkit.Commands;
 using SynToolkit.Services;
 using SynToolkit.Services.Bcd;
+using SynToolkit.Services.Games;
 using SynToolkit.Services.NvidiaProfileInspector;
 using SynToolkit.Services.RadeonSlimmer;
 using SynToolkit.Utils;
@@ -69,6 +70,7 @@ internal static class Program
         Run("HAGS classification distinguishes enabled, disabled, and unsupported", HagsClassificationDistinguishesStates);
         Run("Metadata cache retains recent entries and stays bounded", MetadataCacheStaysBounded);
         Run("Metadata cache handles concurrent readers and null values", MetadataCacheHandlesConcurrency);
+        Run("Epic store artwork slugs are derived from display names", EpicArtworkSlugsAreDerivedFromNames);
 
         Console.WriteLine(_failures == 0
             ? "All SynToolkit service tests passed."
@@ -95,6 +97,47 @@ internal static class Program
         True(cache.Count <= 8, "Concurrent insertion must respect capacity.");
         cache.GetOrAdd(-1, () => null);
         True(cache.GetOrAdd(-1, () => throw new Exception("Unexpected null reload")) is null, "Unavailable native metadata should be cached too.");
+    }
+
+    private static void EpicArtworkSlugsAreDerivedFromNames()
+    {
+        Equal(
+            "grand-theft-auto-v",
+            EpicArtworkSlug.BuildCandidates("Grand Theft Auto V")[0],
+            "A plain title should lower-case and dash-separate.");
+        Equal(
+            "thems-fightin-herds",
+            EpicArtworkSlug.BuildCandidates("Them's Fightin' Herds")[0],
+            "Apostrophes must join the surrounding letters rather than split the slug.");
+        Equal(
+            "warhammer-vermintide-2",
+            EpicArtworkSlug.BuildCandidates("Warhammer: Vermintide 2")[0],
+            "Punctuation runs must collapse to a single separator.");
+
+        IReadOnlyList<string> definitive =
+            EpicArtworkSlug.BuildCandidates("Ori and the Blind Forest: Definitive Edition");
+        True(
+            definitive.Contains("ori-and-the-blind-forest"),
+            "A trailing edition suffix should produce a base-product candidate.");
+
+        IReadOnlyList<string> withParenthetical = EpicArtworkSlug.BuildCandidates("Fortnite (Battle Royale)");
+        True(
+            withParenthetical.Contains("fortnite"),
+            "A parenthetical qualifier should produce a stripped candidate.");
+
+        IReadOnlyList<string> subtitled =
+            EpicArtworkSlug.BuildCandidates("Fallout 2: A Post Nuclear Role Playing Game");
+        Equal(
+            "fallout-2-a-post-nuclear-role-playing-game",
+            subtitled[0],
+            "The full subtitle form should still be tried first.");
+        True(
+            subtitled.Contains("fallout-2"),
+            "Epic drops the marketing subtitle from the slug, so the short title should be a candidate.");
+
+        True(
+            EpicArtworkSlug.BuildCandidates("   ").Count == 0,
+            "Blank names must not produce candidates.");
     }
 
     private static void FragmentedOnboardMemoryChipsAreLabeled()
