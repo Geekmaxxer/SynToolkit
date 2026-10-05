@@ -60,7 +60,6 @@ internal sealed class NeedsAttentionService
     private const int ClockDifferenceThresholdMilliseconds = 3_000;
     private static readonly TimeSpan LocalCacheDuration = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan OnlineCacheDuration = TimeSpan.FromMinutes(15);
-    private static readonly TimeSpan IgnoreDuration = TimeSpan.FromDays(90);
     private static readonly string IgnoreStatePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "SynToolkit",
@@ -144,7 +143,10 @@ internal sealed class NeedsAttentionService
         }
     }
 
-    public async Task IgnoreItemAsync(NeedsAttentionItem item, CancellationToken cancellationToken = default)
+    public async Task IgnoreItemAsync(
+        NeedsAttentionItem item,
+        NeedsAttentionIgnoreDuration duration = NeedsAttentionIgnoreDuration.ThreeMonths,
+        CancellationToken cancellationToken = default)
     {
         if (!item.CanIgnore || string.IsNullOrWhiteSpace(item.IgnoreKey))
         {
@@ -153,14 +155,15 @@ internal sealed class NeedsAttentionService
 
         await EnsureIgnoreStateLoadedAsync(cancellationToken);
         DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset expiresAt = NeedsAttentionIgnorePolicy.ResolveExpiry(duration, now);
         lock (_ignoredItemsLock)
         {
-            _ignoredItems[item.IgnoreKey] = new NeedsAttentionIgnoreRecord(now, now.Add(IgnoreDuration));
+            _ignoredItems[item.IgnoreKey] = new NeedsAttentionIgnoreRecord(now, expiresAt);
         }
 
         await PersistIgnoreStateAsync(cancellationToken);
         RemoveIgnoredItemFromCaches(item.IgnoreKey);
-        App.logger.Info("[NeedsAttention] Ignored warning {IgnoreKey} until {ExpiresAt}.", item.IgnoreKey, now.Add(IgnoreDuration));
+        App.logger.Info("[NeedsAttention] Ignored warning {IgnoreKey} until {ExpiresAt}.", item.IgnoreKey, expiresAt);
     }
 
     private List<NeedsAttentionItem> CollectLocalItems()

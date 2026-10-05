@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,11 +151,17 @@ public sealed partial class NeedsAttentionPage : Page
             return;
         }
 
+        NeedsAttentionIgnoreDuration? duration = await ShowIgnoreDurationDialogAsync();
+        if (duration is null)
+        {
+            return;
+        }
+
         try
         {
-            await _needsAttentionService.IgnoreItemAsync(item, _lifetimeCancellation.Token);
+            await _needsAttentionService.IgnoreItemAsync(item, duration.Value, _lifetimeCancellation.Token);
             await LoadItemsAsync(forceRefresh: false);
-            ActionInfoBar.Message = App.GetValueFromItemList("NeedsAttention_IgnoredForThreeMonths");
+            ActionInfoBar.Message = App.GetValueFromItemList("NeedsAttention_Ignored");
             ActionInfoBar.Severity = InfoBarSeverity.Success;
             ActionInfoBar.IsOpen = true;
         }
@@ -170,6 +177,60 @@ public sealed partial class NeedsAttentionPage : Page
             ActionInfoBar.IsOpen = true;
         }
     }
+
+    private async Task<NeedsAttentionIgnoreDuration?> ShowIgnoreDurationDialogAsync()
+    {
+        var options = new List<NeedsAttentionIgnoreDurationOption>(NeedsAttentionIgnorePolicy.All.Count);
+        NeedsAttentionIgnoreDurationOption? selected = null;
+
+        foreach (NeedsAttentionIgnoreDuration duration in NeedsAttentionIgnorePolicy.All)
+        {
+            var option = new NeedsAttentionIgnoreDurationOption(
+                duration,
+                App.GetValueFromItemList(NeedsAttentionIgnorePolicy.GetLocalizationKey(duration)));
+            options.Add(option);
+
+            if (duration == NeedsAttentionIgnorePolicy.Default)
+            {
+                selected = option;
+            }
+        }
+
+        var durationBox = new ComboBox
+        {
+            ItemsSource = options,
+            DisplayMemberPath = nameof(NeedsAttentionIgnoreDurationOption.Label),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            MinWidth = 260
+        };
+        durationBox.SelectedItem = selected ?? options[0];
+
+        var panel = new StackPanel { Spacing = 8, MinWidth = 300 };
+        panel.Children.Add(new TextBlock
+        {
+            Text = App.GetValueFromItemList("NeedsAttention_IgnoreDialogDescription"),
+            TextWrapping = TextWrapping.Wrap
+        });
+        panel.Children.Add(durationBox);
+
+        var dialog = new ContentDialog
+        {
+            Title = App.GetValueFromItemList("NeedsAttention_IgnoreDialogTitle"),
+            Content = panel,
+            PrimaryButtonText = App.GetValueFromItemList("NeedsAttention_Ignore"),
+            CloseButtonText = App.GetValueFromItemList("Cancel"),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        ContentDialogResult result = await dialog.ShowAsync();
+        return result == ContentDialogResult.Primary &&
+            durationBox.SelectedItem is NeedsAttentionIgnoreDurationOption chosen
+            ? chosen.Duration
+            : null;
+    }
+
+    private sealed record NeedsAttentionIgnoreDurationOption(NeedsAttentionIgnoreDuration Duration, string Label);
 
     private async Task RunActionAsync(Func<Task<string?>> action, string successMessage)
     {

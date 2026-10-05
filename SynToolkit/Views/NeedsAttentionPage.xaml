@@ -115,10 +115,10 @@
                                     Tag="{Binding}" />
                                 <Button
                                     Click="IgnoreAttentionItemButton_Click"
-                                    Content="Ignore for 3 months"
+                                    Content="Ignore"
                                     Tag="{Binding}"
                                     Visibility="{Binding CanIgnore, Converter={StaticResource BoolToVisibilityConverter}}"
-                                    local:LocalizedText.ContentKey="NeedsAttention_IgnoreForThreeMonths" />
+                                    local:LocalizedText.ContentKey="NeedsAttention_Ignore" />
                             </StackPanel>
                         </controls:SettingsCard>
                     </DataTemplate>
